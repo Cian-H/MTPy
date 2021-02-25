@@ -21,16 +21,16 @@ import scipy.stats as st
 # Number of samples expected
 n_samples = 81
 # path to location with datafiles
-dir_path = "INPUT"
+dir_path = "~/Documents/Aconity_IR_Analysis/81print/INPUT/pyrometer1"
 # set whether script should be quiet or verbose
 # NOTE: if set to True execution will be COMPLETELY silent
 quiet = False
 # Folders in which to output figures
-output_path = "OUTPUT"
+output_path = "~/Documents/Aconity_IR_Analysis/81print/OUTPUT/pyrometer1/layer"
 layer_subfolder = "Layers"
 sample_subfolder = "Samples"
 # Min and max height of layers, as a tuple
-z_range = (2.7, 3.96)
+z_range = (0.09, 3.96)
 # kwargs for thresholding
 avgspeed_thresh_kwargs = {"threshold_percent": 2.5,
                           "avgof": 40}
@@ -62,8 +62,8 @@ interactiveparams = {"color_continuous_scale": "Jet",
 # Header of the z (temperature) column in the datafiles
 temp_header = "temp"
 # amount of downsampling for interactive plots
-downsampling_layers = 10
-downsampling_samples = 1
+downsampling_layers = 100
+downsampling_samples = 10
 
 # —— Function calls for processing ————————————————————————————————————————————
 
@@ -152,7 +152,7 @@ print("Generating temp_data file")
 # Save sample temp data to a csv file (may have to make function later)
 with open(f"{output_path}/temp_data.csv", "w") as file:
     # Add a header column
-    file.write("SAMPLE, LAYER, TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")
+    file.write("SAMPLE, LAYER, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
     # loop through data array to generate csv
     for sample_number, sample_dict in sample_data.items():
         temps_flat = np.array([])
@@ -160,6 +160,8 @@ with open(f"{output_path}/temp_data.csv", "w") as file:
             layer_temps = layer_array[2, :]
             # Calc avg, stdev, stderr and confidence intervals
             layer_avg = np.mean(layer_temps)
+            layer_min = np.min(layer_temps)
+            layer_max = np.max(layer_temps)
             layer_stdev = np.std(layer_temps)
             # Unsure of proper degrees of freedom here so guessing its
             #   the standard "dof=n-1"?
@@ -169,10 +171,12 @@ with open(f"{output_path}/temp_data.csv", "w") as file:
                                        loc=layer_avg,
                                        scale=layer_stderr)
             # Write layer data to file
-            file.write(f"{sample_number}, {layer_number}, {layer_avg}, {layer_stdev}, {layer_stderr}, {layer_conf[0]}, {layer_conf[1]}\n")  # noqa
+            file.write(f"{sample_number}, {layer_number}, {layer_avg}, {layer_min}, {layer_max}, {layer_stdev}, {layer_stderr}, {layer_conf[0]}, {layer_conf[1]}\n")  # noqa
             temps_flat = np.append(temps_flat, layer_temps)
         # Calc avg, stdev, stderr and confidence intervals
         sample_avg = np.mean(temps_flat)
+        sample_min = np.min(temps_flat)
+        sample_max = np.max(temps_flat)
         sample_stdev = np.std(temps_flat)
         # Unsure of proper degrees of freedom here so guessing its
         #   the standard "dof=n-1"?
@@ -182,6 +186,6 @@ with open(f"{output_path}/temp_data.csv", "w") as file:
                                     loc=sample_avg,
                                     scale=sample_stderr)
         # Write sample overall data to file
-        file.write(f"{sample_number}, OVERALL, {sample_avg}, {sample_stdev}, {sample_stderr}, {sample_conf[0]}, {sample_conf[1]}\n")  # noqa
+        file.write(f"{sample_number}, OVERALL, {sample_avg}, {sample_min}, {sample_max}, {sample_stdev}, {sample_stderr}, {sample_conf[0]}, {sample_conf[1]}\n")  # noqa
 
 print("Script complete!")
