@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-class Base():
+from pathlib import Path
+import pickle
+
+
+class Base(object):
     """
     Base class for MTPy module classes
 
@@ -28,3 +32,19 @@ class Base():
         """Prints a line if self.quiet is False"""
         if not self.quiet:
             print(string)
+
+    # NOTE: These pickling functions might be removed later. They're
+    # currently here for convenience but might be a security issue
+    # down the line
+    def dump(self, dumppath):
+        """Pickles object to location in dumppath"""
+        if Path(dumppath).is_dir():
+            # Then dumps object to a file with that name
+            pickle.dump(self, open(f"{dumppath}/mtpyobj.p",
+                                   "wb"))
+        else:
+            pickle.dump(self, open(dumppath, "wb"))
+
+    def undump(self, dumppath):
+        """Unpickles object at dumppath and copies its attributes to self"""
+        self.__dict__ = pickle.load(open(dumppath, "rb")).__dict__.copy()
