@@ -5,7 +5,7 @@ from pathlib import Path
 import pickle
 
 
-class Base(object):
+class Base():
     """
     Base class for MTPy module classes
 
@@ -38,13 +38,17 @@ class Base(object):
     # down the line
     def dump(self, dumppath):
         """Pickles object to location in dumppath"""
+        self._qprint("Dumping object...")
         if Path(dumppath).is_dir():
             # Then dumps object to a file with that name
             pickle.dump(self, open(f"{dumppath}/mtpyobj.p",
                                    "wb"))
         else:
             pickle.dump(self, open(dumppath, "wb"))
+        self._qprint("Dumped!")
 
     def undump(self, dumppath):
         """Unpickles object at dumppath and copies its attributes to self"""
+        self._qprint("Undumping object...")
         self.__dict__ = pickle.load(open(dumppath, "rb")).__dict__.copy()
+        self._qprint("Undumped!")

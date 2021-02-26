@@ -11,17 +11,14 @@ from tqdm.auto import tqdm
 class DataLoader(Base):
 
     def __init__(self,
-                 data_path: str = str(Path().cwd()),
+                 data_path: str = None,
                  **kwargs):
         super().__init__(**kwargs)
-        self.data_path = data_path  # stores location from which to read data
+        # stores location from which to read data
+        self.data_path = str(Path(data_path).expanduser())
         # modifiable file extension to search for, in case needed in future
         self.file_extension = "pcd"
-        # add eprocess data_path to make more usable
-        if self.data_path[-1] != "/":
-            self.data_path += "/"
-        if self.data_path[0] == "~":
-            self.data_path = str(Path().home()) + self.data_path[1:]
+        # process data_path to make more usable
 
     def read_layers(self):
         """Reads layer files into data structure for processing"""
@@ -44,7 +41,7 @@ class DataLoader(Base):
         for idx, file in tqdm(enumerate(files), total=len(files),
                               disable=self.quiet):
             try:
-                df = pd.read_csv(self.data_path + file,
+                df = pd.read_csv(f"{self.data_path}/{file}",
                                  names=["x", "y", "temp", "temp_duplicate"],
                                  header=None, delimiter=" ")
 

@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from data_processor import DataProcessor
-import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from mpl_toolkits import mplot3d  # noqa
 from plotly import express as px
+import scipy.stats as st
 from tqdm.auto import tqdm
 
 # This piece of init code prevents a warning resulting from generation of
@@ -22,16 +23,6 @@ class MeltpoolTomography(DataProcessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def _prep_path(self, output_path):
-        """Checks if paths exist and creates them if they dont"""
-        try:
-            os.makedirs(f"{output_path}")
-        except OSError as e:
-            if e.errno == 17:
-                self._qprint(f"Directory {output_path} already exists!")
-            else:
-                raise e
-
     # takes a collection of complete layers and plots figures from them at the
     #   target filepath
     def _layers_to_figures(self, layers, output_path, filetype="png",
@@ -41,7 +32,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate layer plots in {output_path}...")
 
-        self._prep_path(output_path)
+        Path(output_path).expanduser().mkdir()
 
         self._qprint("\nGenerating layer plots")
         # Create figure
@@ -82,7 +73,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate sample plots in {output_path}...")
 
-        self._prep_path(output_path)
+        Path(output_path).expanduser().mkdir()
 
         self._qprint("\nGenerating sample plots")
 
@@ -112,7 +103,7 @@ class MeltpoolTomography(DataProcessor):
 
         self._qprint(f"\nPreparing to generate 3dplot in {output_path}...")
 
-        self._prep_path(output_path)
+        Path(output_path).expanduser().mkdir()
 
         # Create z values assuming equal layer height if none given
         if z is None:
@@ -168,7 +159,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate sample 3dplots in {output_path}...")
 
-        self._prep_path(output_path)
+        Path(output_path).expanduser().mkdir()
 
         self._qprint("\nGenerating sample 3dplots")
 
@@ -207,7 +198,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate 3dplot_interactive in {output_path}...")
 
-        self._prep_path(output_path)
+        Path(output_path).expanduser().mkdir()
 
         # Create z values assuming equal layer height if none given
         if z is None:
@@ -287,7 +278,7 @@ class MeltpoolTomography(DataProcessor):
                                        plotparams={}):
         self._qprint(f"\nPreparing to generate sample interactive 3dplots in {output_path}...")  # noqa
 
-        self._prep_path(output_path)
+        Path(output_path).expanduser().mkdir()
 
         self._qprint("\nGenerating sample interactive 3dplots")
 
@@ -308,3 +299,46 @@ class MeltpoolTomography(DataProcessor):
                                                plotparams=plotparams)
 
         self._qprint("Sample interactive 3dplots complete!\n")
+
+    def temp_data_to_csv(self, output_path: str):
+        print("Generating temp_data file...")
+        if not output_path[-4:] == ".csv":
+            output_path += ".csv"
+        # Save sample temp data to a csv file (may have to make function later)
+        with open(f"{output_path}", "w") as file:
+            # Add a header column
+            file.write("SAMPLE, LAYER, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
+            # loop through data array to generate csv
+            for sample_number, sample_dict in self.sample_data.items():
+                temps_flat = np.array([])
+                for layer_number, layer_array in sample_dict.items():
+                    layer_temps = layer_array[2, :]
+                    # Calc avg, stdev, stderr and confidence intervals
+                    layer_avg = np.mean(layer_temps)
+                    layer_min = np.min(layer_temps)
+                    layer_max = np.max(layer_temps)
+                    layer_stdev = np.std(layer_temps)
+                    # Unsure of proper degrees of freedom here so guessing its
+                    #   the standard "dof=n-1"?
+                    layer_stderr = st.sem(layer_temps, ddof=layer_temps.size-1)
+                    layer_conf = st.t.interval(0.95,
+                                               layer_temps.size-1,
+                                               loc=layer_avg,
+                                               scale=layer_stderr)
+                    # Write layer data to file
+                    file.write(f"{sample_number}, {layer_number}, {layer_avg}, {layer_min}, {layer_max}, {layer_stdev}, {layer_stderr}, {layer_conf[0]}, {layer_conf[1]}\n")  # noqa
+                    temps_flat = np.append(temps_flat, layer_temps)
+                # Calc avg, stdev, stderr and confidence intervals
+                sample_avg = np.mean(temps_flat)
+                sample_min = np.min(temps_flat)
+                sample_max = np.max(temps_flat)
+                sample_stdev = np.std(temps_flat)
+                # Unsure of proper degrees of freedom here so guessing its
+                #   the standard "dof=n-1"?
+                sample_stderr = st.sem(temps_flat, ddof=temps_flat.size-1)
+                sample_conf = st.t.interval(0.95,
+                                            temps_flat.size-1,
+                                            loc=sample_avg,
+                                            scale=sample_stderr)
+                # Write sample overall data to file
+                file.write(f"{sample_number}, OVERALL, {sample_avg}, {sample_min}, {sample_max}, {sample_stdev}, {sample_stderr}, {sample_conf[0]}, {sample_conf[1]}\n")  # noqa

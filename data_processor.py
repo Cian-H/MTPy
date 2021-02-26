@@ -34,13 +34,10 @@ class DataProcessor(DataLoader):
     # Thresholds data (x,y or x,y,z) based on percentage of max average slope
     #   of displacement
     def avgspeed_threshold(self, x, y, z, threshold_percent=1, avgof=1):
-        self._qprint(f"Thresholding data by rolling avg speed (n={avgof}, cutoff={threshold_percent}%)...") # noqa
         threshold_percent /= 100.  # convert threshold percent to decimal
         # calc displacements using pythagorean theorem
-        self._qprint("Calculating point displacements")
         displacement = np.sqrt(np.add(np.square(x), np.square(y)))
 
-        self._qprint("Calculating rolling averages")
         # Calculate rolling average of displacement
         rollingavgdisp = []
         for start, end in tqdm(zip(range(displacement.size - avgof),
@@ -49,10 +46,8 @@ class DataProcessor(DataLoader):
             rollingavgdisp.append(np.mean(displacement[start:end]))
         rollingavgdisp = np.asarray(rollingavgdisp)
 
-        self._qprint("Calculating absolute rolling average speeds")
         # get absolute average speed based on rolling avg displacement
         absavgdispslope = np.abs(np.diff(rollingavgdisp))
-        self._qprint("Eliminating points below threshold")
         threshold = threshold_percent * np.max(absavgdispslope)  # thresh val
         # mask out points without enough predecessors for rolling avg
         xmasked, ymasked = x[-absavgdispslope.size:], y[-absavgdispslope.size:]
@@ -71,7 +66,7 @@ class DataProcessor(DataLoader):
     #   of whatever z data is given
     def avgz_threshold(self, x, y, z, threshold_percent=1,
                        comparison_func=None):
-        self._qprint(f"Thresholding data by z based on {comparison_func.__name__} (cutoff={threshold_percent}%)...") # noqa
+        # self._qprint(f"Thresholding data by z based on {comparison_func.__name__} (cutoff={threshold_percent}%)...") # noqa
         threshold_percent /= 100  # convert threshold percent to decimal
         threshold = threshold_percent * np.mean(z)  # threshold val
         # filter based on threshold criteria
@@ -100,24 +95,21 @@ class DataProcessor(DataLoader):
 
         self._qprint("\nThresholding all layers")
 
-        # Dict to hold output data
-        thresholded_data_layers = {}
         # Loop through dict, applying thresh_func to each layer
         for layer_number, layer_data in tqdm(self.data_dict.items(),
                                              total=len(self.data_dict),
+                                             desc="Layers",
                                              disable=self.quiet):
             # apply each requested thresholding function in sequence
             for thresh_function, kwargs in zip(thresh_functions,
                                                threshfunc_kwargs):
 
-                thresholded_data_layers[layer_number] = \
+                self.data_dict[layer_number] = \
                     np.asarray(
                         thresh_function(layer_data[:, 0],
                                         layer_data[:, 1],
                                         layer_data[:, 2],
                                         **kwargs))
-
-        self.data_dict = thresholded_data_layers
 
     # Takes data and creates dict of each layer (layer num = key)
     #   with first index of tuple being 2d array of layer data and
