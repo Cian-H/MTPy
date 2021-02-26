@@ -11,8 +11,17 @@ class Base():
 
     Attributes
     ----------
-        quiet : bool
+        quiet: bool = False
             Determines whether object should be quiet or not
+
+    Methods
+    -------
+        _qprint(string: str)
+            Prints a line if self.quiet is False
+        dump(dumppath)
+            Pickles object to location in dumppath
+        undump(dumppath)
+            Unpickles object at dumppath and copies its attributes to self
     """
 
     def __init__(self,
@@ -22,7 +31,7 @@ class Base():
 
         Parameters
         ----------
-            quiet : bool
+            quiet: bool = False
                 Determines whether object should be quiet or not
         """
 

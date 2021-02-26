@@ -25,15 +25,65 @@ clusterfunc_dispatcher = {func.__name__: func for
 
 
 class DataProcessor(DataLoader):
+    """
+    DataLoader class for loading data into the MTPy Module
+
+    Attributes
+    ----------
+        quiet: bool = False
+            Determines whether object should be quiet or not
+        data_path: str = None
+            The path to the data to be processed
+
+    Methods
+    -------
+        _qprint(string: str)
+            Prints a line if self.quiet is False
+        dump(dumppath)
+            Pickles object to location in dumppath
+        undump(dumppath)
+            Unpickles object at dumppath and copies its attributes to self
+        read_layers()
+            Reads layer files into data structure for processing
+        reset_data()
+            Undoes all data processing that was performed on loaded data
+        avgspeed_threshold(x, y, z, threshold_percent=1, avgof=1)
+            Thresholds data (x,y,z) based on percentage of max average slope
+            of rolling average of displacement
+        avgz_threshold(x, y, z, threshold_percent=1, comparison_func=None)
+            Selectively keeps data based on comparison with a percentage of the
+            mean of whatever z data is given
+        avgz_greaterthan(x, y, z, threshold_percent=1)
+            Keeps all values greater than threshold percent of average
+        avgz_lessthan(x, y, z, threshold_percent=1)
+            Keeps all values greater than threshold percent of average
+        threshold_all_layers(thresh_functions, threshfunc_kwargs):
+            Thresholds all layers by applying listed functions with listed
+            params
+        detect_samples(n_samples, label_samples: bool = True, mode="KMeans")
+            Uses a clustering algorithm to detect samples automatically
+        separate_samples()
+            Separates labelled layer data into samples
+    """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # modifiable in case needed in future
-        self.z_header = "temp"
+        """
+        Constructor for the MTPy DataProcessor Base class
 
-    # Thresholds data (x,y or x,y,z) based on percentage of max average slope
-    #   of displacement
+        Parameters
+        ----------
+            quiet: bool = False
+                Determines whether object should be quiet or not
+            data_path: str = None
+                The path to the data to be processed
+        """
+        super().__init__(**kwargs)
+
     def avgspeed_threshold(self, x, y, z, threshold_percent=1, avgof=1):
+        """
+        Thresholds data (x,y,z) based on percentage of max average slope
+        of rolling average of displacement
+        """
         threshold_percent /= 100.  # convert threshold percent to decimal
         # calc displacements using pythagorean theorem
         displacement = np.sqrt(np.add(np.square(x), np.square(y)))
@@ -66,7 +116,10 @@ class DataProcessor(DataLoader):
     #   of whatever z data is given
     def avgz_threshold(self, x, y, z, threshold_percent=1,
                        comparison_func=None):
-        # self._qprint(f"Thresholding data by z based on {comparison_func.__name__} (cutoff={threshold_percent}%)...") # noqa
+        """
+        Selectively keeps data based on comparison with a percentage of the
+        mean of whatever z data is given
+        """
         threshold_percent /= 100  # convert threshold percent to decimal
         threshold = threshold_percent * np.mean(z)  # threshold val
         # filter based on threshold criteria
@@ -77,16 +130,19 @@ class DataProcessor(DataLoader):
         return x_thresh, y_thresh, z_thresh
 
     def avgz_greaterthan(self, x, y, z, threshold_percent=1):
+        "Keeps all values greater than threshold percent of average"
         return self.avgz_threshold(x, y, z,
                                    threshold_percent=threshold_percent,
                                    comparison_func=op.gt)
 
     def avgz_lessthan(self, x, y, z, threshold_percent=1):
+        "Keeps all values less than threshold percent of average"
         return self.avgz_threshold(x, y, z,
                                    threshold_percent=threshold_percent,
                                    comparison_func=op.lt)
 
     def threshold_all_layers(self, thresh_functions, threshfunc_kwargs):
+        "Thresholds all layers by applying listed functions with listed params"
         # if conversions to dict is needed for single function, then convert
         if type(thresh_functions) is FunctionType:
             thresh_functions = (thresh_functions,)
@@ -111,13 +167,10 @@ class DataProcessor(DataLoader):
                                         layer_data[:, 2],
                                         **kwargs))
 
-    # Takes data and creates dict of each layer (layer num = key)
-    #   with first index of tuple being 2d array of layer data and
-    #   second index being cluster numbers. Also returns
-    #   array for adding labels to layer plots as second output if requested
     def detect_samples(self, n_samples,
                        label_samples: bool = True,
                        mode="KMeans"):
+        "Uses a clustering algorithm to detect samples automatically"
         self._qprint("\nDetecting contiguous samples\n")
         # Concatenate x and y arrays into 2d array for training
         cluster_training = np.concatenate(tuple(self.data_dict.values()),
@@ -134,28 +187,26 @@ class DataProcessor(DataLoader):
 
         self._qprint("\nLabelling contiguous samples")
         # loop through layers clustering xy data points
-        clustered_layer_data = {}
+        labelled_layer_data = {}
         for layer_number, layer_data in tqdm(self.data_dict.items(),
                                              total=len(self.data_dict),
                                              disable=self.quiet):
             layer_xy = layer_data[:2, :]
             clusters = self.model.predict(layer_xy.T)
-            clustered_layer_data[layer_number] = (layer_data, clusters)
+            labelled_layer_data[layer_number] = (layer_data, clusters)
 
         if label_samples is True:
             self.sample_labels = self.model.cluster_centers_
 
-        self.clustered_layer_data = clustered_layer_data
+        self.labelled_layer_data = labelled_layer_data
 
-    # takes a dataset as returned by detect_samples and separates the samples
-    #   into a dict by cluster number. Samples are stored as dicts of layers,
-    #   where layers are dfs (as is done with whole layers in other functions)
     def separate_samples(self):
+        "Separates labelled layer data into samples"
         self._qprint("\nSeparating samples into different datasets")
         sample_data = {}
-        for layer_number, layer_data in tqdm(self.clustered_layer_data.items(),
+        for layer_number, layer_data in tqdm(self.labelled_layer_data.items(),
                                              total=len(
-                                                self.clustered_layer_data),
+                                                self.labelled_layer_data),
                                              desc="Overall",
                                              disable=self.quiet):
             for cluster_num in tqdm(set(layer_data[1]),

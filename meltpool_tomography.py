@@ -19,16 +19,68 @@ plt.rcParams.update({"figure.max_open_warning": 0})
 
 
 class MeltpoolTomography(DataProcessor):
+    """
+    Class for handling and processing meltpool tomography in the MTPy Module
+
+    Attributes
+    ----------
+        quiet: bool = False
+            Determines whether object should be quiet or not
+        data_path: str = None
+            The path to the data to be processed
+
+    Methods
+    -------
+        dump(dumppath)
+            Pickles object to location in dumppath
+        undump(dumppath)
+            Unpickles object at dumppath and copies its attributes to self
+        read_layers()
+            Reads layer files into data structure for processing
+        reset_data()
+            Undoes all data processing that was performed on loaded data
+        avgspeed_threshold(x, y, z, threshold_percent=1, avgof=1)
+            Thresholds data (x,y,z) based on percentage of max average slope
+            of rolling average of displacement
+        avgz_threshold(x, y, z, threshold_percent=1, comparison_func=None)
+            Selectively keeps data based on comparison with a percentage of the
+            mean of whatever z data is given
+        avgz_greaterthan(x, y, z, threshold_percent=1)
+            Keeps all values greater than threshold percent of average
+        avgz_lessthan(x, y, z, threshold_percent=1)
+            Keeps all values greater than threshold percent of average
+        threshold_all_layers(thresh_functions, threshfunc_kwargs):
+            Thresholds all layers by applying listed functions with listed
+            params
+        detect_samples(n_samples, label_samples: bool = True, mode="KMeans")
+            Uses a clustering algorithm to detect samples automatically
+        separate_samples()
+            Separates labelled layer data into samples
+        layers_to_figures(self, output_path, **kwargs)
+            Generates figures from complete layers
+        layers_to_3dplot(self, output_path, **kwargs)
+            Function for generating 3d figures from layers
+        samples_to_3dplots(output_path, filetype="png", z_range=None, z=None,
+                           plot_w=False, colorbar=False, figureparams={},
+                           plotparams={})
+            Generates 3d figures for every labelled sample
+        layers_to_3dplot_interactive(output_path, **kwargs)
+            Generates interactive 3d figures from complete layers
+        samples_to_3dplots_interactive(output_path, z_range=None, z=None,
+                                       plot_w=False, downsampling=1,
+                                       sliceable=False, plotparams={})
+            Generates interactive 3d figures for every labelled sample
+        temp_data_to_csv(output_path: str)
+            Generates a csv containing temperature data for processed samples
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    # takes a collection of complete layers and plots figures from them at the
-    #   target filepath
     def _layers_to_figures(self, layers, output_path, filetype="png",
                            plot_z=False, colorbar=False,
                            figureparams={}, scatterparams={}):
-
+        "Internally called function for generating figures from layers"
         self._qprint(
             f"\nPreparing to generate layer plots in {output_path}...")
 
@@ -62,10 +114,9 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Layer plots complete!\n")
 
     def layers_to_figures(self, output_path, **kwargs):
+        "Generates figures from complete layers"
         self._layers_to_figures(self.data_dict, output_path, **kwargs)
 
-    # takes a dictionary of samples (such as returned by the function
-    #   separate_samples) and plots figures from them at the target filepath
     def samples_to_figures(self, output_path, filetype="png",
                            plot_z=False, colorbar=False, figureparams={},
                            scatterparams={}):
@@ -92,15 +143,14 @@ class MeltpoolTomography(DataProcessor):
 
         self._qprint("Sample plots complete!\n")
 
-    # takes a collection of complete layers and plots figures from them at the
-    #   target filepath. z values can be given or generated based on z_range
-    #   (assuming equal layer spacing). Otherwise, z values should be given
-    #   as an array of heights above zero for each layer
     def _layers_to_3dplot(self, layers, output_path, filetype="png",
                           z_range=None, z=None,
                           plot_w=False, colorbar=False,
                           figureparams={}, plotparams={}):
-
+        """
+        Internally called function for generating 3d figures from complete
+        layers
+        """
         self._qprint(f"\nPreparing to generate 3dplot in {output_path}...")
 
         Path(output_path).expanduser().mkdir()
@@ -149,6 +199,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("3dplot complete!\n")
 
     def layers_to_3dplot(self, output_path, **kwargs):
+        "Function for generating 3d figures from layers"
         self._layers_to_3dplot(self.data_dict, output_path, **kwargs)
 
     # Does same as layers_to_3dplots but for each individual sample instead of
@@ -156,6 +207,7 @@ class MeltpoolTomography(DataProcessor):
     def samples_to_3dplots(self, output_path, filetype="png",
                            z_range=None, z=None, plot_w=False, colorbar=False,
                            figureparams={}, plotparams={}):
+        "Generates 3d figures for every labelled sample"
         self._qprint(
             f"\nPreparing to generate sample 3dplots in {output_path}...")
 
@@ -194,7 +246,10 @@ class MeltpoolTomography(DataProcessor):
     def _layers_to_3dplot_interactive(self, layers, output_path, z_range=None,
                                       z=None, plot_w=False, downsampling=1,
                                       sliceable=False, plotparams={}):
-
+        """
+        Internally called function for generating interactive 3d figures from
+        complete layers
+        """
         self._qprint(
             f"\nPreparing to generate 3dplot_interactive in {output_path}...")
 
@@ -268,6 +323,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("3dplot_interactive complete!\n")
 
     def layers_to_3dplot_interactive(self, output_path, **kwargs):
+        "Generates interactive 3d figures from complete layers"
         self._layers_to_3dplot_interactive(self.data_dict, output_path,
                                            **kwargs)
 
@@ -276,6 +332,7 @@ class MeltpoolTomography(DataProcessor):
                                        z_range=None, z=None, plot_w=False,
                                        downsampling=1, sliceable=False,
                                        plotparams={}):
+        "Generates interactive 3d figures for every labelled sample"
         self._qprint(f"\nPreparing to generate sample interactive 3dplots in {output_path}...")  # noqa
 
         Path(output_path).expanduser().mkdir()
@@ -301,17 +358,24 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Sample interactive 3dplots complete!\n")
 
     def temp_data_to_csv(self, output_path: str):
-        print("Generating temp_data file...")
+        "Generates a csv containing temperature data for processed samples"
         if not output_path[-4:] == ".csv":
             output_path += ".csv"
+        self._qprint(f"Generating {output_path}...")
         # Save sample temp data to a csv file (may have to make function later)
         with open(f"{output_path}", "w") as file:
             # Add a header column
             file.write("SAMPLE, LAYER, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
             # loop through data array to generate csv
-            for sample_number, sample_dict in self.sample_data.items():
+            for sample_number, sample_dict in tqdm(self.sample_data.items(),
+                                                   total=len(self.sample_data),
+                                                   desc="Samples",
+                                                   disable=self.quiet):
                 temps_flat = np.array([])
-                for layer_number, layer_array in sample_dict.items():
+                for layer_number, layer_array in tqdm(sample_dict.items(),
+                                                      total=len(sample_dict),
+                                                      desc="Layers",
+                                                      disable=self.quiet):
                     layer_temps = layer_array[2, :]
                     # Calc avg, stdev, stderr and confidence intervals
                     layer_avg = np.mean(layer_temps)
@@ -342,3 +406,5 @@ class MeltpoolTomography(DataProcessor):
                                             scale=sample_stderr)
                 # Write sample overall data to file
                 file.write(f"{sample_number}, OVERALL, {sample_avg}, {sample_min}, {sample_max}, {sample_stdev}, {sample_stderr}, {sample_conf[0]}, {sample_conf[1]}\n")  # noqa
+
+        self._qprint(f"{output_path} generated!")

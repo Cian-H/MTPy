@@ -9,10 +9,43 @@ from tqdm.auto import tqdm
 
 
 class DataLoader(Base):
+    """
+    DataLoader class for loading data into the MTPy Module
+
+    Attributes
+    ----------
+        quiet: bool = False
+            Determines whether object should be quiet or not
+        data_path: str = None
+            The path to the data to be processed
+
+    Methods
+    -------
+        _qprint(string: str)
+            Prints a line if self.quiet is False
+        dump(dumppath)
+            Pickles object to location in dumppath
+        undump(dumppath)
+            Unpickles object at dumppath and copies its attributes to self
+        read_layers()
+            Reads layer files into data structure for processing
+        reset_data()
+            Undoes all data processing that was performed on loaded data
+    """
 
     def __init__(self,
                  data_path: str = None,
                  **kwargs):
+        """
+        Constructor for the MTPy DataLoader Base class
+
+        Parameters
+        ----------
+            quiet: bool = False
+                Determines whether object should be quiet or not
+            data_path: str = None
+                The path to the data to be processed
+        """
         super().__init__(**kwargs)
         # stores location from which to read data
         self.data_path = str(Path(data_path).expanduser())
