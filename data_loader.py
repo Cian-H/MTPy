@@ -4,13 +4,14 @@
 from base import Base
 from pathlib import Path
 import pandas as pd
+import numpy as np
 from tqdm.auto import tqdm
 
 
 class DataLoader(Base):
 
     def __init__(self,
-                 data_path: str,
+                 data_path: str = str(Path().cwd()),
                  **kwargs):
         super().__init__(**kwargs)
         self.data_path = data_path  # stores location from which to read data
@@ -51,7 +52,7 @@ class DataLoader(Base):
                 df = df.groupby(["x", "y"], sort=False, as_index=False).mean()
                 # Corrects for flipped x axis on aconity output
                 df["x"] *= -1
-                data_dict[idx] = df
+                data_dict[idx] = np.asarray(df)
             except:  # noqa
                 self._qprint(f"File {file} not found!")
 

@@ -99,31 +99,34 @@ class DataProcessor(DataLoader):
             threshfunc_kwargs = (threshfunc_kwargs,)
 
         self._qprint("\nThresholding all layers")
-        data_layers = {}
-        for layer_number, layer_data in self.data_dict.items():
-            data_layers[layer_number] = []
-            data_layers[layer_number].append(layer_data["x"].values)
-            data_layers[layer_number].append(layer_data["y"].values)
-            if self.z_header is not None:
-                data_layers[layer_number].append(
-                    layer_data[self.z_header].values)
+        # data_layers = {}
+        # for layer_number, layer_data in self.data_dict.items():
+        #     data_layers[layer_number] = []
+        #     data_layers[layer_number].append(layer_data["x"].values)
+        #     data_layers[layer_number].append(layer_data["y"].values)
+        #     if self.z_header is not None:
+        #         data_layers[layer_number].append(
+        #             layer_data[self.z_header].values)
+
         # Dict to hold output data
         thresholded_data_layers = {}
         # Loop through dict, applying thresh_func to each layer
-        for layer_number, layer_data in tqdm(data_layers.items(),
-                                             total=len(data_layers),
+        for layer_number, layer_data in tqdm(self.data_dict.items(),
+                                             total=len(self.data_dict),
                                              disable=self.quiet):
             # apply each requested thresholding function in sequence
             for thresh_function, kwargs in zip(thresh_functions,
                                                threshfunc_kwargs):
-                if self.z_header is None:
-                    z = None
-                else:
-                    z = layer_data[2]
+                # if self.z_header is None:
+                #     z = None
+                # else:
+                #     z = layer_data[2]
 
                 thresholded_data_layers[layer_number] = \
                     np.asarray(
-                        thresh_function(layer_data[0], layer_data[1], z,
+                        thresh_function(layer_data[:, 0],
+                                        layer_data[:, 1],
+                                        layer_data[:, 2],
                                         **kwargs))
 
         self.data_dict = thresholded_data_layers
