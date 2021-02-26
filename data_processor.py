@@ -43,19 +43,21 @@ class DataProcessor(DataLoader):
             Pickles object to location in dumppath
         undump(dumppath)
             Unpickles object at dumppath and copies its attributes to self
-        read_layers()
+        read_layers(calibration_curve: FunctionType = None)
             Reads layer files into data structure for processing
         reset_data()
             Undoes all data processing that was performed on loaded data
-        avgspeed_threshold(x, y, z, threshold_percent=1, avgof=1)
-            Thresholds data (x,y,z) based on percentage of max average slope
+        apply_calibration_curve(calibration_curve: FunctionType)
+            Applies calibration curve function to w axis (temp) data
+        avgspeed_threshold(x, y, w, threshold_percent=1, avgof=1)
+            Thresholds data (x,y,w) based on percentage of max average slope
             of rolling average of displacement
-        avgz_threshold(x, y, z, threshold_percent=1, comparison_func=None)
+        avgw_threshold(x, y, w, threshold_percent=1, comparison_func=None)
             Selectively keeps data based on comparison with a percentage of the
-            mean of whatever z data is given
-        avgz_greaterthan(x, y, z, threshold_percent=1)
+            mean of whatever w data is given
+        avgw_greaterthan(x, y, w, threshold_percent=1)
             Keeps all values greater than threshold percent of average
-        avgz_lessthan(x, y, z, threshold_percent=1)
+        avgw_lessthan(x, y, w, threshold_percent=1)
             Keeps all values greater than threshold percent of average
         threshold_all_layers(thresh_functions, threshfunc_kwargs):
             Thresholds all layers by applying listed functions with listed
@@ -79,9 +81,18 @@ class DataProcessor(DataLoader):
         """
         super().__init__(**kwargs)
 
-    def avgspeed_threshold(self, x, y, z, threshold_percent=1, avgof=1):
+    def apply_calibration_curve(self, calibration_curve: FunctionType):
+        "Applies calibration curve function to w axis (temp) data"
+        self._qprint("Applying calibration curve")
+        for layer_num, layer_data in tqdm(self.data_dict.items(),
+                                          total=len(self.data_dict),
+                                          desc="Layers",
+                                          disable=self.quiet):
+            layer_data[:, 2] = calibration_curve(layer_data[:, 2])
+
+    def avgspeed_threshold(self, x, y, w, threshold_percent=1, avgof=1):
         """
-        Thresholds data (x,y,z) based on percentage of max average slope
+        Thresholds layer data (x,y,w) based on percentage of max average slope
         of rolling average of displacement
         """
         threshold_percent /= 100.  # convert threshold percent to decimal
@@ -100,44 +111,39 @@ class DataProcessor(DataLoader):
         absavgdispslope = np.abs(np.diff(rollingavgdisp))
         threshold = threshold_percent * np.max(absavgdispslope)  # thresh val
         # mask out points without enough predecessors for rolling avg
-        xmasked, ymasked = x[-absavgdispslope.size:], y[-absavgdispslope.size:]
+        xmasked = x[-absavgdispslope.size:]
+        ymasked = y[-absavgdispslope.size:]
+        wmasked = w[-absavgdispslope.size:]
         # filter based on threshold criteria
         x_thresh = xmasked[absavgdispslope < threshold]
         y_thresh = ymasked[absavgdispslope < threshold]
-        # return thresholded x,y or x,y,z depending on input
-        if z is None:
-            return x_thresh, y_thresh
-        else:
-            zmasked = z[-absavgdispslope.size:]
-            z_thresh = zmasked[absavgdispslope < threshold]
-            return x_thresh, y_thresh, z_thresh
+        w_thresh = wmasked[absavgdispslope < threshold]
+        return x_thresh, y_thresh, w_thresh
 
-    # Selectively keeps data based on comparison with a percentage of the mean
-    #   of whatever z data is given
-    def avgz_threshold(self, x, y, z, threshold_percent=1,
+    def avgw_threshold(self, x, y, w, threshold_percent=1,
                        comparison_func=None):
         """
         Selectively keeps data based on comparison with a percentage of the
-        mean of whatever z data is given
+        mean of whatever w data is given
         """
         threshold_percent /= 100  # convert threshold percent to decimal
-        threshold = threshold_percent * np.mean(z)  # threshold val
+        threshold = threshold_percent * np.mean(w)  # threshold val
         # filter based on threshold criteria
-        x_thresh = x[comparison_func(z, threshold)]
-        y_thresh = y[comparison_func(z, threshold)]
-        z_thresh = z[comparison_func(z, threshold)]
+        x_thresh = x[comparison_func(w, threshold)]
+        y_thresh = y[comparison_func(w, threshold)]
+        w_thresh = w[comparison_func(w, threshold)]
         # Return thresholded data
-        return x_thresh, y_thresh, z_thresh
+        return x_thresh, y_thresh, w_thresh
 
-    def avgz_greaterthan(self, x, y, z, threshold_percent=1):
+    def avgw_greaterthan(self, x, y, w, threshold_percent=1):
         "Keeps all values greater than threshold percent of average"
-        return self.avgz_threshold(x, y, z,
+        return self.avgw_threshold(x, y, w,
                                    threshold_percent=threshold_percent,
                                    comparison_func=op.gt)
 
-    def avgz_lessthan(self, x, y, z, threshold_percent=1):
+    def avgw_lessthan(self, x, y, w, threshold_percent=1):
         "Keeps all values less than threshold percent of average"
-        return self.avgz_threshold(x, y, z,
+        return self.avgw_threshold(x, y, w,
                                    threshold_percent=threshold_percent,
                                    comparison_func=op.lt)
 

@@ -35,10 +35,12 @@ class MeltpoolTomography(DataProcessor):
             Pickles object to location in dumppath
         undump(dumppath)
             Unpickles object at dumppath and copies its attributes to self
-        read_layers()
+        read_layers(calibration_curve: FunctionType = None)
             Reads layer files into data structure for processing
         reset_data()
             Undoes all data processing that was performed on loaded data
+        apply_calibration_curve(calibration_curve: FunctionType)
+            Applies calibration curve function to w axis (temp) data
         avgspeed_threshold(x, y, z, threshold_percent=1, avgof=1)
             Thresholds data (x,y,z) based on percentage of max average slope
             of rolling average of displacement

@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 from tqdm.auto import tqdm
+from types import FunctionType
 
 
 class DataLoader(Base):
@@ -27,7 +28,7 @@ class DataLoader(Base):
             Pickles object to location in dumppath
         undump(dumppath)
             Unpickles object at dumppath and copies its attributes to self
-        read_layers()
+        read_layers(calibration_curve: FunctionType = None)
             Reads layer files into data structure for processing
         reset_data()
             Undoes all data processing that was performed on loaded data
@@ -53,7 +54,7 @@ class DataLoader(Base):
         self.file_extension = "pcd"
         # process data_path to make more usable
 
-    def read_layers(self):
+    def read_layers(self, calibration_curve: FunctionType = None):
         """Reads layer files into data structure for processing"""
         self._qprint(f"\nSearching for files at {self.data_path}")
         # glob filenames
@@ -82,6 +83,9 @@ class DataLoader(Base):
                 df = df.groupby(["x", "y"], sort=False, as_index=False).mean()
                 # Corrects for flipped x axis on aconity output
                 df["x"] *= -1
+                # If given a calibration curve, apply it
+                if calibration_curve is not None:
+                    df["temp"] = calibration_curve(df["temp"])
                 data_dict[idx] = np.asarray(df)
             except:  # noqa
                 self._qprint(f"File {file} not found!")
