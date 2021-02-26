@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 from mtpy import MeltpoolTomography
+from pathlib import Path
 
 # —— Initialise data processing object ————————————————————————————————————————
 
@@ -9,6 +10,7 @@ from mtpy import MeltpoolTomography
 dir_path = "~/test_data/layer"
 # Folders in which to output figures
 output_path = "~/test_data/OUTPUT"
+output_path = str(Path(output_path).expanduser())
 layer_subfolder = "Layers"
 sample_subfolder = "Samples"
 mpt = MeltpoolTomography(data_path=dir_path)
@@ -33,7 +35,7 @@ avgtemp_thresh_kwargs = {"threshold_percent": 92.5}
 #   might want to pass kwargs so some functions need multiple kwarg dicts.
 #   Therefore, for consistency, i decided all kwargs passed should stay as
 #   encapsulated dicts and not be splatted
-thresh_functions = (mpt.avgspeed_threshold, mpt.avgz_greaterthan)
+thresh_functions = (mpt.avgspeed_threshold, mpt.avgw_greaterthan)
 thresh_kwargs = (avgspeed_thresh_kwargs, avgtemp_thresh_kwargs)
 # Set mode for clustering function
 cluster_mode = "KMeans"
@@ -46,7 +48,7 @@ scatterparams = {"cmap": "jet"}
 # This gets passed to plotly.express.scatter_3d
 interactiveparams = {"color_continuous_scale": "Jet",
                      "range_z": [-1, 5]}
-# Header of the z (temperature) column in the datafiles
+# Header of the w (temperature) column in the datafiles
 temp_header = "temp"
 # amount of downsampling for interactive plots
 downsampling_layers = 10

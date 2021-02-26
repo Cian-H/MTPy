@@ -86,7 +86,8 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate layer plots in {output_path}...")
 
-        Path(output_path).expanduser().mkdir()
+        output_path = str(Path(output_path).expanduser())
+        Path(output_path).mkdir(parents=True, exist_ok=True)
 
         self._qprint("\nGenerating layer plots")
         # Create figure
@@ -126,7 +127,8 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate sample plots in {output_path}...")
 
-        Path(output_path).expanduser().mkdir()
+        output_path = str(Path(output_path).expanduser())
+        Path(output_path).mkdir(parents=True, exist_ok=True)
 
         self._qprint("\nGenerating sample plots")
 
@@ -155,7 +157,8 @@ class MeltpoolTomography(DataProcessor):
         """
         self._qprint(f"\nPreparing to generate 3dplot in {output_path}...")
 
-        Path(output_path).expanduser().mkdir()
+        output_path = str(Path(output_path).expanduser())
+        Path(output_path).mkdir(parents=True, exist_ok=True)
 
         # Create z values assuming equal layer height if none given
         if z is None:
@@ -213,7 +216,8 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate sample 3dplots in {output_path}...")
 
-        Path(output_path).expanduser().mkdir()
+        output_path = str(Path(output_path).expanduser())
+        Path(output_path).mkdir(parents=True, exist_ok=True)
 
         self._qprint("\nGenerating sample 3dplots")
 
@@ -252,7 +256,8 @@ class MeltpoolTomography(DataProcessor):
         self._qprint(
             f"\nPreparing to generate 3dplot_interactive in {output_path}...")
 
-        Path(output_path).expanduser().mkdir()
+        output_path = str(Path(output_path).expanduser())
+        Path(output_path).mkdir(parents=True, exist_ok=True)
 
         # Create z values assuming equal layer height if none given
         if z is None:
@@ -333,7 +338,8 @@ class MeltpoolTomography(DataProcessor):
         "Generates interactive 3d figures for every labelled sample"
         self._qprint(f"\nPreparing to generate sample interactive 3dplots in {output_path}...")  # noqa
 
-        Path(output_path).expanduser().mkdir()
+        output_path = str(Path(output_path).expanduser())
+        Path(output_path).mkdir(parents=True, exist_ok=True)
 
         self._qprint("\nGenerating sample interactive 3dplots")
 

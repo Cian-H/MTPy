@@ -101,9 +101,8 @@ class DataProcessor(DataLoader):
 
         # Calculate rolling average of displacement
         rollingavgdisp = []
-        for start, end in tqdm(zip(range(displacement.size - avgof),
-                               range(avgof, displacement.size)),
-                               disable=self.quiet):
+        for start, end in zip(range(displacement.size - avgof),
+                              range(avgof, displacement.size)):
             rollingavgdisp.append(np.mean(displacement[start:end]))
         rollingavgdisp = np.asarray(rollingavgdisp)
 
@@ -161,10 +160,16 @@ class DataProcessor(DataLoader):
         for layer_number, layer_data in tqdm(self.data_dict.items(),
                                              total=len(self.data_dict),
                                              desc="Layers",
+                                             position=0,
                                              disable=self.quiet):
             # apply each requested thresholding function in sequence
-            for thresh_function, kwargs in zip(thresh_functions,
-                                               threshfunc_kwargs):
+            for thresh_function, kwargs in tqdm(zip(thresh_functions,
+                                                    threshfunc_kwargs),
+                                                total=len(thresh_functions),
+                                                desc="Thresholds",
+                                                position=1,
+                                                leave=False,
+                                                disable=self.quiet):
 
                 self.data_dict[layer_number] = \
                     np.asarray(
@@ -214,9 +219,12 @@ class DataProcessor(DataLoader):
                                              total=len(
                                                 self.labelled_layer_data),
                                              desc="Overall",
+                                             position=0,
                                              disable=self.quiet):
             for cluster_num in tqdm(set(layer_data[1]),
                                     desc=f"Layer {layer_number}",
+                                    position=1,
+                                    leave=False,
                                     disable=self.quiet):
                 # Filter cluster from data
                 cluster = layer_data[0][:, layer_data[1] == cluster_num]
