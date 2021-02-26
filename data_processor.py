@@ -19,13 +19,6 @@ try:
     clusterfunc_dispatcher += [KMeans, KMeans_MB]
 except ImportError:
     print("Optional module Scikit-Learn not present")
-# A custom wrapper for TensorFlow KMeans function that matches sklearn api
-#    GPU bound if available.
-try:
-    from kmeans_tf import KMeans_TF
-    clusterfunc_dispatcher.append(KMeans_TF)
-except ImportError:
-    print("Optional module TensorFlow not present")
 
 clusterfunc_dispatcher = {func.__name__: func for
                           func in clusterfunc_dispatcher}
