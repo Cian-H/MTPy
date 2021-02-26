@@ -99,14 +99,6 @@ class DataProcessor(DataLoader):
             threshfunc_kwargs = (threshfunc_kwargs,)
 
         self._qprint("\nThresholding all layers")
-        # data_layers = {}
-        # for layer_number, layer_data in self.data_dict.items():
-        #     data_layers[layer_number] = []
-        #     data_layers[layer_number].append(layer_data["x"].values)
-        #     data_layers[layer_number].append(layer_data["y"].values)
-        #     if self.z_header is not None:
-        #         data_layers[layer_number].append(
-        #             layer_data[self.z_header].values)
 
         # Dict to hold output data
         thresholded_data_layers = {}
@@ -117,10 +109,6 @@ class DataProcessor(DataLoader):
             # apply each requested thresholding function in sequence
             for thresh_function, kwargs in zip(thresh_functions,
                                                threshfunc_kwargs):
-                # if self.z_header is None:
-                #     z = None
-                # else:
-                #     z = layer_data[2]
 
                 thresholded_data_layers[layer_number] = \
                     np.asarray(
