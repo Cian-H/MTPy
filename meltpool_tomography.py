@@ -240,9 +240,6 @@ class MeltpoolTomography(DataProcessor):
 
         self._qprint("Sample 3dplots complete!\n")
 
-    # Does same as layer_to_3d_plot but produces an interactive figure
-    # NOTE: Downsampling may be necessary here as plotly struggles to display
-    #       more than 4 million points
     def _layers_to_3dplot_interactive(self, layers, output_path, z_range=None,
                                       z=None, plot_w=False, downsampling=1,
                                       sliceable=False, plotparams={}):
@@ -327,7 +324,6 @@ class MeltpoolTomography(DataProcessor):
         self._layers_to_3dplot_interactive(self.data_dict, output_path,
                                            **kwargs)
 
-    # Does same as samples_to_3d_plot but produces an interactive figure
     def samples_to_3dplots_interactive(self, output_path,
                                        z_range=None, z=None, plot_w=False,
                                        downsampling=1, sliceable=False,
