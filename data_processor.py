@@ -15,8 +15,8 @@ clusterfunc_dispatcher = []
 #   CPU bound. Minibatch is significantly faster but more error-prone
 try:
     from sklearn.cluster import KMeans
-    from sklearn.cluster import MiniBatchKMeans as KMeans_MB
-    clusterfunc_dispatcher += [KMeans, KMeans_MB]
+    from sklearn.cluster import MiniBatchKMeans
+    clusterfunc_dispatcher += [KMeans, MiniBatchKMeans]
 except ImportError:
     print("Optional module Scikit-Learn not present")
 
