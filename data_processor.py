@@ -4,7 +4,7 @@
 from data_loader import DataLoader
 import numpy as np
 from tqdm.auto import tqdm
-from types import FunctionType
+from types import FunctionType, MethodType
 import operator as op
 
 # Cluster function imports and dispatcher (allows for easy switching
@@ -100,11 +100,9 @@ class DataProcessor(DataLoader):
         displacement = np.sqrt(np.add(np.square(x), np.square(y)))
 
         # Calculate rolling average of displacement
-        rollingavgdisp = []
-        for start, end in zip(range(displacement.size - avgof),
-                              range(avgof, displacement.size)):
-            rollingavgdisp.append(np.mean(displacement[start:end]))
-        rollingavgdisp = np.asarray(rollingavgdisp)
+        rollingavgdisp = np.convolve(displacement,
+                                     np.ones(avgof) / avgof,
+                                     mode="valid")
 
         # get absolute average speed based on rolling avg displacement
         absavgdispslope = np.abs(np.diff(rollingavgdisp))
@@ -149,7 +147,7 @@ class DataProcessor(DataLoader):
     def threshold_all_layers(self, thresh_functions, threshfunc_kwargs):
         "Thresholds all layers by applying listed functions with listed params"
         # if conversions to dict is needed for single function, then convert
-        if type(thresh_functions) is FunctionType:
+        if type(thresh_functions) in (FunctionType, MethodType):
             thresh_functions = (thresh_functions,)
         if type(threshfunc_kwargs) is dict:
             threshfunc_kwargs = (threshfunc_kwargs,)
