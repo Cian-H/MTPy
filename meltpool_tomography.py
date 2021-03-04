@@ -105,11 +105,14 @@ class MeltpoolTomography(DataProcessor):
                         c=z, **scatterparams)
             # If we want a colorbar create one
             if colorbar and plot_z:
-                plt.colorbar()
+                plt.colorbar(label="Temp (mv)")
             # If labels are given, plot them
             if self.sample_labels is not None:
                 for i, xy in enumerate(self.sample_labels):
                     plt.annotate(str(i), xy)
+            # Finally, format plots appropriately
+            plt.xlabel("X")
+            plt.ylabel("Y")
             # Save figure and clear pyplot buffer
             plt.savefig(f"{output_path}/{layer_number}.{filetype}")
             plt.clf()
@@ -196,7 +199,11 @@ class MeltpoolTomography(DataProcessor):
                        **plotparams)
         # If we want a colorbar create one
         if colorbar and plot_w:
-            plt.colorbar(p)
+            plt.colorbar(p, label="Temp (mV)")
+        # Finally, format plots appropriately
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
         # Save figure and clear pyplot buffer
         plt.savefig(f"{output_path}/3dplot.{filetype}")
         plt.clf()
@@ -285,15 +292,15 @@ class MeltpoolTomography(DataProcessor):
 
         self._qprint("\nGenerating 3dplot_interactive")
 
-        df = pd.DataFrame(data={"x": plotarray[::downsampling, 0],
-                                "y": plotarray[::downsampling, 1],
-                                "z": plotarray[::downsampling, 2],
+        df = pd.DataFrame(data={"X": plotarray[::downsampling, 0],
+                                "Y": plotarray[::downsampling, 1],
+                                "Z": plotarray[::downsampling, 2],
                                 })
 
         # If plotting a 4th dimension, add column for w
         if plot_w:
-            df["w"] = plotarray[::downsampling, 3]
-            plotparams["color"] = "w"
+            df["Temp (mV)"] = plotarray[::downsampling, 3]
+            plotparams["color"] = "Temp (mV)"
 
         # Finally, add indeces (n) for data points
         # NOTE: may add functionality for additional data in
@@ -303,24 +310,24 @@ class MeltpoolTomography(DataProcessor):
         # Create column for animation slider
         if sliceable:
             # Get all z values
-            layer_values = sorted(set(df["z"]))
+            layer_values = sorted(set(df["Z"]))
             unfiltered_dataframes = [df.copy() for i in layer_values]
             filtered_dataframes = []
             # Create multiple version of dataset corresponding to different
             # frames
             for top_layer, dataframe in zip(layer_values,
                                             unfiltered_dataframes):
-                filtered_dataframes.append(df.loc[df["z"] <= top_layer].copy())
+                filtered_dataframes.append(df.loc[df["Z"] <= top_layer].copy())
             # Then add columns denoting frame numbers
             for dataframe in filtered_dataframes:
-                dataframe["Top Layer"] = dataframe["z"].max()
+                dataframe["Top Layer"] = dataframe["Z"].max()
             # Combine frames into new dataset
             df = pd.concat(filtered_dataframes)
             # Finally, add params for animation
             plotparams["animation_frame"] = "Top Layer"
 
         # Create figure and save to html
-        fig = px.scatter_3d(df, x="x", y="y", z="z",
+        fig = px.scatter_3d(df, x="X", y="Y", z="Z",
                             hover_data="n", **plotparams)
         fig.write_html(f"{output_path}/3dplot_interactive.html")
 
