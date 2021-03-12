@@ -88,7 +88,7 @@ class DataProcessor(DataLoader):
                                           total=len(self.data_dict),
                                           desc="Layers",
                                           disable=self.quiet):
-            layer_data[:, 2] = calibration_curve(layer_data[:, 2])
+            layer_data[2, :] = calibration_curve(layer_data[2, :])
 
     def avgspeed_threshold(self, x, y, w, threshold_percent=1, avgof=1):
         """
