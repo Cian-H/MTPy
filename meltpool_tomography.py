@@ -302,6 +302,13 @@ class MeltpoolTomography(DataProcessor):
             df["Temp (mV)"] = plotarray[::downsampling, 3]
             plotparams["color"] = "Temp (mV)"
 
+            if "range_color" not in plotparams:
+                plotparams["range_color"] = (df["Temp (mV)"].max(),
+                                             df["Temp (mV)"].min())
+
+            if "color_continuous_scale" not in plotparams:
+                plotparams["color_continuous_scale"] = "Jet"
+
         # Finally, add indeces (n) for data points
         # NOTE: may add functionality for additional data in
         #       plotly tooltip bubble here later

@@ -46,8 +46,7 @@ figureparams = {"figsize": (15, 15),
 # This gets passed to matplotlib.pyplot.scatter
 scatterparams = {"cmap": "jet"}
 # This gets passed to plotly.express.scatter_3d
-interactiveparams = {"color_continuous_scale": "Jet",
-                     "range_z": [-1, 5]}
+interactiveparams = {"range_z": [-1, 5]}
 # Header of the w (temperature) column in the datafiles
 temp_header = "temp"
 # amount of downsampling for interactive plots
