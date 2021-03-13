@@ -88,7 +88,19 @@ class DataProcessor(DataLoader):
                                           total=len(self.data_dict),
                                           desc="Layers",
                                           disable=self.quiet):
-            layer_data[2, :] = calibration_curve(layer_data[2, :])
+            if self.data_dict is not None:
+                for layer_num, layer_data in tqdm(self.data_dict.items(),
+                                                  total=len(self.data_dict),
+                                                  desc="Layers",
+                                                  disable=self.quiet):
+                    layer_data[2, :] = calibration_curve(layer_data[2, :])
+        if self.sample_data is not None:
+            for sample_num, layers in tqdm(self.sample_data.items(),
+                                           total=len(self.sample_data),
+                                           desc="Samples",
+                                           disable=self.quiet):
+                for layer_number, layer_data in layers.items():
+                    layer_data[2, :] = calibration_curve(layer_data[2, :])
 
     def avgspeed_threshold(self, x, y, w, threshold_percent=1, avgof=1):
         """
