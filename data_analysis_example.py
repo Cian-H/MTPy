@@ -106,6 +106,6 @@ mpt.samples_to_3dplots_interactive(f"{output_path}/{sample_subfolder}",
                                    plotparams=interactiveparams,
                                    sliceable=True)
 
-mpt.temp_data_to_csv(f"{output_path}/temp_data.csv")
+mpt.temp_data_to_csv(f"{output_path}/temp_data")
 
 print("Script complete!")

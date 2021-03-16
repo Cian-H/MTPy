@@ -344,15 +344,25 @@ class MeltpoolTomography(DataProcessor):
 
         self._qprint("Sample interactive 3dplots complete!\n")
 
-    def temp_data_to_csv(self, output_path: str):
+    def temp_data_to_csv(self, output_path: str,
+                         layers: bool = True,
+                         samples: bool = True,
+                         confidence_interval: float = 0.95):
         "Generates a csv containing temperature data for processed samples"
-        if not output_path[-4:] == ".csv":
-            output_path += ".csv"
-        self._qprint(f"Generating {output_path}...")
+        if output_path[-1] != "/":
+            output_path += "/"
+        if layers:
+            layers_output_path = f"{output_path}layertemps.csv"
+        if samples:
+            samples_output_path = f"{output_path}sampletemps.csv"
+        Path(output_path).mkdir(parents=True, exist_ok=True)
+        self._qprint(f"Generating datasheets at {output_path}...")
         # Save sample temp data to a csv file (may have to make function later)
-        with open(f"{output_path}", "w") as file:
+        with open(f"{layers_output_path}", "w") as lfile, \
+             open(f"{samples_output_path}", "w") as sfile:
             # Add a header column
-            file.write("SAMPLE, LAYER, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
+            lfile.write("SAMPLE, LAYER, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
+            sfile.write("SAMPLE, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
             # loop through data array to generate csv
             for sample_number, sample_dict in tqdm(self.sample_data.items(),
                                                    total=len(self.sample_data),
@@ -362,7 +372,8 @@ class MeltpoolTomography(DataProcessor):
                 for layer_number, layer_array in tqdm(sample_dict.items(),
                                                       total=len(sample_dict),
                                                       desc="Layers",
-                                                      disable=self.quiet):
+                                                      disable=self.quiet,
+                                                      leave=False):
                     layer_temps = layer_array[2, :]
                     # Calc avg, stdev, stderr and confidence intervals
                     layer_avg = np.mean(layer_temps)
@@ -372,12 +383,12 @@ class MeltpoolTomography(DataProcessor):
                     # Unsure of proper degrees of freedom here so guessing its
                     #   the standard "dof=n-1"?
                     layer_stderr = st.sem(layer_temps, ddof=layer_temps.size-1)
-                    layer_conf = st.t.interval(0.95,
+                    layer_conf = st.t.interval(confidence_interval,
                                                layer_temps.size-1,
                                                loc=layer_avg,
                                                scale=layer_stderr)
                     # Write layer data to file
-                    file.write(f"{sample_number}, {layer_number}, {layer_avg}, {layer_min}, {layer_max}, {layer_stdev}, {layer_stderr}, {layer_conf[0]}, {layer_conf[1]}\n")  # noqa
+                    lfile.write(f"{sample_number}, {layer_number}, {layer_avg}, {layer_min}, {layer_max}, {layer_stdev}, {layer_stderr}, {layer_conf[0]}, {layer_conf[1]}\n")  # noqa
                     temps_flat = np.append(temps_flat, layer_temps)
                 # Calc avg, stdev, stderr and confidence intervals
                 sample_avg = np.mean(temps_flat)
@@ -387,11 +398,11 @@ class MeltpoolTomography(DataProcessor):
                 # Unsure of proper degrees of freedom here so guessing its
                 #   the standard "dof=n-1"?
                 sample_stderr = st.sem(temps_flat, ddof=temps_flat.size-1)
-                sample_conf = st.t.interval(0.95,
+                sample_conf = st.t.interval(confidence_interval,
                                             temps_flat.size-1,
                                             loc=sample_avg,
                                             scale=sample_stderr)
                 # Write sample overall data to file
-                file.write(f"{sample_number}, OVERALL, {sample_avg}, {sample_min}, {sample_max}, {sample_stdev}, {sample_stderr}, {sample_conf[0]}, {sample_conf[1]}\n")  # noqa
+                sfile.write(f"{sample_number}, {sample_avg}, {sample_min}, {sample_max}, {sample_stdev}, {sample_stderr}, {sample_conf[0]}, {sample_conf[1]}\n")  # noqa
 
-        self._qprint(f"{output_path} generated!")
+        self._qprint(f"Datasheets generated at {output_path}!")
