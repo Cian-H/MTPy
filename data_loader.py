@@ -72,23 +72,23 @@ class DataLoader(Base):
         self._qprint(f"Reading files from {self.data_path}")
 
         # Read data from files
-        for idx, file in tqdm(enumerate(files), total=len(files),
-                              disable=self.quiet):
-            try:
-                df = pd.read_csv(f"{self.data_path}/{file}",
-                                 names=["x", "y", "temp", "temp_duplicate"],
-                                 header=None, delimiter=" ")
+        for file in tqdm(files, total=len(files), disable=self.quiet):
+            # try:
+            idx = float(file[:-1-len(self.file_extension)])
+            df = pd.read_csv(f"{self.data_path}/{file}",
+                             names=["x", "y", "temp", "temp_duplicate"],
+                             header=None, delimiter=" ")
 
-                df.drop(["temp_duplicate"], axis=1, inplace=True)
-                df = df.groupby(["x", "y"], sort=False, as_index=False).mean()
-                # Corrects for flipped x axis on aconity output
-                df["x"] *= -1
-                # If given a calibration curve, apply it
-                if calibration_curve is not None:
-                    df["temp"] = calibration_curve(df["temp"])
-                data_dict[idx] = np.asarray(df)
-            except:  # noqa
-                self._qprint(f"File {file} not found!")
+            df.drop(["temp_duplicate"], axis=1, inplace=True)
+            df = df.groupby(["x", "y"], sort=False, as_index=False).mean()
+            # Corrects for flipped x axis on aconity output
+            df["x"] *= -1
+            # If given a calibration curve, apply it
+            if calibration_curve is not None:
+                df["temp"] = calibration_curve(df["temp"])
+            data_dict[idx] = np.asarray(df)
+            # except:  # noqa
+            #     self._qprint(f"File {file} not found!")
 
         self.original_data_dict = data_dict
         self.reset_data()

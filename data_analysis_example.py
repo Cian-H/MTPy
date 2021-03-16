@@ -66,14 +66,14 @@ mpt.separate_samples()  # Separate detected samples into individual pointclouds
 
 # Save thresholded layers to figures
 mpt.layers_to_figures(f"{output_path}/{layer_subfolder}",
-                      plot_z=True,
+                      plot_w=True,
                       colorbar=True,
                       figureparams=figureparams,
                       scatterparams=scatterparams)
 
 # Create figures for every layer of every individual sample
 mpt.samples_to_figures(f"{output_path}/{sample_subfolder}",
-                       plot_z=True,
+                       plot_w=True,
                        colorbar=True,
                        figureparams=figureparams,
                        scatterparams=scatterparams)

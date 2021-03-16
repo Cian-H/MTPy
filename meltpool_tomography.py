@@ -80,7 +80,7 @@ class MeltpoolTomography(DataProcessor):
         super().__init__(**kwargs)
 
     def _layers_to_figures(self, layers, output_path, filetype="png",
-                           plot_z=False, colorbar=False,
+                           plot_w=False, colorbar=False,
                            figureparams={}, scatterparams={}):
         "Internally called function for generating figures from layers"
         self._qprint(
@@ -96,7 +96,7 @@ class MeltpoolTomography(DataProcessor):
         for layer_number, layer_data in tqdm(layers.items(), total=len(layers),
                                              disable=self.quiet):
             # If plotting z or averaging z assign variable
-            if plot_z:
+            if plot_w:
                 z = layer_data[2, :]
             else:
                 z = None
@@ -104,7 +104,7 @@ class MeltpoolTomography(DataProcessor):
             plt.scatter(layer_data[0, :], layer_data[1, :],
                         c=z, **scatterparams)
             # If we want a colorbar create one
-            if colorbar and plot_z:
+            if colorbar and plot_w:
                 plt.colorbar(label="Temp (mv)")
             # If labels are given, plot them
             if self.sample_labels is not None:
@@ -124,7 +124,7 @@ class MeltpoolTomography(DataProcessor):
         self._layers_to_figures(self.data_dict, output_path, **kwargs)
 
     def samples_to_figures(self, output_path, filetype="png",
-                           plot_z=False, colorbar=False, figureparams={},
+                           plot_w=True, colorbar=False, figureparams={},
                            scatterparams={}):
 
         self._qprint(
@@ -143,7 +143,7 @@ class MeltpoolTomography(DataProcessor):
             # Plot all layers in the sample
             self._layers_to_figures(sample_data,
                                     f"{output_path}/{sample_number}",
-                                    plot_z=plot_z,
+                                    plot_w=plot_w,
                                     colorbar=colorbar,
                                     figureparams=figureparams,
                                     scatterparams=scatterparams)
@@ -151,8 +151,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Sample plots complete!\n")
 
     def _layers_to_3dplot(self, layers, output_path, filetype="png",
-                          z_range=None, z=None,
-                          plot_w=False, colorbar=False,
+                          plot_w=True, colorbar=False,
                           figureparams={}, plotparams={}):
         """
         Internally called function for generating 3d figures from complete
@@ -163,24 +162,16 @@ class MeltpoolTomography(DataProcessor):
         output_path = str(Path(output_path).expanduser())
         Path(output_path).mkdir(parents=True, exist_ok=True)
 
-        # Create z values assuming equal layer height if none given
-        if z is None:
-            if z_range is None:
-                z = range(len(layers))
-            else:
-                increment = (z_range[1] - z_range[0]) / len(layers)
-                z = np.arange(z_range[0], z_range[1] + increment,
-                              increment)
-
         self._qprint("Preparing plot pointcloud")
         # Create full array of z values
         plotarray = []
-        for (layer_number, layer_data), z_value in tqdm(zip(layers.items(), z),
-                                                        total=len(layers),
-                                                        disable=self.quiet):
+        for (_, layer_data), z_value in tqdm(zip(layers.items(),
+                                             self.data_dict.keys()),
+                                             total=len(layers),
+                                             disable=self.quiet):
             # prepare to generate numpy array of x, y, z values & w if present
             newlayer = [layer_data[:2, :],
-                        np.repeat(z[layer_number], layer_data.shape[1])]
+                        np.repeat(z_value, layer_data.shape[1])]
             if layer_data.shape[0] == 3:
                 newlayer.append(layer_data[2, :])
             plotarray.append(np.vstack(newlayer))
@@ -216,9 +207,8 @@ class MeltpoolTomography(DataProcessor):
 
     # Does same as layers_to_3dplots but for each individual sample instead of
     #   entire layer
-    def samples_to_3dplots(self, output_path, filetype="png",
-                           z_range=None, z=None, plot_w=False, colorbar=False,
-                           figureparams={}, plotparams={}):
+    def samples_to_3dplots(self, output_path, filetype="png", plot_w=False,
+                           colorbar=False, figureparams={}, plotparams={}):
         "Generates 3d figures for every labelled sample"
         self._qprint(
             f"\nPreparing to generate sample 3dplots in {output_path}...")
@@ -227,15 +217,6 @@ class MeltpoolTomography(DataProcessor):
         Path(output_path).mkdir(parents=True, exist_ok=True)
 
         self._qprint("\nGenerating sample 3dplots")
-
-        # Create z values assuming equal layer height if none given
-        if z is None:
-            if z_range is None:
-                z = range(len(self.data_dict))
-            else:
-                increment = (z_range[1] - z_range[0]) / len(self.data_dict)
-                z = np.arange(z_range[0], z_range[1] + increment,
-                              increment)
 
         # Loop through layers in layerdict
         for sample_number, sample_data in tqdm(self.sample_data.items(),
@@ -247,15 +228,14 @@ class MeltpoolTomography(DataProcessor):
                                    f"{output_path}/{sample_number}",
                                    plot_w=plot_w,
                                    colorbar=colorbar,
-                                   z=z,
                                    figureparams=figureparams,
                                    plotparams=plotparams)
 
         self._qprint("Sample 3dplots complete!\n")
 
-    def _layers_to_3dplot_interactive(self, layers, output_path, z_range=None,
-                                      z=None, plot_w=False, downsampling=1,
-                                      sliceable=False, plotparams={}):
+    def _layers_to_3dplot_interactive(self, layers, output_path,
+                                      downsampling=1, sliceable=False,
+                                      plot_w=True, plotparams={}):
         """
         Internally called function for generating interactive 3d figures from
         complete layers
@@ -266,24 +246,16 @@ class MeltpoolTomography(DataProcessor):
         output_path = str(Path(output_path).expanduser())
         Path(output_path).mkdir(parents=True, exist_ok=True)
 
-        # Create z values assuming equal layer height if none given
-        if z is None:
-            if z_range is None:
-                z = range(len(layers))
-            else:
-                increment = (z_range[1] - z_range[0]) / len(layers)
-                z = np.arange(z_range[0], z_range[1] + increment,
-                              increment)
-
         self._qprint("Preparing plot pointcloud")
         # Create full array of z values
         plotarray = []
-        for (layer_number, layer_data), z_value in tqdm(zip(layers.items(), z),
-                                                        total=len(layers),
-                                                        disable=self.quiet):
+        for (_, layer_data), z_value in tqdm(zip(layers.items(),
+                                             self.data_dict.keys()),
+                                             total=len(layers),
+                                             disable=self.quiet):
             # prepare to generate numpy array of x, y, z values & w if present
             newlayer = [layer_data[:2, :],
-                        np.repeat(z[layer_number], layer_data.shape[1])]
+                        np.repeat(z_value, layer_data.shape[1])]
             if layer_data.shape[0] == 3:
                 newlayer.append(layer_data[2, :])
             plotarray.append(np.vstack(newlayer))
@@ -345,8 +317,7 @@ class MeltpoolTomography(DataProcessor):
         self._layers_to_3dplot_interactive(self.data_dict, output_path,
                                            **kwargs)
 
-    def samples_to_3dplots_interactive(self, output_path,
-                                       z_range=None, z=None, plot_w=False,
+    def samples_to_3dplots_interactive(self, output_path, plot_w=True,
                                        downsampling=1, sliceable=False,
                                        plotparams={}):
         "Generates interactive 3d figures for every labelled sample"
@@ -366,8 +337,6 @@ class MeltpoolTomography(DataProcessor):
             self._layers_to_3dplot_interactive(sample_data,
                                                f"{output_path}/" +
                                                f"{sample_number}",
-                                               z_range=z_range,
-                                               z=z,
                                                plot_w=plot_w,
                                                downsampling=downsampling,
                                                sliceable=sliceable,
