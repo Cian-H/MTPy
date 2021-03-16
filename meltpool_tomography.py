@@ -80,7 +80,7 @@ class MeltpoolTomography(DataProcessor):
         super().__init__(**kwargs)
 
     def _layers_to_figures(self, layers, output_path, filetype="png",
-                           plot_w=False, colorbar=False,
+                           plot_w=True, colorbar=True,
                            figureparams={}, scatterparams={}):
         "Internally called function for generating figures from layers"
         self._qprint(
@@ -124,7 +124,7 @@ class MeltpoolTomography(DataProcessor):
         self._layers_to_figures(self.data_dict, output_path, **kwargs)
 
     def samples_to_figures(self, output_path, filetype="png",
-                           plot_w=True, colorbar=False, figureparams={},
+                           plot_w=True, colorbar=True, figureparams={},
                            scatterparams={}):
 
         self._qprint(
@@ -151,7 +151,7 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Sample plots complete!\n")
 
     def _layers_to_3dplot(self, layers, output_path, filetype="png",
-                          plot_w=True, colorbar=False,
+                          plot_w=True, colorbar=True,
                           figureparams={}, plotparams={}):
         """
         Internally called function for generating 3d figures from complete
@@ -207,8 +207,8 @@ class MeltpoolTomography(DataProcessor):
 
     # Does same as layers_to_3dplots but for each individual sample instead of
     #   entire layer
-    def samples_to_3dplots(self, output_path, filetype="png", plot_w=False,
-                           colorbar=False, figureparams={}, plotparams={}):
+    def samples_to_3dplots(self, output_path, filetype="png", plot_w=True,
+                           colorbar=True, figureparams={}, plotparams={}):
         "Generates 3d figures for every labelled sample"
         self._qprint(
             f"\nPreparing to generate sample 3dplots in {output_path}...")
