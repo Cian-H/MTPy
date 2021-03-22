@@ -3,6 +3,7 @@
 
 from data_processor import DataProcessor
 from pathlib import Path
+from types import FunctionType
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -76,8 +77,20 @@ class MeltpoolTomography(DataProcessor):
             Generates a csv containing temperature data for processed samples
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, wlabel: str = "Temp (mv)", **kwargs):
         super().__init__(**kwargs)
+        self.wlabel = wlabel
+
+    def read_layers(self, wlabel: str = None, **kwargs):
+        super().read_layers(**kwargs)
+        if wlabel is not None:
+            self.wlabel = wlabel
+
+    def apply_calibration_curve(self, calibration_curve: FunctionType,
+                                wlabel: str = None):
+        super().apply_calibration_curve(calibration_curve)
+        if wlabel is not None:
+            self.wlabel = wlabel
 
     def _layers_to_figures(self, layers, output_path, filetype="png",
                            plot_w=True, colorbar=True,
@@ -105,7 +118,7 @@ class MeltpoolTomography(DataProcessor):
                         c=z, **scatterparams)
             # If we want a colorbar create one
             if colorbar and plot_w:
-                plt.colorbar(label="Temp (mv)")
+                plt.colorbar(label=self.wlabel)
             # If labels are given, plot them
             if self.sample_labels is not None:
                 for i, xy in enumerate(self.sample_labels):
@@ -190,7 +203,7 @@ class MeltpoolTomography(DataProcessor):
                        **plotparams)
         # If we want a colorbar create one
         if colorbar and plot_w:
-            plt.colorbar(p, label="Temp (mV)")
+            plt.colorbar(p, label=self.wlabel)
         # Finally, format plots appropriately
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
@@ -271,12 +284,12 @@ class MeltpoolTomography(DataProcessor):
 
         # If plotting a 4th dimension, add column for w
         if plot_w:
-            df["Temp (mV)"] = plotarray[::downsampling, 3]
-            plotparams["color"] = "Temp (mV)"
+            df[self.wlabel] = plotarray[::downsampling, 3]
+            plotparams["color"] = self.wlabel
 
             if "range_color" not in plotparams:
-                plotparams["range_color"] = (df["Temp (mV)"].max(),
-                                             df["Temp (mV)"].min())
+                plotparams["range_color"] = (df[self.wlabel].max(),
+                                             df[self.wlabel].min())
 
             if "color_continuous_scale" not in plotparams:
                 plotparams["color_continuous_scale"] = "Jet"
