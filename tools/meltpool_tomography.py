@@ -78,6 +78,13 @@ class MeltpoolTomography(DataProcessor):
     """
 
     def __init__(self, wlabel: str = "Temp (mv)", **kwargs):
+        # Default args for the kwargs dictionary
+        default_args = {"data_path": Path.cwd()}
+        # Apply default args to kwargs if needed
+        for arg, value in default_args.items():
+            if arg not in kwargs:
+                kwargs[arg] = value
+        # Then call super and set attributes
         super().__init__(**kwargs)
         self.wlabel = wlabel
 
