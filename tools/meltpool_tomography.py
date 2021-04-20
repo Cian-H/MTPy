@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from data_processor import DataProcessor
+from ..data.data_processor import DataProcessor
 from pathlib import Path
 from types import FunctionType
 import numpy as np

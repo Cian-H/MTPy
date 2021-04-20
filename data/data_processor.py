@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from data_loader import DataLoader
+from ..data.data_loader import DataLoader
 import numpy as np
 from tqdm.auto import tqdm
 from types import FunctionType, MethodType

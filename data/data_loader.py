@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from base import Base
+from ..common.base import Base
 from pathlib import Path
 import pandas as pd
 import numpy as np
