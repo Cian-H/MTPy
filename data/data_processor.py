@@ -227,7 +227,9 @@ class DataProcessor(DataLoader):
                                              desc="Overall",
                                              position=0,
                                              disable=self.quiet):
-            for cluster_num in tqdm(set(layer_data[1]),
+            layer_set = set(layer_data[1])
+            for cluster_num in tqdm(layer_set,
+                                    total=len(layer_set),
                                     desc=f"Layer {layer_number}",
                                     position=1,
                                     leave=False,
