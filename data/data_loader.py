@@ -5,7 +5,6 @@ from ..common.base import Base
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from tqdm.auto import tqdm
 from types import FunctionType
 
 
@@ -72,7 +71,8 @@ class DataLoader(Base):
         self._qprint(f"Reading files from {self.data_path}")
 
         # Read data from files
-        for file in tqdm(files, total=len(files), disable=self.quiet):
+        for file in self.progressbar(files, total=len(files),
+                                     disable=self.quiet):
             # try:
             idx = float(file[:-1-len(self.file_extension)])
             df = pd.read_csv(f"{self.data_path}/{file}",

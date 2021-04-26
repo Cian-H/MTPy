@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
+from tqdm.auto import tqdm
 import pickle
 
 
@@ -25,7 +26,8 @@ class Base():
     """
 
     def __init__(self,
-                 quiet: bool = False):
+                 quiet: bool = False,
+                 progressbar=tqdm):
         """
         Constructor for the MTPy Base class
 
@@ -33,9 +35,13 @@ class Base():
         ----------
             quiet: bool = False
                 Determines whether object should be quiet or not
+            progressbar = tqdm
+                Sets the function used to generate progress bars (must use
+                tqdm-like syntax)
         """
 
         self.quiet = quiet
+        self.progressbar = progressbar
 
     def _qprint(self, string: str):
         """Prints a line if self.quiet is False"""

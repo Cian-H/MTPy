@@ -3,7 +3,6 @@
 
 from ..data.data_loader import DataLoader
 import numpy as np
-from tqdm.auto import tqdm
 from types import FunctionType, MethodType
 import operator as op
 
@@ -85,10 +84,11 @@ class DataProcessor(DataLoader):
         "Applies calibration curve function to w axis (temp) data"
         self._qprint("Applying calibration curve")
         if self.data_dict is not None:
-            for layer_num, layer_data in tqdm(self.data_dict.items(),
-                                              total=len(self.data_dict),
-                                              desc="Layers",
-                                              disable=self.quiet):
+            for layer_num, layer_data in self.progressbar(
+                                             self.data_dict.items(),
+                                             total=len(self.data_dict),
+                                             desc="Layers",
+                                             disable=self.quiet):
                 layer_data[2, :] = calibration_curve(layer_data[2, :])
         if self.sample_data is not None:
             for sample_num, layers in tqdm(self.sample_data.items(),
@@ -163,19 +163,21 @@ class DataProcessor(DataLoader):
         self._qprint("\nThresholding all layers")
 
         # Loop through dict, applying thresh_func to each layer
-        for layer_number, layer_data in tqdm(self.data_dict.items(),
-                                             total=len(self.data_dict),
-                                             desc="Layers",
-                                             position=0,
-                                             disable=self.quiet):
+        for layer_number, layer_data in self.progressbar(
+                                            self.data_dict.items(),
+                                            total=len(self.data_dict),
+                                            desc="Layers",
+                                            position=0,
+                                            disable=self.quiet):
             # apply each requested thresholding function in sequence
-            for thresh_function, kwargs in tqdm(zip(thresh_functions,
-                                                    threshfunc_kwargs),
-                                                total=len(thresh_functions),
-                                                desc="Thresholds",
-                                                position=1,
-                                                leave=False,
-                                                disable=self.quiet):
+            for thresh_function, kwargs in self.progressbar(
+                                               zip(thresh_functions,
+                                                   threshfunc_kwargs),
+                                               total=len(thresh_functions),
+                                               desc="Thresholds",
+                                               position=1,
+                                               leave=False,
+                                               disable=self.quiet):
 
                 self.data_dict[layer_number] = \
                     np.asarray(
@@ -205,9 +207,10 @@ class DataProcessor(DataLoader):
         self._qprint("\nLabelling contiguous samples")
         # loop through layers clustering xy data points
         labelled_layer_data = {}
-        for layer_number, layer_data in tqdm(self.data_dict.items(),
-                                             total=len(self.data_dict),
-                                             disable=self.quiet):
+        for layer_number, layer_data in self.progressbar(
+                                            self.data_dict.items(),
+                                            total=len(self.data_dict),
+                                            disable=self.quiet):
             layer_xy = layer_data[:2, :]
             clusters = self.model.predict(layer_xy.T)
             labelled_layer_data[layer_number] = (layer_data, clusters)
@@ -221,19 +224,20 @@ class DataProcessor(DataLoader):
         "Separates labelled layer data into samples"
         self._qprint("\nSeparating samples into different datasets")
         sample_data = {}
-        for layer_number, layer_data in tqdm(self.labelled_layer_data.items(),
-                                             total=len(
+        for layer_number, layer_data in self.progressbar(
+                                            self.labelled_layer_data.items(),
+                                            total=len(
                                                 self.labelled_layer_data),
-                                             desc="Overall",
-                                             position=0,
-                                             disable=self.quiet):
+                                            desc="Overall",
+                                            position=0,
+                                            disable=self.quiet):
             layer_set = set(layer_data[1])
-            for cluster_num in tqdm(layer_set,
-                                    total=len(layer_set),
-                                    desc=f"Layer {layer_number}",
-                                    position=1,
-                                    leave=False,
-                                    disable=self.quiet):
+            for cluster_num in self.progressbar(layer_set,
+                                                total=len(layer_set),
+                                                desc=f"Layer {layer_number}",
+                                                position=1,
+                                                leave=False,
+                                                disable=self.quiet):
                 # Filter cluster from data
                 cluster = layer_data[0][:, layer_data[1] == cluster_num]
                 # If key for cluster not in data dict create

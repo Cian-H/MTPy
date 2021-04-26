@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 from mpl_toolkits import mplot3d  # noqa
 from plotly import express as px
 import scipy.stats as st
-from tqdm.auto import tqdm
 
 # This piece of init code prevents a warning resulting from generation of
 #   many matplotlib "figure" objects. This is unimportant on my current
@@ -113,8 +112,9 @@ class MeltpoolTomography(DataProcessor):
         # Create figure
         plt.figure(**figureparams)
         # Loop through layers
-        for layer_number, layer_data in tqdm(layers.items(), total=len(layers),
-                                             disable=self.quiet):
+        for layer_number, layer_data in self.progressbar(layers.items(),
+                                                         total=len(layers),
+                                                         disable=self.quiet):
             # If plotting z or averaging z assign variable
             if plot_w:
                 z = layer_data[2, :]
@@ -156,10 +156,11 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("\nGenerating sample plots")
 
         # Loop through layers in layerdict
-        for sample_number, sample_data in tqdm(self.sample_data.items(),
-                                               total=len(self.sample_data),
-                                               desc="Overall",
-                                               disable=self.quiet):
+        for sample_number, sample_data in self.progressbar(
+                                              self.sample_data.items(),
+                                              total=len(self.sample_data),
+                                              desc="Overall",
+                                              disable=self.quiet):
             # Plot all layers in the sample
             self._layers_to_figures(sample_data,
                                     f"{output_path}/{sample_number}",
@@ -185,10 +186,11 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Preparing plot pointcloud")
         # Create full array of z values
         plotarray = []
-        for (_, layer_data), z_value in tqdm(zip(layers.items(),
-                                             self.data_dict.keys()),
-                                             total=len(layers),
-                                             disable=self.quiet):
+        for (_, layer_data), z_value in self.progressbar(
+                                            zip(layers.items(),
+                                                self.data_dict.keys()),
+                                            total=len(layers),
+                                            disable=self.quiet):
             # prepare to generate numpy array of x, y, z values & w if present
             newlayer = [layer_data[:2, :],
                         np.repeat(z_value, layer_data.shape[1])]
@@ -239,10 +241,11 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("\nGenerating sample 3dplots")
 
         # Loop through layers in layerdict
-        for sample_number, sample_data in tqdm(self.sample_data.items(),
-                                               total=len(self.sample_data),
-                                               desc="Overall",
-                                               disable=self.quiet):
+        for sample_number, sample_data in self.progressbar(
+                                              self.sample_data.items(),
+                                              total=len(self.sample_data),
+                                              desc="Overall",
+                                              disable=self.quiet):
             # Plot all layers in the sample
             self._layers_to_3dplot(sample_data,
                                    f"{output_path}/{sample_number}",
@@ -269,10 +272,11 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Preparing plot pointcloud")
         # Create full array of z values
         plotarray = []
-        for (_, layer_data), z_value in tqdm(zip(layers.items(),
-                                             self.data_dict.keys()),
-                                             total=len(layers),
-                                             disable=self.quiet):
+        for (_, layer_data), z_value in self.progressbar(
+                                            zip(layers.items(),
+                                                self.data_dict.keys()),
+                                            total=len(layers),
+                                            disable=self.quiet):
             # prepare to generate numpy array of x, y, z values & w if present
             newlayer = [layer_data[:2, :],
                         np.repeat(z_value, layer_data.shape[1])]
@@ -349,10 +353,11 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("\nGenerating sample interactive 3dplots")
 
         # Loop through layers in layerdict
-        for sample_number, sample_data in tqdm(self.sample_data.items(),
-                                               total=len(self.sample_data),
-                                               desc="Overall",
-                                               disable=self.quiet):
+        for sample_number, sample_data in self.progressbar(
+                                              self.sample_data.items(),
+                                              total=len(self.sample_data),
+                                              desc="Overall",
+                                              disable=self.quiet):
             # Plot all layers in the sample
             self._layers_to_3dplot_interactive(sample_data,
                                                f"{output_path}/" +
@@ -384,16 +389,18 @@ class MeltpoolTomography(DataProcessor):
             lfile.write("SAMPLE, LAYER, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
             sfile.write("SAMPLE, AVG_TEMP, MIN_TEMP, MAX_TEMP, STDEV, STDERR, CI_MIN, CI_MAX\n")  # noqa
             # loop through data array to generate csv
-            for sample_number, sample_dict in tqdm(self.sample_data.items(),
-                                                   total=len(self.sample_data),
-                                                   desc="Samples",
-                                                   disable=self.quiet):
+            for sample_number, sample_dict in self.progressbar(
+                                                  self.sample_data.items(),
+                                                  total=len(self.sample_data),
+                                                  desc="Samples",
+                                                  disable=self.quiet):
                 temps_flat = np.array([])
-                for layer_number, layer_array in tqdm(sample_dict.items(),
-                                                      total=len(sample_dict),
-                                                      desc="Layers",
-                                                      disable=self.quiet,
-                                                      leave=False):
+                for layer_number, layer_array in self.progressbar(
+                                                     sample_dict.items(),
+                                                     total=len(sample_dict),
+                                                     desc="Layers",
+                                                     disable=self.quiet,
+                                                     leave=False):
                     layer_temps = layer_array[2, :]
                     # Calc avg, stdev, stderr and confidence intervals
                     layer_avg = np.mean(layer_temps)
