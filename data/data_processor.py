@@ -83,18 +83,21 @@ class DataProcessor(DataLoader):
     def apply_calibration_curve(self, calibration_curve: FunctionType):
         "Applies calibration curve function to w axis (temp) data"
         self._qprint("Applying calibration curve")
-        if self.data_dict is not None:
+        # if self.data_dict is not None:
+        if hasattr(self, "data_dict"):
             for layer_num, layer_data in self.progressbar(
                                              self.data_dict.items(),
                                              total=len(self.data_dict),
                                              desc="Layers",
                                              disable=self.quiet):
                 layer_data[2, :] = calibration_curve(layer_data[2, :])
-        if self.sample_data is not None:
-            for sample_num, layers in tqdm(self.sample_data.items(),
-                                           total=len(self.sample_data),
-                                           desc="Samples",
-                                           disable=self.quiet):
+        # if self.sample_data is not None:
+        if hasattr(self, "sample_data"):
+            for sample_num, layers in self.progressbar(
+                                          self.sample_data.items(),
+                                          total=len(self.sample_data),
+                                          desc="Samples",
+                                          disable=self.quiet):
                 for layer_number, layer_data in layers.items():
                     layer_data[2, :] = calibration_curve(layer_data[2, :])
 
