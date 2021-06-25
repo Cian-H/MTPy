@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from mtpy import MeltpoolTomography
+from MTPy.mtpy import MeltpoolTomography
 from pathlib import Path
+from memory_profiler import profile
 
 # —— Initialise data processing object ————————————————————————————————————————
 
 # path to location with datafiles
-dir_path = "~/test_data/layer"
+dir_path = "~/test_data/layers"
 # Folders in which to output figures
 output_path = "~/test_data/OUTPUT"
 output_path = str(Path(output_path).expanduser())
@@ -55,57 +56,65 @@ downsampling_samples = 1
 
 # —— Function calls for processing ————————————————————————————————————————————
 
-# Read the data files at dir_path
-data_dict = mpt.read_layers()
+logfile = open("mem_profile.txt", "w+")
 
-# Threshold data based on speed and temperature
-mpt.threshold_all_layers(thresh_functions, thresh_kwargs)
 
-mpt.detect_samples(81)  # detect contiguous samples
-mpt.separate_samples()  # Separate detected samples into individual pointclouds
+@profile(stream=logfile)
+def main():
+    # Read the data files at dir_path
+    mpt.read_layers()
 
-# Save thresholded layers to figures
-mpt.layers_to_figures(f"{output_path}/{layer_subfolder}",
-                      plot_w=True,
-                      colorbar=True,
-                      figureparams=figureparams,
-                      scatterparams=scatterparams)
+    # Threshold data based on speed and temperature
+    mpt.threshold_all_layers(thresh_functions, thresh_kwargs)
 
-# Create figures for every layer of every individual sample
-mpt.samples_to_figures(f"{output_path}/{sample_subfolder}",
-                       plot_w=True,
-                       colorbar=True,
-                       figureparams=figureparams,
-                       scatterparams=scatterparams)
+    mpt.detect_samples(81)  # detect contiguous samples
+    mpt.separate_samples()  # noqa Separate detected samples into individual pointclouds
 
-# Create static 3d plot for entire build tray
-mpt.layers_to_3dplot(f"{output_path}/{layer_subfolder}",
-                     plot_w=True,
-                     colorbar=True,
-                     figureparams=figureparams,
-                     plotparams=scatterparams)
+    # Save thresholded layers to figures
+    mpt.layers_to_figures(f"{output_path}/{layer_subfolder}",
+                          plot_w=True,
+                          colorbar=True,
+                          figureparams=figureparams,
+                          scatterparams=scatterparams)
 
-# Create static 3d plot for each individual sample
-mpt.samples_to_3dplots(f"{output_path}/{sample_subfolder}",
-                       plot_w=True,
-                       colorbar=True,
-                       figureparams=figureparams,
-                       plotparams=scatterparams)
+    # Create figures for every layer of every individual sample
+    mpt.samples_to_figures(f"{output_path}/{sample_subfolder}",
+                           plot_w=True,
+                           colorbar=True,
+                           figureparams=figureparams,
+                           scatterparams=scatterparams)
 
-# Create interactive 3d plot for entire build tray
-mpt.layers_to_3dplot_interactive(f"{output_path}/{layer_subfolder}",
-                                 plot_w=True,
-                                 downsampling=downsampling_layers,
-                                 plotparams=interactiveparams,
-                                 sliceable=True)
+    # Create static 3d plot for entire build tray
+    mpt.layers_to_3dplot(f"{output_path}/{layer_subfolder}",
+                         plot_w=True,
+                         colorbar=True,
+                         figureparams=figureparams,
+                         plotparams=scatterparams)
 
-# Create interactive 3d plot for each individual sample
-mpt.samples_to_3dplots_interactive(f"{output_path}/{sample_subfolder}",
-                                   plot_w=True,
-                                   downsampling=downsampling_samples,
-                                   plotparams=interactiveparams,
-                                   sliceable=True)
+    # Create static 3d plot for each individual sample
+    mpt.samples_to_3dplots(f"{output_path}/{sample_subfolder}",
+                           plot_w=True,
+                           colorbar=True,
+                           figureparams=figureparams,
+                           plotparams=scatterparams)
 
-mpt.temp_data_to_csv(f"{output_path}/temp_data")
+    # Create interactive 3d plot for entire build tray
+    mpt.layers_to_3dplot_interactive(f"{output_path}/{layer_subfolder}",
+                                     plot_w=True,
+                                     downsampling=downsampling_layers,
+                                     plotparams=interactiveparams,
+                                     sliceable=True)
 
-print("Script complete!")
+    # Create interactive 3d plot for each individual sample
+    mpt.samples_to_3dplots_interactive(f"{output_path}/{sample_subfolder}",
+                                       plot_w=True,
+                                       downsampling=downsampling_samples,
+                                       plotparams=interactiveparams,
+                                       sliceable=True)
+
+    mpt.temp_data_to_csv(f"{output_path}/temp_data")
+
+
+if __name__ == "__main__":
+    main()
+    print("Script complete!")
