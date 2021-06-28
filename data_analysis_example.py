@@ -117,4 +117,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    print("Script complete!")
+
+print("Script complete!")
+logfile.close()
