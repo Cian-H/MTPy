@@ -69,6 +69,13 @@ class DataProcessor(DataLoader):
         self._julia = getattr(self._jl_interpreter,
                               __file__.split("/")[-1].split(".")[0])
 
+    def vx_rolling_sum(self, series, window):
+        array = [0. for i in range(window)]
+        max = series.shape[0]
+        for i, j in zip(range(0, max - window), range(window, max)):
+            array.append(series[i:j].sum())
+        return array
+
     def avgspeed_threshold(self, threshold_percent=1, avgof=1):
         """
         Thresholds layer data (x,y,w) based on percentage of max average slope
@@ -82,21 +89,16 @@ class DataProcessor(DataLoader):
         # Add displacement column to frame
         displacement = sum_of_squares.sqrt()
 
-        # Note: currently getting rolling avg requires conversion to pandas,
-        # this isnt ideal. Vaex plans to implement rolling funcs in its library
-        # soon and once this is complete this section may need a rewrite
-        series = displacement.to_pandas_series()  # Convert to pandas series
-        series = series.rolling(avgof).sum()[avgof:]  # calc rolling sum
-        series = series / avgof  # calc rolling avg
+        # Calculate rolling average of displacement
+        rollingavgdisp = np.convolve(displacement.to_numpy(),
+                                     np.ones(avgof) / avgof,
+                                     mode="valid")
         # get absolute average speed based on rolling avg displacement
-        series = series.diff()[1:]
-        series = series.abs()
-        series = series.to_numpy()  # convert to numpy
-        disp_max = series.max()  # get max displacement value
-        threshold = threshold_percent * disp_max  # Calc threshold cutoff
-        self.data = self.data[avgof+1:]  # mask out NaN displacements
-        series = series < threshold  # Get filter array
-        self.data.add_column(name="filter", f_or_array=series)
+        absavgdispslope = np.abs(np.diff(rollingavgdisp))
+        threshold = threshold_percent * np.max(absavgdispslope)  # thresh val
+        self.data = self.data[avgof:]
+        self.data.add_column(name="filter",
+                             f_or_array=absavgdispslope < threshold)
         self.data = self.data[self.data["filter"]]
         self.data = self.data.extract()
         self.data.drop("filter", inplace=True)

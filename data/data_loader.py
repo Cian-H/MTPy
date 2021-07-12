@@ -106,7 +106,7 @@ class DataLoader(Base):
                                      disable=self.quiet):
             df = vx.from_csv(f"{self.data_path}/{file}",
                              names=["x", "y", "w1_0", "w2_0"],
-                             header=None, delimiter=" ",
+                             header=None, delimiter=" ", dtype="float64",
                              chunk_size=self.chunk_size,  # noqa Num of rows resident in memory at once
                              convert=f"{self._cache.read_cache_file}_{file}.{self._cache.cache_extension}")  # noqa Sets to convert chunks to files for caching
 
@@ -123,7 +123,7 @@ class DataLoader(Base):
         # concatenate dataframes, add indeces and save this new array to an,
         # arrow file
         self.raw_data = vx.concat(dataframes)
-        self.raw_data["n"] = np.arange(self.raw_data.shape[0])
+        self.raw_data["n"] = np.arange(self.raw_data.shape[0], dtype="int64")
         self.raw_data.export(self._cache.raw_cache_file)
         # Clear out now unneeded vaex arrays and caches
         dataframes.clear()
