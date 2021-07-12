@@ -4,6 +4,7 @@
 from pathlib import Path
 from tqdm.auto import tqdm
 import pickle
+from julia import Main
 
 
 class Base():
@@ -42,6 +43,8 @@ class Base():
 
         self.quiet = quiet
         self.progressbar = progressbar
+        # embed a Julia interpreter at base for interoperability
+        self._jl_interpreter = Main
 
     def _qprint(self, string: str):
         """Prints a line if self.quiet is False"""
@@ -49,8 +52,7 @@ class Base():
             print(string)
 
     # NOTE: These pickling functions might be removed later. They're
-    # currently here for convenience but might be a security issue
-    # down the line
+    # currently here for convenience but might be an  down the line
     def dump(self, dumppath):
         """Pickles object to location in dumppath"""
         self._qprint("Dumping object...")

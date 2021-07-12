@@ -3,24 +3,9 @@
 
 from ..data.data_loader import DataLoader
 import numpy as np
+from vaex.ml.cluster import KMeans
 from types import FunctionType, MethodType
 import operator as op
-
-# Cluster function imports and dispatcher (allows for easy switching
-#   of clustering function)
-clusterfunc_dispatcher = []
-
-# import KMeans and minibatch variant from scikit-learn
-#   CPU bound. Minibatch is significantly faster but more error-prone
-try:
-    from sklearn.cluster import KMeans
-    from sklearn.cluster import MiniBatchKMeans
-    clusterfunc_dispatcher += [KMeans, MiniBatchKMeans]
-except ImportError:
-    print("Optional module Scikit-Learn not present")
-
-clusterfunc_dispatcher = {func.__name__: func for
-                          func in clusterfunc_dispatcher}
 
 
 class DataProcessor(DataLoader):
@@ -79,81 +64,66 @@ class DataProcessor(DataLoader):
                 The path to the data to be processed
         """
         super().__init__(**kwargs)
+        # Include and bind julia counterpart to this module
+        self._jl_interpreter.include(f"{__file__[:__file__.rfind('.')]}.jl")
+        self._julia = getattr(self._jl_interpreter,
+                              __file__.split("/")[-1].split(".")[0])
 
-    def apply_calibration_curve(self, calibration_curve: FunctionType):
-        "Applies calibration curve function to w axis (temp) data"
-        self._qprint("Applying calibration curve")
-        # if self.data_dict is not None:
-        if hasattr(self, "data_dict"):
-            for layer_num, layer_data in self.progressbar(
-                                             self.data_dict.items(),
-                                             total=len(self.data_dict),
-                                             desc="Layers",
-                                             disable=self.quiet):
-                layer_data[2, :] = calibration_curve(layer_data[2, :])
-        # if self.sample_data is not None:
-        if hasattr(self, "sample_data"):
-            for sample_num, layers in self.progressbar(
-                                          self.sample_data.items(),
-                                          total=len(self.sample_data),
-                                          desc="Samples",
-                                          disable=self.quiet):
-                for layer_number, layer_data in layers.items():
-                    layer_data[2, :] = calibration_curve(layer_data[2, :])
-
-    def avgspeed_threshold(self, x, y, w, threshold_percent=1, avgof=1):
+    def avgspeed_threshold(self, threshold_percent=1, avgof=1):
         """
         Thresholds layer data (x,y,w) based on percentage of max average slope
         of rolling average of displacement
         """
         threshold_percent /= 100.  # convert threshold percent to decimal
         # calc displacements using pythagorean theorem
-        displacement = np.sqrt(np.add(np.square(x), np.square(y)))
+        x_squared = (self.data["x"] * self.data["x"])
+        y_squared = (self.data["y"] * self.data["y"])
+        sum_of_squares = x_squared + y_squared
+        # Add displacement column to frame
+        displacement = sum_of_squares.sqrt()
 
-        # Calculate rolling average of displacement
-        rollingavgdisp = np.convolve(displacement,
-                                     np.ones(avgof) / avgof,
-                                     mode="valid")
-
+        # Note: currently getting rolling avg requires conversion to pandas,
+        # this isnt ideal. Vaex plans to implement rolling funcs in its library
+        # soon and once this is complete this section may need a rewrite
+        series = displacement.to_pandas_series()  # Convert to pandas series
+        series = series.rolling(avgof).sum()[avgof:]  # calc rolling sum
+        series = series / avgof  # calc rolling avg
         # get absolute average speed based on rolling avg displacement
-        absavgdispslope = np.abs(np.diff(rollingavgdisp))
-        threshold = threshold_percent * np.max(absavgdispslope)  # thresh val
-        # mask out points without enough predecessors for rolling avg
-        xmasked = x[-absavgdispslope.size:]
-        ymasked = y[-absavgdispslope.size:]
-        wmasked = w[-absavgdispslope.size:]
-        # filter based on threshold criteria
-        x_thresh = xmasked[absavgdispslope < threshold]
-        y_thresh = ymasked[absavgdispslope < threshold]
-        w_thresh = wmasked[absavgdispslope < threshold]
-        return x_thresh, y_thresh, w_thresh
+        series = series.diff()[1:]
+        series = series.abs()
+        series = series.to_numpy()  # convert to numpy
+        disp_max = series.max()  # get max displacement value
+        threshold = threshold_percent * disp_max  # Calc threshold cutoff
+        self.data = self.data[avgof+1:]  # mask out NaN displacements
+        series = series < threshold  # Get filter array
+        self.data.add_column(name="filter", f_or_array=series)
+        self.data = self.data[self.data["filter"]]
+        self.data = self.data.extract()
+        self.data.drop("filter", inplace=True)
 
-    def avgw_threshold(self, x, y, w, threshold_percent=1,
-                       comparison_func=None):
+    def avg_threshold(self, threshold_percent=1, column="w1",
+                      comparison_func=None):
         """
         Selectively keeps data based on comparison with a percentage of the
-        mean of whatever w data is given
+        mean of whatever column is given
         """
-        threshold_percent /= 100  # convert threshold percent to decimal
-        threshold = threshold_percent * np.mean(w)  # threshold val
-        # filter based on threshold criteria
-        x_thresh = x[comparison_func(w, threshold)]
-        y_thresh = y[comparison_func(w, threshold)]
-        w_thresh = w[comparison_func(w, threshold)]
-        # Return thresholded data
-        return x_thresh, y_thresh, w_thresh
+        threshold_percent /= 100.  # convert threshold percent to decimal
+        threshold = threshold_percent * self.data[column].mean()
+        self.data = self.data[comparison_func(self.data[column], threshold)]
+        self.data = self.data.extract()
 
-    def avgw_greaterthan(self, x, y, w, threshold_percent=1):
-        "Keeps all values greater than threshold percent of average"
-        return self.avgw_threshold(x, y, w,
-                                   threshold_percent=threshold_percent,
-                                   comparison_func=op.gt)
+    def avg_greaterthan(self, column="w1", threshold_percent=1):
+        "Keeps all values greater than threshold percent of average for column"
+        return self.avg_threshold(column=column,
+                                  threshold_percent=threshold_percent,
+                                  comparison_func=op.gt)
 
-    def avgw_lessthan(self, x, y, w, threshold_percent=1):
-        "Keeps all values less than threshold percent of average"
-        return self.avgw_threshold(x, y, w,
-                                   threshold_percent=threshold_percent,
-                                   comparison_func=op.lt)
+    def avg_lessthan(self, x, y, z, w1, w2,
+                     column="w1", threshold_percent=1):
+        "Keeps all values less than threshold percent of average for column"
+        return self.avg_threshold(column=column,
+                                  threshold_percent=threshold_percent,
+                                  comparison_func=op.lt)
 
     def threshold_all_layers(self, thresh_functions, threshfunc_kwargs):
         "Thresholds all layers by applying listed functions with listed params"
@@ -163,92 +133,43 @@ class DataProcessor(DataLoader):
         if type(threshfunc_kwargs) is dict:
             threshfunc_kwargs = (threshfunc_kwargs,)
 
-        self._qprint("\nThresholding all layers")
+        self._qprint("\nThresholding data")
 
-        # Loop through dict, applying thresh_func to each layer
-        for layer_number, layer_data in self.progressbar(
-                                            self.data_dict.items(),
-                                            total=len(self.data_dict),
-                                            desc="Layers",
-                                            position=0,
-                                            disable=self.quiet):
-            # apply each requested thresholding function in sequence
-            for thresh_function, kwargs in self.progressbar(
-                                               zip(thresh_functions,
-                                                   threshfunc_kwargs),
-                                               total=len(thresh_functions),
-                                               desc="Thresholds",
-                                               position=1,
-                                               leave=False,
-                                               disable=self.quiet):
+        # Prep progress bar iterator (assigned to variable for code clarity)
+        progbar_iterator = self.progressbar(zip(thresh_functions,
+                                                threshfunc_kwargs),
+                                            total=len(thresh_functions),
+                                            position=1,
+                                            leave=False,
+                                            disable=self.quiet)
 
-                self.data_dict[layer_number] = \
-                    np.asarray(
-                        thresh_function(layer_data[:, 0],
-                                        layer_data[:, 1],
-                                        layer_data[:, 2],
-                                        **kwargs))
+        # apply each requested thresholding function in sequence
+        for thresh_function, kwargs in progbar_iterator:
+            thresh_function(**kwargs)
 
-    def detect_samples(self, n_samples,
-                       label_samples: bool = True,
-                       mode="KMeans"):
+    def detect_samples_kmeans(self, n_samples):
         "Uses a clustering algorithm to detect samples automatically"
         self._qprint("\nDetecting contiguous samples\n")
-        # Concatenate x and y arrays into 2d array for training
-        cluster_training = np.concatenate(tuple(self.data_dict.values()),
-                                          axis=1)[:2, :]
-        cluster_training = cluster_training.T
-
-        # Set clustering function
-        clusterfunc = clusterfunc_dispatcher[mode]
-
         # KMeans train to recognize clusters
-        self.model = clusterfunc(n_clusters=n_samples,
-                                 verbose=1*(not self.quiet))
-        self.model.fit(cluster_training)
+        self.kmeans_model = KMeans(n_clusters=n_samples,
+                                   features=["x", "y"],
+                                   verbose=(not self.quiet))
+        # Loop repeats the kmeans training until desired num of samples found
+        while True:
+            self.kmeans_model.fit(self.data)
+            # Label samples
+            self._qprint("\nKmeans training complete!\nLabelling samples...")
+            data = self.kmeans_model.transform(self.data)
+            n_found = len(data["prediction_kmeans"].unique())
+            if n_found < n_samples:
+                print(
+                    f"\nRepeating Kmeans training (samples found: {n_found})\n"
+                )
+            else:
+                self.data = data
+                break
 
-        self._qprint("\nLabelling contiguous samples")
-        # loop through layers clustering xy data points
-        labelled_layer_data = {}
-        for layer_number, layer_data in self.progressbar(
-                                            self.data_dict.items(),
-                                            total=len(self.data_dict),
-                                            disable=self.quiet):
-            layer_xy = layer_data[:2, :]
-            clusters = self.model.predict(layer_xy.T)
-            labelled_layer_data[layer_number] = (layer_data, clusters)
-
-        if label_samples is True:
-            self.sample_labels = self.model.cluster_centers_
-
-        self.labelled_layer_data = labelled_layer_data
-
-    def separate_samples(self):
-        "Separates labelled layer data into samples"
-        self._qprint("\nSeparating samples into different datasets")
-        sample_data = {}
-        for layer_number, layer_data in self.progressbar(
-                                            self.labelled_layer_data.items(),
-                                            total=len(
-                                                self.labelled_layer_data),
-                                            desc="Overall",
-                                            position=0,
-                                            disable=self.quiet):
-            layer_set = set(layer_data[1])
-            for cluster_num in self.progressbar(layer_set,
-                                                total=len(layer_set),
-                                                desc=f"Layer {layer_number}",
-                                                position=1,
-                                                leave=False,
-                                                disable=self.quiet):
-                # Filter cluster from data
-                cluster = layer_data[0][:, layer_data[1] == cluster_num]
-                # If key for cluster not in data dict create
-                if cluster_num not in sample_data:
-                    sample_data[cluster_num] = {}
-                # Add layer to sample subdictionary with key layer_number
-                sample_data[cluster_num][layer_number] = cluster
-
-        self._qprint("")  # if not silent, add a line after progress bars
-
-        self.sample_data = sample_data
+        # Save centroids for positioning of labels
+        self.sample_labels = np.asarray(self.kmeans_model.cluster_centers)
+        self.data.rename("prediction_kmeans", "sample")
+        self._qprint("\nSample detection complete!")
