@@ -232,6 +232,8 @@ class MeltpoolTomography(DataProcessor):
                 # Clear figure and ensure large, local objects get deleted
                 fig.clf()
                 del layer_data, heatmap, fig, ax
+        # Delete last filter to remove unneeded vaex filters
+        del data
 
         if not self._quiet_callback:
             self._qprint("Layer heatmaps complete!\n")
@@ -410,6 +412,8 @@ class MeltpoolTomography(DataProcessor):
                 # Clear figure and ensure large, local objects get deleted
                 fig.clf()
                 del layer_data, scatter, fig, ax
+        # Delete last filter to remove unneeded vaex filters
+        del data
 
         if not self._quiet_callback:
             self._qprint("Layer scatters complete!\n")
@@ -571,6 +575,8 @@ class MeltpoolTomography(DataProcessor):
             # Save figure and clear pyplot buffer
             plt.savefig(f"{output_path}/{column}_3dscatter.{filetype}")
             plt.clf()
+        # Delete last filter to remove unneeded vaex filters
+        del data
 
         if not self._quiet_callback:
             self._qprint("3dscatter complete!\n")
@@ -729,6 +735,8 @@ class MeltpoolTomography(DataProcessor):
                 f"{output_path}/3dscatter_interactive_{column}.html",
                 **figureparams
             )
+        # Delete last filter to remove unneeded vaex filters
+        del data
 
         if not self._quiet_callback:
             self._qprint("Interactive 3dscatter complete!\n")
@@ -865,9 +873,11 @@ class MeltpoolTomography(DataProcessor):
                         statstring += ","
                     # Write layer data to file
                     lfile.write(f"{sample},{z},{statstring}\n")
+                # Cleanup unneeded filters
+                del layer_data
                 statstring = ""
                 for column in w:
-                    data = layer_data[column]
+                    data = sample_data[column]
                     stats = self.calculate_stats(
                         data,
                         confidence_interval=confidence_interval
@@ -878,5 +888,7 @@ class MeltpoolTomography(DataProcessor):
                     statstring += ","
                 # Write sample overall data to file
                 sfile.write(f"{sample},{statstring}\n")
+            # Cleanup unneeded filters
+            del sample_data
 
         self._qprint(f"Datasheets generated at {output_path}!")
