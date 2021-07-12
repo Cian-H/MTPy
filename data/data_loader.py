@@ -63,7 +63,7 @@ class DataLoader(Base):
         self.wunits = "mV"
         # Cache info
         self._cache = SimpleNamespace()
-        self._cache.cache_extension = "arrow"
+        self._cache.cache_extension = "feather"
         self._cache.cache_path = f"{self.data_path}/cache/"
         self._cache.read_cache_file = f"{self._cache.cache_path}read"  # noqa
         self._cache.raw_cache_file = f"{self._cache.cache_path}data_raw.{self._cache.cache_extension}"  # noqa
