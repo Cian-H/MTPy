@@ -231,7 +231,7 @@ class MeltpoolTomography(DataProcessor):
                             **figureparams)
                 # Clear figure and ensure large, local objects get deleted
                 fig.clf()
-                del heatmap, fig, ax
+                del layer_data, heatmap, fig, ax
 
         if not self._quiet_callback:
             self._qprint("Layer heatmaps complete!\n")
@@ -409,7 +409,7 @@ class MeltpoolTomography(DataProcessor):
                             **figureparams)
                 # Clear figure and ensure large, local objects get deleted
                 fig.clf()
-                del scatter, fig, ax
+                del layer_data, scatter, fig, ax
 
         if not self._quiet_callback:
             self._qprint("Layer scatters complete!\n")
