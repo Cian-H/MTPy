@@ -1,5 +1,5 @@
 from julia import Main
-from mtpy import MeltpoolTomography
+from MTPy.mtpy import MeltpoolTomography
 import numpy as np
 from matplotlib import pyplot as plt
 import plotly.express as px

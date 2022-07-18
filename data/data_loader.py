@@ -38,6 +38,7 @@ class DataLoader(Base):
     def __init__(self,
                  data_path: str = None,
                  chunk_size: int = 1_048_576,
+                 cache_path: str = None,
                  **kwargs):
         """
         Constructor for the MTPy DataLoader Base class
@@ -63,13 +64,17 @@ class DataLoader(Base):
         self.wunits = "mV"
         # Cache info
         self._cache = SimpleNamespace()
-        self._cache.cache_extension = "feather"
-        self._cache.cache_path = f"{self.data_path}/cache/"
+        self._cache.cache_extension = "arrow"
+        if cache_path is None:
+            self._cache.cache_path = f"{self.data_path}/cache/"
+        else:
+            self._cache.cache_path = cache_path
         self._cache.read_cache_file = f"{self._cache.cache_path}read"  # noqa
         self._cache.raw_cache_file = f"{self._cache.cache_path}data_raw.{self._cache.cache_extension}"  # noqa
         self._cache.cache_file = f"{self._cache.cache_path}data.{self._cache.cache_extension}"  # noqa
 
-    def read_layers(self, calibration_curve: FunctionType = None):
+    def read_layers(self, calibration_curve: FunctionType = None,
+                    units: str = "mV"):
         """Reads layer files into DataFrames for processing.
 
         DataFrames will be:
@@ -86,39 +91,33 @@ class DataLoader(Base):
         w2_0  = uncalibrated temperature data from probe 2"""
         self._qprint(f"\nSearching for files at {self.data_path}")
         # glob filenames
-        pathlist = Path(self.data_path).glob(f"*.{self.data_extension}")
         dataframes = []
-        files = []
-
-        for path in pathlist:
-            path_in_str = str(path)
-            file = path_in_str.split("/")[-1:][0]
-            files.append(file)
-
-        files = sorted(files)
+        files = sorted(
+            [file.name for file in
+                Path(self.data_path).glob(f"*.{self.data_extension}")]
+        )
 
         self._qprint(f"Reading files from {self.data_path}")
-
         Path(f"{self.data_path}/cache").mkdir(parents=True, exist_ok=True)
 
         # Read data from files
         for file in self.progressbar(files, total=len(files),
                                      disable=self.quiet):
-            df = vx.from_csv(f"{self.data_path}/{file}",
-                             names=["x", "y", "w1_0", "w2_0"],
-                             header=None, delimiter=" ", dtype="float64",
-                             chunk_size=self.chunk_size,  # noqa Num of rows resident in memory at once
-                             convert=f"{self._cache.read_cache_file}_{file}.{self._cache.cache_extension}")  # noqa Sets to convert chunks to files for caching
-
-            # Commented below out as vaex has no equivalent...
-            # Not sure what it did, tbh...
-            # df = df.groupby(["x", "y"], sort=False, as_index=False).mean()
-            # Corrects for flipped x axis on aconity output
-            df["x"] *= -1
-            # Prep z column
-            df["z"] = np.repeat(float(file[:-1-len(self.data_extension)]),
-                                len(df))
-            dataframes.append(df)
+            # Check file isnt empty before reading
+            if Path(f"{self.data_path}/{file}").stat().st_size != 0:
+                df = vx.from_csv(f"{self.data_path}/{file}",
+                                 names=["x", "y", "w1_0", "w2_0"],
+                                 header=None, delimiter=" ", dtype="float64",
+                                 chunk_size=self.chunk_size,  # noqa Num of rows resident in memory at once
+                                 convert=f"{self._cache.read_cache_file}_{file}.{self._cache.cache_extension}")  # noqa Sets to convert chunks to files for caching
+                # Corrects for flipped x axis on aconity output
+                df["x"] *= -1
+                # Prep z column
+                df["z"] = np.repeat(float(file[:-1 - len(self.data_extension)]),
+                                    len(df))
+                dataframes.append(df)
+            else:  # Otherwise, print an error message
+                print(f"File {file} is empty! Skipping...\n")
 
         # concatenate dataframes, add indeces and save this new array to an,
         # arrow file
@@ -138,7 +137,8 @@ class DataLoader(Base):
         # Load vaex array from new arrow cache
         self.raw_data = vx.open(self._cache.raw_cache_file)
         # If given a calibration curve, apply it
-        self.apply_calibration_curve(calibration_curve)
+        self.apply_calibration_curve(calibration_curve=calibration_curve,
+                                     units=units)
 
     def apply_calibration_curve(self,
                                 calibration_curve: FunctionType = None,
@@ -155,7 +155,8 @@ class DataLoader(Base):
             # if a calibration curve is given set wn_1 to calibrated values
             if calibration_curve is not None:
                 self._qprint("Applying calibration curve")
-                self.data["w1"], self.data["w2"] = calibration_curve(
+                # TODO: TEMPORARY PATCH!!!!! DOESNT ALLOW USE OF W2!
+                self.data["w1"] = calibration_curve(
                     x=self.data["x"],
                     y=self.data["y"],
                     z=self.data["z"],
@@ -168,7 +169,7 @@ class DataLoader(Base):
                 self.data["w1"] = self.data["w1_0"]
                 self.data["w2"] = self.data["w2_0"]
             self.wunits = units
-        print("Calibrated!")
+        self._qprint("Calibrated!")
 
     def save_data(self, filename: str = "data"):
         self._qprint("Saving data...")
@@ -181,7 +182,7 @@ class DataLoader(Base):
             # if ends in a number, increment it by 1
             if parsed[-2][-1].isnumeric():
                 n1 = re.search(r"\d+$", parsed[-2]).group()
-                n2 = str(int(n1)+1)
+                n2 = str(int(n1) + 1)
                 parsed[-2] = parsed[-2][-len(n1):] + n2
             # Otherwise, just add a "1"
             else:
@@ -223,9 +224,9 @@ class DataLoader(Base):
         label_filename = ".".join(label_filename[:-1])
         label_filename += ".np"
         # Create cache if needed
-        if (Path(raw_filename).is_file() or
-                Path(filename).is_file() or
-                Path(label_filename).is_file()):
+        if (Path(raw_filename).is_file()
+                or Path(filename).is_file()
+                or Path(label_filename).is_file()):
             Path(f"{self.data_path}/cache").mkdir(parents=True, exist_ok=True)
         # open raw file if present
         if Path(raw_filename).is_file():
@@ -237,12 +238,12 @@ class DataLoader(Base):
         if Path(label_filename).is_file():
             self.sample_labels = np.fromfile(label_filename)
             self.sample_labels = self.sample_labels.reshape(
-                                     (self.sample_labels.shape[0]//2, 2)
-                                 )
+                (self.sample_labels.shape[0] // 2, 2)
+            )
         # if not present, silently create working data
         else:
             quiet_state = self.quiet
-            self.quiet = False
+            self.quiet = True
             self.apply_calibration_curve()
             self.quiet = quiet_state
         # Finally, store path to prevent segfaults later

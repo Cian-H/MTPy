@@ -4,7 +4,7 @@
 from ..data.data_processor import DataProcessor
 from pathlib import Path
 from typing import Callable, Union
-from math import sqrt
+import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits import mplot3d  # noqa
 from plotly import express as px
@@ -28,13 +28,15 @@ sample_defaults = {
 }
 viz_plot_defaults = {
     "colormap": "plasma",
-    "colorbar": True
+    "colorbar": True,
+    "shape": 2046
 }
 viz_figure_defaults = {
     "facecolor": "white"
 }
 mpl_plot_defaults = {
     "cmap": "plasma",
+    "marker": ".",
 }
 mpl_figure_defaults = {
     "facecolor": "white"
@@ -126,6 +128,7 @@ class MeltpoolTomography(DataProcessor):
                           w: Union[list, str] = ["w1", "w2"],
                           layer_filter: Callable[[float], bool] = None,
                           sample_filter: Callable[[float], bool] = None,
+                          sample_data=None,
                           plotparams: dict = {},
                           figureparams: dict = {}):
         "Function for generating figures from layers"
@@ -161,29 +164,31 @@ class MeltpoolTomography(DataProcessor):
         if "vmin" and "vmax" in plotparams:
             vmin = plotparams.pop("vmin")
             vmax = plotparams.pop("vmax")
-            if not ((type(vmin) is dict) and
-                    (type(vmin) is dict)):
+            if not ((type(vmin) is dict)
+                    and (type(vmin) is dict)):
                 vmin = {x: vmin for x in w}
                 vmax = {x: vmax for x in w}
         else:
             for column in w:
                 vmin[column] = float(self.data[column].min())
                 vmax[column] = float(self.data[column].max())
-        layers = data["z"].unique()
-        layers = data["z"].unique()
 
         if not self._quiet_callback:
             self._qprint("\nGenerating layer heatmaps")
 
         # Prep progress bar iterator (assigned to variable for code clarity)
-        progbar_iterator = self.progressbar(layers,
+        if sample_data is not None:
+            layer_iterator = sample_data.groupby("z")
+        else:
+            layer_iterator = data.groupby("z")
+        progbar_iterator = self.progressbar(layer_iterator,
                                             desc="Layers",
-                                            total=len(layers),
+                                            total=len(layer_iterator),
                                             leave=False,
                                             position=1,
                                             disable=self.quiet)
         # Loop through layers
-        for layer in progbar_iterator:
+        for layer, layer_data in progbar_iterator:
             # Make progress bar for w plots if more than one w
             if type(w) is str:
                 w_iterator = [w]
@@ -204,7 +209,6 @@ class MeltpoolTomography(DataProcessor):
                 if type(vmax) is dict:
                     plotparams["vmax"] = vmax[column]
                 # Filter out target layer
-                layer_data = data[data["z"] == layer]
                 if plotparams["colorbar"] \
                         and "colorbar_label" not in plotparams:
                     plotparams["colorbar_label"] = \
@@ -212,7 +216,7 @@ class MeltpoolTomography(DataProcessor):
                 # Create plot
                 heatmap = layer_data.viz.heatmap(
                     x="x", y="y",
-                    what=f"mean({column})",
+                    what=f"max({column})",
                     **plotparams
                 )
                 # Get figure and axis
@@ -247,7 +251,6 @@ class MeltpoolTomography(DataProcessor):
             f"\nPreparing to generate sample heatmaps in {output_path}...")
         output_path = str(Path(output_path).expanduser())
         Path(output_path).mkdir(parents=True, exist_ok=True)
-        samples = self.data["sample"].unique()
         # if not specified otherwise turn off sample labels
         if "sample_labels" not in kwargs:
             kwargs["sample_labels"] = False
@@ -276,17 +279,19 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("\nGenerating sample heatmaps")
 
         # Prep progress bar iterator (assigned to variable for code clarity)
-        progbar_iterator = self.progressbar(samples,
-                                            total=len(samples),
+        sample_iterator = self.data.groupby("sample")
+        progbar_iterator = self.progressbar(sample_iterator,
+                                            total=len(sample_iterator),
                                             desc="Samples",
                                             position=0,
                                             disable=self.quiet)
 
         self._quiet_callback = True
         # Loop through layers in layerdict
-        for sample_number in progbar_iterator:
+        for sample_number, sample_data in progbar_iterator:
             # Set sample filter for selected layer
             kwargs["sample_filter"] = lambda x: x == sample_number
+            kwargs["sample_data"] = sample_data
             # Plot all layers in the sample
             self.layers_to_heatmap(f"{output_path}/{sample_number}",
                                    **kwargs)
@@ -335,8 +340,8 @@ class MeltpoolTomography(DataProcessor):
         if "vmin" and "vmax" in plotparams:
             vmin = plotparams.pop("vmin")
             vmax = plotparams.pop("vmax")
-            if not ((type(vmin) is dict) and
-                    (type(vmin) is dict)):
+            if not ((type(vmin) is dict)
+                    and (type(vmin) is dict)):
                 vmin = {x: vmin for x in w}
                 vmax = {x: vmax for x in w}
         else:
@@ -694,7 +699,7 @@ class MeltpoolTomography(DataProcessor):
         if "color" in plotparams:
             del(plotparams["color"])
         if "range_z" not in plotparams:
-            plotparams["range_z"] = [0., data["z"].max()+0.1]
+            plotparams["range_z"] = [0., data["z"].max() + 0.1]
         # add n to hover data
         hover_data += ["n"]
 
@@ -719,17 +724,26 @@ class MeltpoolTomography(DataProcessor):
                                             position=1,
                                             disable=self.quiet)
 
-        # Convert minimized vaex selection to a pandas df for plotting
-        data = data.to_pandas_df(["x", "y", "z", *w_units, *hover_data])
+        # # Prepare for type casting after converting to pandas df
+        # df_columns = ["x", "y", "z", *w_units, *hover_data]
+        # # Convert minimized vaex selection to a pandas df for plotting
+        # data = data.to_pandas_df(df_columns)
 
         # Plot for every requested w axis
         for column, column_units in progbar_iterator:
 
+            # # Create figure and save to html
+            # fig = px.scatter_3d(data,
+            #                     x="x", y="y", z="z",
+            #                     color=column_units,
+            #                     hover_data=hover_data,
+            #                     **plotparams)
             # Create figure and save to html
-            fig = px.scatter_3d(data,
-                                x="x", y="y", z="z",
-                                color=column_units,
-                                hover_data=hover_data,
+            fig = px.scatter_3d(x=data["x"].to_numpy(),
+                                y=data["y"].to_numpy(),
+                                z=data["z"].to_numpy(),
+                                color=data[column_units].to_numpy(),
+                                hover_data=[data[x].to_numpy() for x in hover_data],  # noqa
                                 **plotparams)
             fig.write_html(
                 f"{output_path}/3dscatter_interactive_{column}.html",
@@ -775,120 +789,30 @@ class MeltpoolTomography(DataProcessor):
 
         self._qprint("Sample interactive 3dplots complete!\n")
 
-    def calculate_stats(self, data, confidence_interval=0.95):
-        mean = data.mean()
-        min = data.min()
-        max = data.max()
-        stdev = data.std()
-        stderr = stdev / sqrt(mean)
-        ci_error = confidence_interval * stderr
-        ci_min = mean - ci_error
-        ci_max = mean + ci_error
-        stats = {"mean": mean,
-                 "min": min,
-                 "max": max,
-                 "stdev": stdev,
-                 "stderr": stderr,
-                 "cimin": ci_min,
-                 "cimax": ci_max}
+    def calculate_stats(self, groupby: list = [], confidence_interval=0.95):
+        stats = self.data.groupby(groupby, agg={"w1": ["min", "max", "mean", "std"]})
+        stats["w1_stderr"] = stats["w1_std"] / np.sqrt(stats["w1_mean"])
+        stats["w1_ci_error"] = 0.95 * stats["w1_stderr"]
+        stats["w1_ci_min"] = stats["w1_mean"] - stats["w1_ci_error"]
+        stats["w1_ci_max"] = stats["w1_mean"] + stats["w1_ci_error"]
         return stats
 
     def temp_data_to_csv(self, output_path: str,
                          layers: bool = True,
                          samples: bool = True,
+                         sample_layers: bool = True,
                          w: Union[list, str] = ["w1", "w2"],
                          layer_filter: Callable[[float], bool] = None,
                          sample_filter: Callable[[float], bool] = None,
                          confidence_interval: float = 0.95):
         "Generates a csv containing temperature data for processed samples"
+        Path(output_path).mkdir(parents=True, exist_ok=True)
         if output_path[-1] != "/":
             output_path += "/"
         if layers:
-            layers_output_path = f"{output_path}layertemps.csv"
+            self.calculate_stats(groupby="z").export_csv(f"{output_path}layertemps.csv")
         if samples:
-            samples_output_path = f"{output_path}sampletemps.csv"
-        Path(output_path).mkdir(parents=True, exist_ok=True)
-        # Apply filters
-        # apply sample filter if possible and given one
-        if "sample" in self.data:
-            if sample_filter is not None:
-                data = self.data[sample_filter(self.data["sample"])]
-            else:
-                data = self.data
-        else:
-            self._qprint("\nNo sample labels present!")
-            data = self.data
-        # apply layer filter if given one
-        if layer_filter is not None:
-            data = data[layer_filter(self.data["z"])]
-        else:
-            data = data
-        # Prepare header columns
-        header_columns = ["MEAN_TEMP", "MIN_TEMP", "MAX_TEMP", "STDEV", "STDERR", f"CI_MIN_{confidence_interval*100}%", f"CI_MAX_{confidence_interval*100}%"]  # noqa
-        # Prep layer file header
-        layer_header = "SAMPLE,Z"
-        for column in w:
-            ucolumn = column.upper()
-            for header in header_columns:
-                layer_header += f",{ucolumn}_{header}"
-        layer_header += "\n"
-        # Prep sample file header
-        sample_header = "SAMPLE"
-        for column in w:
-            ucolumn = column.upper()
-            for header in header_columns:
-                sample_header += f",{ucolumn}_{header}"
-        sample_header += "\n"
-        # Prepare iterators
-        samples = self.data["sample"].unique()
-        layers = sorted(self.data["z"].unique())
-        self._qprint(f"Generating datasheets at {output_path}...")
-        sample_iterator = self.progressbar(samples,
-                                           total=len(samples),
-                                           desc="Samples",
-                                           position=0,
-                                           disable=self.quiet)
-        # Save sample temp data to a csv file (may have to make function later)
-        with open(f"{layers_output_path}", "w") as lfile, \
-             open(f"{samples_output_path}", "w") as sfile:
-            # Add a header column
-            lfile.write(layer_header)
-            sfile.write(sample_header)
-            # loop through data array to generate csv
-            for sample in sample_iterator:
-                sample_data = self.data[self.data["sample"] == sample]
-                for z in layers:
-                    # Calc avg, stdev, stderr and confidence intervals
-                    layer_data = sample_data[sample_data["z"] == z]
-                    statstring = ""
-                    for column in w:
-                        data = layer_data[column]
-                        stats = self.calculate_stats(
-                            data,
-                            confidence_interval=confidence_interval
-                        )
-                        statstring += ",".join(
-                            [str(x) for x in stats.values()]
-                        )
-                        statstring += ","
-                    # Write layer data to file
-                    lfile.write(f"{sample},{z},{statstring}\n")
-                # Cleanup unneeded filters
-                del layer_data
-                statstring = ""
-                for column in w:
-                    data = sample_data[column]
-                    stats = self.calculate_stats(
-                        data,
-                        confidence_interval=confidence_interval
-                    )
-                    statstring += ",".join(
-                        [str(x) for x in stats.values()]
-                    )
-                    statstring += ","
-                # Write sample overall data to file
-                sfile.write(f"{sample},{statstring}\n")
-            # Cleanup unneeded filters
-            del sample_data
-
+            self.calculate_stats(groupby="sample").export_csv(f"{output_path}sampletemps.csv")
+        if sample_layers:
+            self.calculate_stats(groupby=["sample", "z"]).export_csv(f"{output_path}samplelayertemps.csv")
         self._qprint(f"Datasheets generated at {output_path}!")

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from ..__init__ import __modpath__
 from pathlib import Path
 from tqdm.auto import tqdm
 import pickle
-from julia import Main
+from julia import Main, Pkg
 
 
 class Base():
@@ -44,6 +45,9 @@ class Base():
         self.quiet = quiet
         self.progressbar = progressbar
         # embed a Julia interpreter at base for interoperability
+        print()
+        Pkg.activate(f"{__modpath__}/julia")
+        print()
         self._jl_interpreter = Main
 
     def _qprint(self, string: str):

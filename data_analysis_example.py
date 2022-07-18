@@ -98,6 +98,9 @@ def main():
                            figureparams=figureparams,
                            plotparams=scatterparams)
 
+    mpt.save_data("Checkpoint1")
+    mpt.load_data("Checkpoint1")
+
     # Create interactive 3d plot for entire build tray
     mpt.layers_to_3dplot_interactive(f"{output_path}/{layer_subfolder}",
                                      plot_w=True,
