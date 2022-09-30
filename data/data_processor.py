@@ -3,7 +3,6 @@
 
 from ..data.data_loader import DataLoader
 import numpy as np
-from vaex.ml.cluster import KMeans
 from types import FunctionType, MethodType
 import operator as op
 

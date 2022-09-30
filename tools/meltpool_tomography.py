@@ -16,14 +16,14 @@ from plotly import express as px
 plt.rcParams.update({"figure.max_open_warning": 0})
 
 # Constants go here
-valid_ws = ("w1", "w2")
+valid_ws = ("t1", "t2")
 
 # Default params for kwarg dicts libraries and a function for applying them
 mtpy_defaults = {
     "data_path": Path.cwd()
 }
 sample_defaults = {
-    "w": ["w1", "w2"],
+    "w": ["t1", "t2"],
     "plotparams": {}
 }
 viz_plot_defaults = {
@@ -125,7 +125,7 @@ class MeltpoolTomography(DataProcessor):
     def layers_to_heatmap(self, output_path,
                           filetype: str = "png",
                           sample_labels: bool = True,
-                          w: Union[list, str] = ["w1", "w2"],
+                          w: Union[list, str] = ["t1", "t2"],
                           layer_filter: Callable[[float], bool] = None,
                           sample_filter: Callable[[float], bool] = None,
                           sample_data=None,
@@ -212,7 +212,7 @@ class MeltpoolTomography(DataProcessor):
                 if plotparams["colorbar"] \
                         and "colorbar_label" not in plotparams:
                     plotparams["colorbar_label"] = \
-                        f"{self.wlabel} ({self.wunits})"
+                        f"{self.temp_label} ({self.temp_units})"
                 # Create plot
                 heatmap = layer_data.viz.heatmap(
                     x="x", y="y",
@@ -302,7 +302,7 @@ class MeltpoolTomography(DataProcessor):
     def layers_to_scatter(self, output_path,
                           filetype: str = "png",
                           sample_labels: bool = True,
-                          w: Union[list, str] = ["w1", "w2"],
+                          w: Union[list, str] = ["t1", "t2"],
                           layer_filter: Callable[[float], bool] = None,
                           sample_filter: Callable[[float], bool] = None,
                           plotparams: dict = {},
@@ -399,7 +399,7 @@ class MeltpoolTomography(DataProcessor):
                 fig = scatter.figure.get_figure()
                 ax = fig.axes[0]
                 # Create a colorbar
-                fig.colorbar(mappable, label=self.wlabel)
+                fig.colorbar(mappable, label=self.temp_label)
                 # Finally, format plots appropriately
                 ax.set_xlabel("x")
                 ax.set_ylabel("y")
@@ -482,7 +482,7 @@ class MeltpoolTomography(DataProcessor):
     def layers_to_3dscatter(self, output_path,
                             filetype: str = "png",
                             colorbar: bool = True,
-                            w: Union[list, str] = ["w1", "w2"],
+                            w: Union[list, str] = ["t1", "t2"],
                             layer_filter: Callable[[float], bool] = None,
                             sample_filter: Callable[[float], bool] = None,
                             plotparams: dict = {},
@@ -572,7 +572,7 @@ class MeltpoolTomography(DataProcessor):
             # If we want a colorbar create one
             if colorbar:
                 plt.colorbar(mappable,
-                             label=f"{self.wlabel} ({self.wunits})")
+                             label=f"{self.temp_label} ({self.temp_units})")
             # Finally, format plots appropriately
             ax.set_xlabel("x")
             ax.set_ylabel("y")
@@ -654,7 +654,7 @@ class MeltpoolTomography(DataProcessor):
     def layers_to_3dscatter_interactive(self, output_path,
                                         downsampling: int = 1,
                                         sliceable: bool = False,
-                                        w: Union[list, str] = ["w1", "w2"],
+                                        w: Union[list, str] = ["t1", "t2"],
                                         hover_data=[],
                                         layer_filter: Callable[[float], bool] = None,  # noqa
                                         sample_filter: Callable[[float], bool] = None,  # noqa
@@ -708,7 +708,7 @@ class MeltpoolTomography(DataProcessor):
             data = data[(data["n"] % downsampling) == 0]
 
         # Add units to all w values
-        w_units = [f"{column} ({self.wunits})" for column in w]
+        w_units = [f"{column} ({self.temp_units})" for column in w]
         w_map = dict(zip(w, w_units))
         for column, column_units in w_map.items():
             data.rename(column, column_units)
@@ -790,18 +790,18 @@ class MeltpoolTomography(DataProcessor):
         self._qprint("Sample interactive 3dplots complete!\n")
 
     def calculate_stats(self, groupby: list = [], confidence_interval=0.95):
-        stats = self.data.groupby(groupby, agg={"w1": ["min", "max", "mean", "std"]})
-        stats["w1_stderr"] = stats["w1_std"] / np.sqrt(stats["w1_mean"])
-        stats["w1_ci_error"] = 0.95 * stats["w1_stderr"]
-        stats["w1_ci_min"] = stats["w1_mean"] - stats["w1_ci_error"]
-        stats["w1_ci_max"] = stats["w1_mean"] + stats["w1_ci_error"]
+        stats = self.data.groupby(groupby, agg={"t1": ["min", "max", "mean", "std"]})
+        stats["t1_stderr"] = stats["t1_std"] / np.sqrt(stats["t1_mean"])
+        stats["t1_ci_error"] = 0.95 * stats["t1_stderr"]
+        stats["t1_ci_min"] = stats["t1_mean"] - stats["t1_ci_error"]
+        stats["t1_ci_max"] = stats["t1_mean"] + stats["t1_ci_error"]
         return stats
 
     def temp_data_to_csv(self, output_path: str,
                          layers: bool = True,
                          samples: bool = True,
                          sample_layers: bool = True,
-                         w: Union[list, str] = ["w1", "w2"],
+                         w: Union[list, str] = ["t1", "t2"],
                          layer_filter: Callable[[float], bool] = None,
                          sample_filter: Callable[[float], bool] = None,
                          confidence_interval: float = 0.95):

@@ -1,13 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# TODO: calibration curve not updated
+
 from ..common.base import Base
 from pathlib import Path
 import shutil
-import re
-import vaex as vx
-import numpy as np
+import psutil
+from read_layers import read_selected_layers
 from types import FunctionType, SimpleNamespace
+from dask.distributed import Client, LocalCluster
+from dask import array as da
+from dask import dataframe as dd
+import tarfile
+import pickle
+
+
+default_cluster_config = {
+    "n_workers": psutil.cpu_count() - 1,
+    "threads_per_worker": 1,
+    "memory_limit": f"{psutil.virtual_memory().total / (2 * (psutil.cpu_count() - 1) * 1_073_741_824)}GB",
+}
 
 
 class DataLoader(Base):
@@ -23,8 +36,6 @@ class DataLoader(Base):
 
     Methods
     -------
-        _qprint(string: str)
-            Prints a line if self.quiet is False
         dump(dumppath)
             Pickles object to location in dumppath
         undump(dumppath)
@@ -36,9 +47,9 @@ class DataLoader(Base):
     """
 
     def __init__(self,
-                 data_path: str = None,
-                 chunk_size: int = 1_048_576,
-                 cache_path: str = None,
+                 cluster = None,
+                 data_cache: str | None = None,
+                 keep_raw: bool = True,
                  **kwargs):
         """
         Constructor for the MTPy DataLoader Base class
@@ -47,205 +58,182 @@ class DataLoader(Base):
         ----------
             quiet: bool = False
                 Determines whether object should be quiet or not
-            data_path: str = None
-                The path to the data to be processed
         """
         super().__init__(**kwargs)
-        # Sets a chunk size for all vaex ops
-        self.chunk_size = chunk_size
-        # Stores location from which to read data
-        self.data_path = str(Path(data_path).expanduser())
-        # Modifiable file extensions, in case needed in future
-        self.data_extension = "pcd"
-        # Path to the currently loaded datafile to prevent read/write segfaults
-        self.currently_loaded = None
-        # Set default labels for w axis
-        self.wlabel = "Temp"
-        self.wunits = "mV"
-        # Cache info
-        self._cache = SimpleNamespace()
-        self._cache.cache_extension = "arrow"
-        if cache_path is None:
-            self._cache.cache_path = f"{self.data_path}/cache/"
+        if data_cache is None:
+            data_cache = str(Path().cwd())
+        if cluster is None:
+            self.cluster = LocalCluster(**default_cluster_config)
         else:
-            self._cache.cache_path = cache_path
-        self._cache.read_cache_file = f"{self._cache.cache_path}read"  # noqa
-        self._cache.raw_cache_file = f"{self._cache.cache_path}data_raw.{self._cache.cache_extension}"  # noqa
-        self._cache.cache_file = f"{self._cache.cache_path}data.{self._cache.cache_extension}"  # noqa
+            self.cluster = cluster
+        self.client = Client(self.cluster)
+        # Stores location from which to read data
+        # Set default labels for t axis
+        self.temp_label = "Pyrometer Response"
+        self.temp_units = None
+        # Cache info
+        self.keep_raw = keep_raw
+        self._cache = SimpleNamespace()  # NOTE: DEPRECATED! Left it because i cant remember if its needed in the GUI application. If unneeded will delete later.
+        self._data_cache = Path(data_cache)
+        self._data_cache.mkdir(parents=True, exist_ok=True)
+        # Misc configuration attributes
+        self._memory_limit = self.cluster._memory_per_worker()
+        self._file_suffix = ".mtp"
+    
+    
+    def __del__(self, **kwargs):
+        # Close dask cluster and client
+        # TODO: possible bug here if user passes dask client and intends to continue using it outside MTPy
+        # Without this code though, dask clients could be left causing mem leaks. Need to find a solution
+        self.cluster.close()
+        self.client.close()
+        # Delete cache files if still present
+        for p in self._data_cache.iterdir():
+            p.unlink(missing_ok=True)
+        self._data_cache.rmdir()
+        # super().__del__(**kwargs) # Not needed currently, but will be if __del__ added to parent
 
-    def read_layers(self, calibration_curve: FunctionType = None,
-                    units: str = "mV"):
+
+    def read_layers(self, data_path, calibration_curve: FunctionType = None,
+                    temp_units: str = "mV"):
         """Reads layer files into DataFrames for processing.
-
-        DataFrames will be:
-        raw_data  = the unthresholded dataset
-        data      = the thresholded dataset
 
         Columns in each will be:
         x     = x coordinates,
         y     = y coordinates,
         z     = z coordinates,
-        w1    = calibrated temperature data from probe 1,
-        w2    = calibrated temperature data from probe 2,
-        w1_0  = uncalibrated temperature data from probe 1,
-        w2_0  = uncalibrated temperature data from probe 2"""
-        self._qprint(f"\nSearching for files at {self.data_path}")
-        # glob filenames
-        dataframes = []
-        files = sorted(
-            [file.name for file in
-                Path(self.data_path).glob(f"*.{self.data_extension}")]
-        )
-
-        self._qprint(f"Reading files from {self.data_path}")
-        Path(f"{self.data_path}/cache").mkdir(parents=True, exist_ok=True)
-
-        # Read data from files
-        for file in self.progressbar(files, total=len(files),
-                                     disable=self.quiet):
-            # Check file isnt empty before reading
-            if Path(f"{self.data_path}/{file}").stat().st_size != 0:
-                df = vx.from_csv(f"{self.data_path}/{file}",
-                                 names=["x", "y", "w1_0", "w2_0"],
-                                 header=None, delimiter=" ", dtype="float64",
-                                 chunk_size=self.chunk_size,  # noqa Num of rows resident in memory at once
-                                 convert=f"{self._cache.read_cache_file}_{file}.{self._cache.cache_extension}")  # noqa Sets to convert chunks to files for caching
-                # Corrects for flipped x axis on aconity output
-                df["x"] *= -1
-                # Prep z column
-                df["z"] = np.repeat(float(file[:-1 - len(self.data_extension)]),
-                                    len(df))
-                dataframes.append(df)
-            else:  # Otherwise, print an error message
-                print(f"File {file} is empty! Skipping...\n")
-
-        # concatenate dataframes, add indeces and save this new array to an,
-        # arrow file
-        self.raw_data = vx.concat(dataframes)
-        self.raw_data["n"] = np.arange(self.raw_data.shape[0], dtype="int64")
-        self.raw_data.export(self._cache.raw_cache_file)
-        # Clear out now unneeded vaex arrays and caches
-        dataframes.clear()
-        del(dataframes)
-        del(self.raw_data)
-        cache_dir = Path(self._cache.cache_path)
-        read_cache = (cache_dir.glob(f"read*.{self._cache.cache_extension}"),
-                      cache_dir.glob("read*.yaml"))
-        read_cache = (Path(item) for sublist in read_cache for item in sublist)
-        for file in read_cache:
-            file.unlink()
-        # Load vaex array from new arrow cache
-        self.raw_data = vx.open(self._cache.raw_cache_file)
+        t1    = calibrated temperature data from probe 1,
+        t2    = calibrated temperature data from probe 2
+        """
+        self._qprint(f"\nSearching for files at {data_path}")
+        # Calculate read batches
+        batches = [[]]
+        acc = 0
+        layer_files = list(Path(data_path).expanduser().glob("*.pcd"))
+        # Prepare batches of files wtih total size less than memory_limit to read at once
+        for p in sorted(layer_files, key=lambda x: float(x.stem)):
+            file_size = p.stat().st_size
+            assert file_size < self._memory_limit, "File size too large for available RAM!"
+            acc += file_size
+            if acc > self._memory_limit:
+                batches.append([])
+                acc = file_size
+            batches[-1].append(str(p))
+        
+        # Then read files (offloaded to local rust library "read_layers")
+        for file_list in self.progressbar(batches, position=2):
+            # Read each batch in rust to dask dataframe, then add df to compressed HDF5
+            batch_df = dd.from_array(
+                da.from_array(read_selected_layers(file_list)),
+                columns=["x", "y", "z", "t1", "t2"]
+            )
+            batch_df.to_hdf(
+                f"{self._data_cache}/working.h5",
+                key="pyrometer",
+                complib="blosc:lz4hc",
+                complevel=9,
+                append=True
+            )
+        
+        # if keeping raw data, copy raw HDF5 files before modifying
+        if self.keep_raw:
+            shutil.copy(f"{self._data_cache}/working.h5", f"{self._data_cache}/raw.h5")
+                
+        self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+        
         # If given a calibration curve, apply it
-        self.apply_calibration_curve(calibration_curve=calibration_curve,
-                                     units=units)
+        if calibration_curve:
+            self.apply_calibration_curve(calibration_curve=calibration_curve)
+        self.temp_units=temp_units
+
 
     def apply_calibration_curve(self,
-                                calibration_curve: FunctionType = None,
-                                units: str = "mV"):
-        "Applies calibration curve function to w axis (temp) data"
-        # if data is present
-        if hasattr(self, "raw_data"):
-            # First, create and assign a new cache for working data
-            if not Path(self._cache.raw_cache_file).exists():
-                self.raw_data.export(self._cache.raw_cache_file)
-            shutil.copy(self._cache.raw_cache_file, self._cache.cache_file)
-            self.data = vx.open(self._cache.cache_file)
+                                calibration_curve: FunctionType | None = None,
+                                temp_column: str = "t1",
+                                units: str | None = None):
+        "Applies calibration curve function to temp data column"
+        # if a calibration curve is given
+        if calibration_curve is not None:
+            # Set temp_column to calibrated values
+            self._qprint("Applying calibration curve")
+            self.data[temp_column] = calibration_curve(
+                x=self.data["x"],
+                y=self.data["y"],
+                z=self.data["z"],
+                t=self.data[temp_column]
+            )
+            # Then, create a new HDF5 to work from, replace old one, and load it
+            self.data.to_hdf(
+                f"{self._data_cache}/calibrated.h5",
+                key="pyrometer",
+                complib="blosc:lz4hc",
+                complevel=9
+            )
+            del self.data
+            Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
+            Path(f"{self._data_cache}/calibrated.h5").rename(f"{self._data_cache}/working.h5")
+            self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+            if units is not None:
+                self.temp_units = units
+            self._qprint("Calibrated!")
+        # otherwise, set to raw values from datafiles
+        else:
+            self._qprint("No calibration curve given!")
 
-            # if a calibration curve is given set wn_1 to calibrated values
-            if calibration_curve is not None:
-                self._qprint("Applying calibration curve")
-                # TODO: TEMPORARY PATCH!!!!! DOESNT ALLOW USE OF W2!
-                self.data["w1"] = calibration_curve(
-                    x=self.data["x"],
-                    y=self.data["y"],
-                    z=self.data["z"],
-                    w1=self.data["w1_0"],
-                    w2=self.data["w2_0"]
-                )
-            # otherwise, set to raw values from datafiles
-            else:
-                self._qprint("Applying no calibration curve")
-                self.data["w1"] = self.data["w1_0"]
-                self.data["w2"] = self.data["w2_0"]
-            self.wunits = units
-        self._qprint("Calibrated!")
 
-    def save_data(self, filename: str = "data"):
+    def reload_raw(self):
+        if self.keep_raw:
+            del self.data
+            Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
+            shutil.copy(f"{self._data_cache}/raw.h5", f"{self._data_cache}/working.h5")
+            self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+        else:
+            self._qprint("keep_raw param set to False, no raw data present!")
+
+
+    def save(self, filepath: Path | str = Path("data")):
         self._qprint("Saving data...")
         # Process filename before saving
-        if "." not in filename:
-            filename += f".{self._cache.cache_extension}"
-        # Ensure not saving to same file being read
-        if f"{Path().cwd()}/{filename}" == self.currently_loaded:
-            parsed = filename.split(".")
-            # if ends in a number, increment it by 1
-            if parsed[-2][-1].isnumeric():
-                n1 = re.search(r"\d+$", parsed[-2]).group()
-                n2 = str(int(n1) + 1)
-                parsed[-2] = parsed[-2][-len(n1):] + n2
-            # Otherwise, just add a "1"
-            else:
-                parsed[-2] += "1"
-            filename = ".".join(parsed)
-        # If working data is present, save it
-        if hasattr(self, "data"):
-            self.data.export(filename, chunk_size=self.chunk_size)
-        # If raw data is present save it too
-        if hasattr(self, "raw_data"):
-            raw_filename = filename.split(".")
-            raw_filename[-2] += "_raw"
-            raw_filename = ".".join(raw_filename)
-            self.raw_data.export(raw_filename, chunk_size=self.chunk_size)
-        # If sample labels are present, save them too
-        if hasattr(self, "sample_labels"):
-            label_filename = filename.split(".")
-            label_filename[-2] += "_labels"
-            label_filename = ".".join(label_filename[:-1])
-            self.sample_labels.tofile(f"{label_filename}.np")
+        if type(filepath) is str:
+            filepath = Path(filepath)
+        if not filepath.suffix:
+            filepath = filepath.with_suffix(self._file_suffix)
+        # Check if file exists, if does save with lowest available number added
+        p = filepath
+        i = 1
+        while p.exists():
+            p = Path(f"{str(p)[:-4]}({i}){str(p)[-4:]}")
+            i += 1
+        if filepath != p:
+            self._qprint(f"{filepath} already exists! Saving as {p}...")
+            filepath = p
+        # Add pickled self.__dict__ to the data cache
+        attrs = self.__dict__.copy()
+        del attrs["cluster"]
+        del attrs["client"]
+        pickle.dump(attrs, open(f"{self._data_cache}/attrs.dict", "wb+"))
+        with tarfile.open(filepath, "w:gz", compresslevel=5) as tarball:
+            for p in self.progressbar(list(self._data_cache.iterdir())):
+                tarball.add(p, arcname=p.name)
         self._qprint("Data saved!")
 
-    def load_data(self, filename: str = "data"):
+
+    def load(self, filepath: Path | str = Path("data")):
         self._qprint("Loading data...")
-        # Process filename to ensure is a working data filename
-        if "." not in filename:
-            filename += f".{self._cache.cache_extension}"
-        filename = filename.split(".")
-        if filename[-2][-4:] == "_raw":
-            filename[-2] = filename[-2][:-4]
-        filename = ".".join(filename)
-        # Generate a raw filename from that
-        raw_filename = filename.split(".")
-        label_filename = raw_filename.copy()  # copy to avoid repeating split
-        raw_filename[-2] += "_raw"
-        raw_filename = ".".join(raw_filename)
-        # Also generate a label filename from that
-        label_filename[-2] += "_labels"
-        label_filename = ".".join(label_filename[:-1])
-        label_filename += ".np"
-        # Create cache if needed
-        if (Path(raw_filename).is_file()
-                or Path(filename).is_file()
-                or Path(label_filename).is_file()):
-            Path(f"{self.data_path}/cache").mkdir(parents=True, exist_ok=True)
-        # open raw file if present
-        if Path(raw_filename).is_file():
-            self.raw_data = vx.open(raw_filename)
-        # open working data if present
-        if Path(filename).is_file():
-            self.data = vx.open(filename)
-        # open labels if present
-        if Path(label_filename).is_file():
-            self.sample_labels = np.fromfile(label_filename)
-            self.sample_labels = self.sample_labels.reshape(
-                (self.sample_labels.shape[0] // 2, 2)
-            )
-        # if not present, silently create working data
-        else:
-            quiet_state = self.quiet
-            self.quiet = True
-            self.apply_calibration_curve()
-            self.quiet = quiet_state
-        # Finally, store path to prevent segfaults later
-        self.currently_loaded = f"{Path().cwd()}/{filename}"
+        # Process filename before saving
+        if type(filepath) is str:
+            filepath = Path(filepath)
+        if not filepath.exists() and not filepath.suffix:
+            filepath = filepath.with_suffix(self._file_suffix)
+        self._data_cache.mkdir(parents=True, exist_ok=True)
+        with tarfile.open(filepath, "r:gz") as tarball:
+            members = list(tarball.getmembers())
+            for member in self.progressbar(members):
+                tarball.extract(member=member, path=self._data_cache)
+        # Finally, reload the attributes from the saved instance
+        attrs = pickle.load(open(f"{self._data_cache}/attrs.dict", "rb"))
+        for k, v in attrs.items():
+            if k in self.__dict__ and k != "cache":
+                self.__dict__[k] = v
+        self.data = dd.read_hdf(f"{self._data_cache}/working*.h5", key="pyrometer")
         self._qprint("Data loaded!")
