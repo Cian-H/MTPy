@@ -11,13 +11,17 @@ julia = "^0.5.7"
 numpy = "^1.23.1"
 matplotlib = "^3.5.2"
 plotly = "^5.9.0"
-dask = {extras = ["distributed"], version = "^2022.7.0"}
+dask = {extras = ["distributed", "graphviz"], version = "^2022.7.0"}
 tqdm = "^4.64.0"
 psutil = "^5.9.1"
-read_layers {file = "wheels/read_layers-0.1.0-cp310-cp310-linux_x86_64.whl" }
+read_layers = { file = "wheels/read_layers-0.1.0-cp310-cp310-linux_x86_64.whl" }
 pandas = "^1.4.3"
 tables = "^3.7.0"
 lz4 = "^4.0.2"
+bokeh = "^2.4.3"
+holoviews = "^1.15.1"
+datashader = "^0.14.2"
+dash = "^2.6.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -25,6 +29,11 @@ memory-profiler = "^0.60.0"
 maturin = "^0.13.0"
 graphviz = "^0.20"
 bokeh = "^2.4.3"
+line-profiler = "^3.5.1"
+snakeviz = "^2.1.1"
+jupyter = "^1.0.0"
+ipykernel = "^6.16.0"
+ipywidgets = "^8.0.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

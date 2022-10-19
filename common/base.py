@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..__init__ import __modpath__
-from pathlib import Path
-from tqdm.auto import tqdm
 import pickle
+from pathlib import Path
+
+from tqdm.auto import tqdm
+
+from ..__init__ import __modpath__
+
 # from julia import Main, Pkg
 
 
-class Base():
+class Base:
     """
     Base class for MTPy module classes
 
@@ -27,9 +30,7 @@ class Base():
             Unpickles object at dumppath and copies its attributes to self
     """
 
-    def __init__(self,
-                 quiet: bool = False,
-                 progressbar=tqdm):
+    def __init__(self, quiet: bool = False, progressbar=tqdm, **kwargs):
         """
         Constructor for the MTPy Base class
 
@@ -41,7 +42,7 @@ class Base():
                 Sets the function used to generate progress bars (must use
                 tqdm-like syntax)
         """
-
+        super().__init__(**kwargs)
         self.quiet = quiet
         self.progressbar = progressbar
         # embed a Julia interpreter at base for interoperability
@@ -62,8 +63,7 @@ class Base():
         self._qprint("Dumping object...")
         if Path(dumppath).is_dir():
             # Then dumps object to a file with that name
-            pickle.dump(self, open(f"{dumppath}/mtpyobj.p",
-                                   "wb"))
+            pickle.dump(self, open(f"{dumppath}/mtpyobj.p", "wb"))
         else:
             pickle.dump(self, open(dumppath, "wb"))
         self._qprint("Dumped!")

@@ -1,64 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# TODO: calibration curve not updated
-
-from ..common.base import Base
-from pathlib import Path
+import pickle
 import shutil
-import psutil
-from read_layers import read_selected_layers
+import tarfile
+from itertools import repeat
+from multiprocessing import Pool
+from pathlib import Path
 from types import FunctionType, SimpleNamespace
-from dask.distributed import Client, LocalCluster
+
+import psutil
 from dask import array as da
 from dask import dataframe as dd
-import tarfile
-import pickle
+from dask.distributed import Client, LocalCluster
+from read_layers import read_selected_layers
+
+from ..common.base import Base
 
 
 default_cluster_config = {
     "n_workers": psutil.cpu_count() - 1,
-    "threads_per_worker": 1,
-    "memory_limit": f"{psutil.virtual_memory().total / (2 * (psutil.cpu_count() - 1) * 1_073_741_824)}GB",
+    "threads_per_worker": 2,
+    # "memory_limit": f"{psutil.virtual_memory().total / (2 * (psutil.cpu_count() - 1) * 1_073_741_824)}GB",
 }
 
 
 class DataLoader(Base):
-    """
-    DataLoader class for loading data into the MTPy Module
 
-    Attributes
-    ----------
-        quiet: bool = False
-            Determines whether object should be quiet or not
-        data_path: str = None
-            The path to the data to be processed
-
-    Methods
-    -------
-        dump(dumppath)
-            Pickles object to location in dumppath
-        undump(dumppath)
-            Unpickles object at dumppath and copies its attributes to self
-        read_layers(calibration_curve: FunctionType = None)
-            Reads layer files into data structure for processing
-        reset_data()
-            Undoes all data processing that was performed on loaded data
-    """
-
-    def __init__(self,
-                 cluster = None,
-                 data_cache: str | None = None,
-                 keep_raw: bool = True,
-                 **kwargs):
-        """
-        Constructor for the MTPy DataLoader Base class
-
-        Parameters
-        ----------
-            quiet: bool = False
-                Determines whether object should be quiet or not
-        """
+    def __init__(
+        self,
+        cluster=None,
+        data_cache: str | None = None,
+        keep_raw: bool = True,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         if data_cache is None:
             data_cache = str(Path().cwd())
@@ -73,14 +48,15 @@ class DataLoader(Base):
         self.temp_units = None
         # Cache info
         self.keep_raw = keep_raw
-        self._cache = SimpleNamespace()  # NOTE: DEPRECATED! Left it because i cant remember if its needed in the GUI application. If unneeded will delete later.
+        self._cache = (
+            SimpleNamespace()
+        )  # NOTE: DEPRECATED! Left it because i cant remember if its needed in the GUI application. If unneeded will delete later.
         self._data_cache = Path(data_cache)
         self._data_cache.mkdir(parents=True, exist_ok=True)
         # Misc configuration attributes
         self._memory_limit = self.cluster._memory_per_worker()
         self._file_suffix = ".mtp"
-    
-    
+
     def __del__(self, **kwargs):
         # Close dask cluster and client
         # TODO: possible bug here if user passes dask client and intends to continue using it outside MTPy
@@ -93,18 +69,9 @@ class DataLoader(Base):
         self._data_cache.rmdir()
         # super().__del__(**kwargs) # Not needed currently, but will be if __del__ added to parent
 
-
-    def read_layers(self, data_path, calibration_curve: FunctionType = None,
-                    temp_units: str = "mV"):
-        """Reads layer files into DataFrames for processing.
-
-        Columns in each will be:
-        x     = x coordinates,
-        y     = y coordinates,
-        z     = z coordinates,
-        t1    = calibrated temperature data from probe 1,
-        t2    = calibrated temperature data from probe 2
-        """
+    def read_layers(
+        self, data_path, calibration_curve: FunctionType | None = None, temp_units: str = "mV"
+    ):
         self._qprint(f"\nSearching for files at {data_path}")
         # Calculate read batches
         batches = [[]]
@@ -113,45 +80,47 @@ class DataLoader(Base):
         # Prepare batches of files wtih total size less than memory_limit to read at once
         for p in sorted(layer_files, key=lambda x: float(x.stem)):
             file_size = p.stat().st_size
-            assert file_size < self._memory_limit, "File size too large for available RAM!"
+            assert (
+                file_size < self._memory_limit
+            ), "File size too large for available RAM!"
             acc += file_size
             if acc > self._memory_limit:
                 batches.append([])
                 acc = file_size
             batches[-1].append(str(p))
-        
+
         # Then read files (offloaded to local rust library "read_layers")
         for file_list in self.progressbar(batches, position=2):
             # Read each batch in rust to dask dataframe, then add df to compressed HDF5
             batch_df = dd.from_array(
                 da.from_array(read_selected_layers(file_list)),
-                columns=["x", "y", "z", "t1", "t2"]
+                columns=["x", "y", "z", "t1", "t2"],
             )
             batch_df.to_hdf(
                 f"{self._data_cache}/working.h5",
                 key="pyrometer",
                 complib="blosc:lz4hc",
                 complevel=9,
-                append=True
+                append=True,
             )
-        
+
         # if keeping raw data, copy raw HDF5 files before modifying
         if self.keep_raw:
             shutil.copy(f"{self._data_cache}/working.h5", f"{self._data_cache}/raw.h5")
-                
+
         self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
-        
+
         # If given a calibration curve, apply it
         if calibration_curve:
             self.apply_calibration_curve(calibration_curve=calibration_curve)
-        self.temp_units=temp_units
+        self.temp_units = temp_units
 
-
-    def apply_calibration_curve(self,
-                                calibration_curve: FunctionType | None = None,
-                                temp_column: str = "t1",
-                                units: str | None = None):
-        "Applies calibration curve function to temp data column"
+    def apply_calibration_curve(
+        self,
+        calibration_curve: FunctionType | None = None,
+        temp_column: str = "t1",
+        units: str | None = None,
+    ):
         # if a calibration curve is given
         if calibration_curve is not None:
             # Set temp_column to calibrated values
@@ -160,18 +129,20 @@ class DataLoader(Base):
                 x=self.data["x"],
                 y=self.data["y"],
                 z=self.data["z"],
-                t=self.data[temp_column]
+                t=self.data[temp_column],
             )
             # Then, create a new HDF5 to work from, replace old one, and load it
             self.data.to_hdf(
                 f"{self._data_cache}/calibrated.h5",
                 key="pyrometer",
                 complib="blosc:lz4hc",
-                complevel=9
+                complevel=9,
             )
             del self.data
             Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
-            Path(f"{self._data_cache}/calibrated.h5").rename(f"{self._data_cache}/working.h5")
+            Path(f"{self._data_cache}/calibrated.h5").rename(
+                f"{self._data_cache}/working.h5"
+            )
             self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
             if units is not None:
                 self.temp_units = units
@@ -179,7 +150,6 @@ class DataLoader(Base):
         # otherwise, set to raw values from datafiles
         else:
             self._qprint("No calibration curve given!")
-
 
     def reload_raw(self):
         if self.keep_raw:
@@ -189,7 +159,6 @@ class DataLoader(Base):
             self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
         else:
             self._qprint("keep_raw param set to False, no raw data present!")
-
 
     def save(self, filepath: Path | str = Path("data")):
         self._qprint("Saving data...")
@@ -202,7 +171,7 @@ class DataLoader(Base):
         p = filepath
         i = 1
         while p.exists():
-            p = Path(f"{str(p)[:-4]}({i}){str(p)[-4:]}")
+            p = Path(f"{str(filepath)[:-4]}({i}){str(filepath)[-4:]}")
             i += 1
         if filepath != p:
             self._qprint(f"{filepath} already exists! Saving as {p}...")
@@ -216,7 +185,6 @@ class DataLoader(Base):
             for p in self.progressbar(list(self._data_cache.iterdir())):
                 tarball.add(p, arcname=p.name)
         self._qprint("Data saved!")
-
 
     def load(self, filepath: Path | str = Path("data")):
         self._qprint("Loading data...")

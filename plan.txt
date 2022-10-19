@@ -3,9 +3,12 @@ plan of action:
 - add w3 and w4 (or w2_1 and w2_2 or something) for second pyrometer
 - Switch to dask (vaex isnt being maintained enough)
 - use in-place julia/rust functions where even more speed is required
-- update docstrings (maybe use automated extension for this?)
+- implement new docstrings (maybe use automated extension for this?)
 - use __init__ to simplify API
 - maybe use pyvista or ipyvolume instead of plotly???
 - clean up namespaces with config files?
 - Maybe switch to using holoviews?
 - Add a dashboard using dash
+- implement Dask GPU support
+- implement pydantic to enforce types and prevent errors
+- add code formatting git hooks (e.g: format every commit with black before pushing)
