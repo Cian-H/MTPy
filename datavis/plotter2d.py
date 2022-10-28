@@ -1,12 +1,19 @@
 from itertools import chain
 from typing import Iterable
+from pathlib import Path
+import json
 
 from dash.dash import Dash
 import dask
 import holoviews as hv
+from holoviews import opts
 import holoviews.operation.datashader as hd
+import datashader as ds
+from datashader.reductions import Reduction
 
 from .plotter_base import PlotterBase
+from .dispatchers2d import plot_dispatch
+from ..utils.apply_defaults import apply_defaults
 
 # NOTES: Matplotlib and plotly clearly arent up to the job alone here. Implement holoviews + datashading
 # to give interactive, dynamically updating plots
@@ -16,76 +23,64 @@ from .plotter_base import PlotterBase
 #   - https://medium.com/plotly/introducing-dash-holoviews-6a05c088ebe5
 
 # TODO: replace dash with holoviz panels
+#   - https://panel.holoviz.org/index.html
 
 # Currently implemented plot kinds:
 #   - scatter
 
 hv.extension("plotly")
 
-
-def plot2d_hook(colorbar_label):
-
-    def hook(plot, element):
-        plot.handles["components"]["traces"][0]["colorbar"]["title"] = colorbar_label
-
-    return hook
+config_path = "config/plotter2d.json"
+with open(Path(f"{Path(__file__).parents[0].resolve()}/{config_path}"), "r") as f:
+    config = json.load(f)
 
 
 class Plotter2D(PlotterBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def plot2D(
+    def plot2d(
         self,
         kind: str,
         filename: None | str = None,
         add_to_dashboard: bool = False,
-        samples: int | Iterable | None = False,
+        samples: int | Iterable | None = None,
         xrange: tuple[float | None, float | None] | None = None,
         yrange: tuple[float | None, float | None] | None = None,
         zrange: tuple[float | None, float | None] | None = None,
         groupby: str | list[str] | None = None,
-        aggregator: str = "mean",
+        aggregator: Reduction | None = None,
         *args,
         **kwargs,
     ):
         chunk = self.data
-        
-        # add defaults for kwargs being passed through
-        if "cmap" not in kwargs:
-            kwargs["cmap"] = "plasma"
 
         # Filter to relevant samples
         if "sample" in chunk:
             if isinstance(samples, int):
-                chunk = chunk.loc[chunk["sample"] == samples]
+                chunk = chunk.loc[chunk["sample"].eq(samples)]
             elif isinstance(samples, Iterable):
                 chunk = chunk.loc[chunk["sample"].isin(samples)]
 
-        # take only columns needed for plotting
-        axis_kws = ("x", "y", "z")
-        columns = {
-            k if k in axis_kws else None: v
-            for k, v in chain(dict(zip(axis_kws, args)).items(), kwargs.items())
-        }
-        if None in columns: del columns[None]
-        
-        # if a groupby is present, ensure the data for grouping is kept
-        if groupby is not None:
-            columns["groupby"] = groupby
-        chunk = chunk[list(columns.values())]
+        # If z is given for range values, peel off from kwargs
+        if "z" in kwargs:
+            z_col = kwargs["z"]
+            del kwargs["z"]
+        else:
+            z_col = None
 
         # filter dataframe based on ranges given
         for axis, axis_range in zip(
-            (columns[x] for x in axis_kws), (xrange, yrange, zrange)
+            (kwargs["x"], kwargs["y"], z_col), (xrange, yrange, zrange)
         ):
             if axis_range is None:
                 continue
-            axis_min, axis_max = axis_range
-            if axis_min is not None:
-                chunk = chunk.loc[chunk[axis] >= axis_min]
-            elif axis_max is not None:
-                chunk = chunk.loc[chunk[axis] <= axis_max]
+            else:
+                axis_min, axis_max = axis_range
+                if axis_min is not None:
+                    chunk = chunk.loc[chunk[axis].ge(axis_min)]
+                elif axis_max is not None:
+                    chunk = chunk.loc[chunk[axis].le(axis_max)]
 
         # Then group if groupby is present (NOTE: NOT TESTED YET!)
         if groupby is not None:
@@ -96,54 +91,39 @@ class Plotter2D(PlotterBase):
 
         if samples is not None:
             view_id += f"_s{str(samples)}"
-        view_id += f"_{columns['x']}"
+        view_id += f"_{kwargs['x']}"
         if xrange is not None:
             view_id += f"{str(xrange)}"
-        view_id += f"_{columns['y']}"
+        view_id += f"_{kwargs['y']}"
         if yrange is not None:
             view_id += f"{str(yrange)}"
-        view_id += f"_{columns['z']}"
+        view_id += f"_{kwargs['w']}"
         if zrange is not None:
             view_id += f"{str(zrange)}"
         if groupby is not None:
             view_id += f"_g{str(groupby)}"
+        
+        f_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **kwargs)
 
-        # if view with same id already exists, fetch it, if not create one
-        if view_id in self.views:
-            plot = self.views[view_id]
-        else:
-            match kind:
-                case "scatter":
-                    plot_func = hv.Points
-                case _:
-                    raise ValueError(f"Unknown 2d plot kind given: {kind}")
+        plot = chunk
+        for f, kwargs in zip(f_list, kwargs_list):
+            plot = f(plot, **kwargs)
+        plot = plot.opts(**opts)
 
-            plot = plot_func(
-                chunk, kdims=[columns["x"], columns["y"]], vdims=[columns["z"]], label=kind
-            )
-            self.views[view_id] = plot
+        self.views[view_id] = plot
 
-        # I filename is given, save to that file
+        # If filename is given, save to that file
         if filename is not None:
             self._qprint(f"Saving to {filename}...")
             hv.save(plot, filename)
             self._qprint(f"{filename} saved!")
-
-        # Create datashaded plot object
-        ds_plot = hd.dynspread(hd.rasterize(plot, aggregator=aggregator)).opts(
-                colorbar=True, cmap=kwargs["cmap"], hooks=[plot2d_hook(columns["z"])]
-            )
         
         # If adding to dashboard, add this plot to the dashboard
         if add_to_dashboard and self.dashboard:
-            self.add_to_dashboard(ds_plot)
+            self.add_to_dashboard(plot)
         
         # Finally, return the plot for viewing, e.g. in jupyter notebook
-        return ds_plot
+        return plot
 
-    def scatter2D(self, *args, **kwargs):
-        if "x" not in kwargs: kwargs["x"] = "x"
-        if "y" not in kwargs: kwargs["y"] = "y"
-        if "z" not in kwargs: kwargs["z"] = "t1"
-        kwargs["kind"] = "scatter"
-        return self.plot2D(*args, **kwargs)
+    def scatter2d(self, *args, **kwargs):
+        return self.plot2d(*args, **apply_defaults(kwargs, config["scatter2d"]))

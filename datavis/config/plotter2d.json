@@ -1,0 +1,5 @@
+{
+    "scatter2d": {
+        "x": "x", "y": "y", "w": "t1", "kind": "scatter"
+    }
+}

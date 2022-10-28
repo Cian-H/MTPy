@@ -26,7 +26,6 @@ default_cluster_config = {
 
 
 class DataLoader(Base):
-
     def __init__(
         self,
         cluster=None,
@@ -70,7 +69,10 @@ class DataLoader(Base):
         # super().__del__(**kwargs) # Not needed currently, but will be if __del__ added to parent
 
     def read_layers(
-        self, data_path, calibration_curve: FunctionType | None = None, temp_units: str = "mV"
+        self,
+        data_path,
+        calibration_curve: FunctionType | None = None,
+        temp_units: str = "mV",
     ):
         self._qprint(f"\nSearching for files at {data_path}")
         # Calculate read batches
@@ -115,6 +117,19 @@ class DataLoader(Base):
             self.apply_calibration_curve(calibration_curve=calibration_curve)
         self.temp_units = temp_units
 
+    def commit(self):
+        # Create a new HDF5 to work from, replace old one, and load new working.h5
+        self.data.to_hdf(
+            f"{self._data_cache}/commit.h5",
+            key="pyrometer",
+            complib="blosc:lz4hc",
+            complevel=9,
+        )
+        del self.data
+        Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
+        Path(f"{self._data_cache}/commit.h5").rename(f"{self._data_cache}/working.h5")
+        self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+
     def apply_calibration_curve(
         self,
         calibration_curve: FunctionType | None = None,
@@ -131,19 +146,7 @@ class DataLoader(Base):
                 z=self.data["z"],
                 t=self.data[temp_column],
             )
-            # Then, create a new HDF5 to work from, replace old one, and load it
-            self.data.to_hdf(
-                f"{self._data_cache}/calibrated.h5",
-                key="pyrometer",
-                complib="blosc:lz4hc",
-                complevel=9,
-            )
-            del self.data
-            Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
-            Path(f"{self._data_cache}/calibrated.h5").rename(
-                f"{self._data_cache}/working.h5"
-            )
-            self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+            self.commit()
             if units is not None:
                 self.temp_units = units
             self._qprint("Calibrated!")
@@ -162,6 +165,8 @@ class DataLoader(Base):
 
     def save(self, filepath: Path | str = Path("data")):
         self._qprint("Saving data...")
+        # First, commit any pending changes
+        self.commit()
         # Process filename before saving
         if type(filepath) is str:
             filepath = Path(filepath)

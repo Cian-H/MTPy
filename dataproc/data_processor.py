@@ -5,8 +5,12 @@ import operator as op
 from types import FunctionType, MethodType
 
 import numpy as np
+from math import pi, sin, cos
 
 from .data_loader import DataLoader
+
+
+degrees_per_rad = 180/pi
 
 
 class DataProcessor(DataLoader):
@@ -70,6 +74,12 @@ class DataProcessor(DataLoader):
         # self._julia = getattr(
         #     self._jl_interpreter, __file__.split("/")[-1].split(".")[0]
         # )
+
+    def rotate_xy(self, angle: float) -> None:
+        sin_theta, cos_theta = sin(angle / degrees_per_rad), cos(angle / degrees_per_rad)
+        x, y = self.data["x"], self.data["y"]
+        self.data["x"] = (x.mul(cos_theta)) + (y.mul(sin_theta))
+        self.data["y"] = (x.mul(-sin_theta)) + (y.mul(cos_theta))
 
     def vx_rolling_sum(self, series, window):
         array = [0.0 for i in range(window)]
@@ -173,3 +183,11 @@ class DataProcessor(DataLoader):
         self.sample_labels = np.asarray(self.kmeans_model.cluster_centers)
         self.data.rename("prediction_kmeans", "sample")
         self._qprint("\nSample detection complete!")
+    
+    def mask_xyrectangles(self, sample_map: dict):
+        """Masks off rectangles as samples based on a dict where keys are sample numbers and values
+        are tuples of ((x1, x2), (y1, y2)), then bump all points outside those samples"""
+        self.data["sample"] = -1
+        for sample, (xrange, yrange) in sample_map.items():
+            self.data["sample"] = self.data["sample"].where( ~( self.data["x"].between(*xrange) & self.data["y"].between(*yrange) ), other=sample)
+        self.data = self.data.loc[self.data["sample"].ge(0)]
