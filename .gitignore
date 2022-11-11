@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Scratchpad for designing/testing module functions
+scratchpad

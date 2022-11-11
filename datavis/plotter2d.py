@@ -1,17 +1,13 @@
-from itertools import chain
 from typing import Iterable
 from pathlib import Path
 import json
 
-from dash.dash import Dash
 import dask
 import holoviews as hv
-from holoviews import opts
 import holoviews.operation.datashader as hd
-import datashader as ds
 from datashader.reductions import Reduction
 
-from .plotter_base import PlotterBase
+from .plotter_base import PlotterBase, pn
 from .dispatchers2d import plot_dispatch
 from ..utils.apply_defaults import apply_defaults
 
@@ -24,9 +20,12 @@ from ..utils.apply_defaults import apply_defaults
 
 # TODO: replace dash with holoviz panels
 #   - https://panel.holoviz.org/index.html
+# NOTE: panels added but itneractivesloders are currently creating an error. need to diagnose this later
+#   - for possible solution see: https://panel.holoviz.org/gallery/simple/save_filtered_df.html
 
 # Currently implemented plot kinds:
 #   - scatter
+#   - distribution
 
 hv.extension("plotly")
 
@@ -39,15 +38,40 @@ class Plotter2D(PlotterBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def init_panel(self, *args, **kwargs):
+        super().init_panel(*args, **kwargs)
+        # Bind 2d plotting functions to the panel
+        self.scatter2d_panel = pn.bind(
+            self.scatter2d,
+            xrange=(self.xmin_slider, self.xmax_slider),
+            yrange=(self.ymin_slider, self.ymax_slider),
+            zrange=(self.zmin_slider, self.zmax_slider),
+            samples=self.sample_slider,
+        )
+        self.layer_scatter2d_panel = pn.bind(
+            self.scatter2d,
+            xrange=(self.xmin_slider, self.xmax_slider),
+            yrange=(self.ymin_slider, self.ymax_slider),
+            zrange=self.layer_slider,
+            samples=self.sample_slider,
+        )
+        self.distribution2d_panel = pn.bind(
+            self.distribution2d,
+            xrange=(self.xmin_slider, self.xmax_slider),
+            yrange=(self.ymin_slider, self.ymax_slider),
+            zrange=self.layer_slider,
+            samples=self.sample_slider,
+        )
+
     def plot2d(
         self,
         kind: str,
         filename: None | str = None,
         add_to_dashboard: bool = False,
         samples: int | Iterable | None = None,
-        xrange: tuple[float | None, float | None] | None = None,
-        yrange: tuple[float | None, float | None] | None = None,
-        zrange: tuple[float | None, float | None] | None = None,
+        xrange: tuple[float | None, float | None] | float | None = None,
+        yrange: tuple[float | None, float | None] | float | None = None,
+        zrange: tuple[float | None, float | None] | float | None = None,
         groupby: str | list[str] | None = None,
         aggregator: Reduction | None = None,
         *args,
@@ -62,25 +86,20 @@ class Plotter2D(PlotterBase):
             elif isinstance(samples, Iterable):
                 chunk = chunk.loc[chunk["sample"].isin(samples)]
 
-        # If z is given for range values, peel off from kwargs
-        if "z" in kwargs:
-            z_col = kwargs["z"]
-            del kwargs["z"]
-        else:
-            z_col = None
-
         # filter dataframe based on ranges given
         for axis, axis_range in zip(
-            (kwargs["x"], kwargs["y"], z_col), (xrange, yrange, zrange)
+            (kwargs["x"], kwargs.get("y"), kwargs.get("z")), (xrange, yrange, zrange)
         ):
             if axis_range is None:
                 continue
+            elif type(axis_range) is float:
+                chunk = chunk.loc[chunk[axis].eq(float(axis_range))]
             else:
                 axis_min, axis_max = axis_range
                 if axis_min is not None:
-                    chunk = chunk.loc[chunk[axis].ge(axis_min)]
+                    chunk = chunk.loc[chunk[axis].ge(float(axis_min))]
                 elif axis_max is not None:
-                    chunk = chunk.loc[chunk[axis].le(axis_max)]
+                    chunk = chunk.loc[chunk[axis].le(float(axis_max))]
 
         # Then group if groupby is present (NOTE: NOT TESTED YET!)
         if groupby is not None:
@@ -94,15 +113,16 @@ class Plotter2D(PlotterBase):
         view_id += f"_{kwargs['x']}"
         if xrange is not None:
             view_id += f"{str(xrange)}"
-        view_id += f"_{kwargs['y']}"
+        view_id += f"_{kwargs.get('y', '')}"
         if yrange is not None:
             view_id += f"{str(yrange)}"
-        view_id += f"_{kwargs['w']}"
+        view_id += f"_{kwargs.get('w', '')}"
+        view_id += f"_{kwargs.get('z', '')}"
         if zrange is not None:
             view_id += f"{str(zrange)}"
         if groupby is not None:
             view_id += f"_g{str(groupby)}"
-        
+
         f_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **kwargs)
 
         plot = chunk
@@ -117,13 +137,16 @@ class Plotter2D(PlotterBase):
             self._qprint(f"Saving to {filename}...")
             hv.save(plot, filename)
             self._qprint(f"{filename} saved!")
-        
-        # If adding to dashboard, add this plot to the dashboard
-        if add_to_dashboard and self.dashboard:
-            self.add_to_dashboard(plot)
-        
+
+        # # If adding to dashboard, add this plot to the dashboard
+        # if add_to_dashboard and self.dashboard:
+        #     self.add_to_dashboard(plot)
+
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
     def scatter2d(self, *args, **kwargs):
         return self.plot2d(*args, **apply_defaults(kwargs, config["scatter2d"]))
+
+    def distribution2d(self, *args, **kwargs):
+        return self.plot2d(*args, **apply_defaults(kwargs, config["distribution2d"]))

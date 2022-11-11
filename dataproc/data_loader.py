@@ -16,6 +16,9 @@ from dask.distributed import Client, LocalCluster
 from read_layers import read_selected_layers
 
 from ..common.base import Base
+from ..utils.apply_defaults import apply_defaults
+from ..utils.large_hash import large_hash
+from ..utils.metadata_tagging import add_metadata, read_metadata
 
 
 default_cluster_config = {
@@ -29,15 +32,16 @@ class DataLoader(Base):
     def __init__(
         self,
         cluster=None,
-        data_cache: str | None = None,
+        data_cache: Path | str | None = "cache",
         keep_raw: bool = True,
+        cluster_config: dict = {},
         **kwargs,
     ):
         super().__init__(**kwargs)
         if data_cache is None:
             data_cache = str(Path().cwd())
         if cluster is None:
-            self.cluster = LocalCluster(**default_cluster_config)
+            self.cluster = LocalCluster(**apply_defaults(cluster_config, default_cluster_config))
         else:
             self.cluster = cluster
         self.client = Client(self.cluster)
@@ -96,44 +100,48 @@ class DataLoader(Base):
             # Read each batch in rust to dask dataframe, then add df to compressed HDF5
             batch_df = dd.from_array(
                 da.from_array(read_selected_layers(file_list)),
-                columns=["x", "y", "z", "t1", "t2"],
-            )
+                columns=["x", "y", "z", "t", "rgb"],
+            ).drop("rgb", axis=1) # The 'RGB' column is superfluous, as far as i can tell.
             batch_df.to_hdf(
                 f"{self._data_cache}/working.h5",
                 key="pyrometer",
                 complib="blosc:lz4hc",
                 complevel=9,
                 append=True,
+                compute=True,
             )
 
         # if keeping raw data, copy raw HDF5 files before modifying
         if self.keep_raw:
             shutil.copy(f"{self._data_cache}/working.h5", f"{self._data_cache}/raw.h5")
 
-        self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+        self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer", chunksize=2_500_000)
 
         # If given a calibration curve, apply it
-        if calibration_curve:
+        if calibration_curve is not None:
             self.apply_calibration_curve(calibration_curve=calibration_curve)
         self.temp_units = temp_units
 
     def commit(self):
-        # Create a new HDF5 to work from, replace old one, and load new working.h5
+        # If data in working.h5 doesnt match current dataframe, create new file to replace working.h5
+        # if not self.data.eq(dd.read_hdf("cache/working.h5", key="pyrometer")).all().all().compute():
+        Path(f"{self._data_cache}/commit.h5").unlink(missing_ok=True)
         self.data.to_hdf(
             f"{self._data_cache}/commit.h5",
             key="pyrometer",
             complib="blosc:lz4hc",
             complevel=9,
+            compute=True,
         )
         del self.data
         Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
         Path(f"{self._data_cache}/commit.h5").rename(f"{self._data_cache}/working.h5")
-        self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
+        self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer", chunksize=2_500_000)
 
     def apply_calibration_curve(
         self,
         calibration_curve: FunctionType | None = None,
-        temp_column: str = "t1",
+        temp_column: str = "t",
         units: str | None = None,
     ):
         # if a calibration curve is given
@@ -155,13 +163,16 @@ class DataLoader(Base):
             self._qprint("No calibration curve given!")
 
     def reload_raw(self):
-        if self.keep_raw:
+        unmodified = large_hash(f"{self._data_cache}/working.h5") == large_hash(f"{self._data_cache}/raw.h5")
+        if self.keep_raw and not unmodified:
             del self.data
             Path(f"{self._data_cache}/working.h5").unlink(missing_ok=True)
             shutil.copy(f"{self._data_cache}/raw.h5", f"{self._data_cache}/working.h5")
-            self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer")
-        else:
-            self._qprint("keep_raw param set to False, no raw data present!")
+            self.data = dd.read_hdf(f"{self._data_cache}/working.h5", key="pyrometer", chunksize=2_500_000)
+        elif self.keep_raw:
+            self._qprint("keep_raw param is set to False, no changes have been applied")
+        elif unmodified:
+            self._qprint("working == raw, no changes have been applied")
 
     def save(self, filepath: Path | str = Path("data")):
         self._qprint("Saving data...")
@@ -181,14 +192,21 @@ class DataLoader(Base):
         if filepath != p:
             self._qprint(f"{filepath} already exists! Saving as {p}...")
             filepath = p
-        # Add pickled self.__dict__ to the data cache
+        # Add pickled self.__dict__ (not including temporary attrs) to the data cache
         attrs = self.__dict__.copy()
-        del attrs["cluster"]
-        del attrs["client"]
-        pickle.dump(attrs, open(f"{self._data_cache}/attrs.dict", "wb+"))
-        with tarfile.open(filepath, "w:gz", compresslevel=5) as tarball:
+        if "cluster" in attrs: del attrs["cluster"]
+        if "client" in attrs: del attrs["client"]
+        if "cache" in attrs: del attrs["cache"]
+        pickle.dump(attrs, open(f"{self._data_cache}/attrs.pickle", "wb+"))
+        # Get a hash for each file present in cache, and store to accelerate unpacking
+        hashes = {}
+        for f in Path(self._data_cache).iterdir():
+            hashes[f.name] = large_hash(f)
+        # Finally, compress the cache and its contents
+        with tarfile.open(filepath, "w|gz") as tarball: # , compresslevel=5) as tarball:
             for p in self.progressbar(list(self._data_cache.iterdir())):
                 tarball.add(p, arcname=p.name)
+        add_metadata(filepath, hashes)
         self._qprint("Data saved!")
 
     def load(self, filepath: Path | str = Path("data")):
@@ -200,13 +218,29 @@ class DataLoader(Base):
             filepath = filepath.with_suffix(self._file_suffix)
         self._data_cache.mkdir(parents=True, exist_ok=True)
         with tarfile.open(filepath, "r:gz") as tarball:
-            members = list(tarball.getmembers())
-            for member in self.progressbar(members):
-                tarball.extract(member=member, path=self._data_cache)
-        # Finally, reload the attributes from the saved instance
-        attrs = pickle.load(open(f"{self._data_cache}/attrs.dict", "rb"))
-        for k, v in attrs.items():
-            if k in self.__dict__ and k != "cache":
-                self.__dict__[k] = v
-        self.data = dd.read_hdf(f"{self._data_cache}/working*.h5", key="pyrometer")
+            try:
+                # Check for hash metadata tagged onto file
+                hashes = read_metadata(filepath)
+                # Finally, extract and replace cache files unless hashes prove files are identical
+                for member, fhash in self.progressbar(hashes.items()):
+                    cache_path = Path(f"{self._data_cache}/{member}")
+                    if cache_path.exists():
+                        if fhash != large_hash(cache_path):
+                            tarball.extract(member=member, path=self._data_cache)
+                        else:
+                            self._qprint(f"{member} matches existing cache. Skipping...")
+            except Exception:
+                self._qprint("No valid metadata was found! Attempting full overwrite...")
+                members = list(tarball.getmembers())
+                for member in self.progressbar(members):
+                    tarball.extract(member=member, path=self._data_cache)
+                
+        # Finally, if present the attributes from the saved instance
+        attr_path = Path(f"{self._data_cache}/attrs.pickle")
+        if attr_path.exists():
+            attrs = pickle.load(open(attr_path, "rb"))
+            for k, v in attr_path.items():
+                if k in self.__dict__ and k != "cache":
+                    self.__dict__[k] = v
+        self.data = dd.read_hdf(f"{self._data_cache}/working*.h5", key="pyrometer", chunksize=2_500_000)
         self._qprint("Data loaded!")

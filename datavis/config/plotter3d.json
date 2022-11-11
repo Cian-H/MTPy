@@ -1,0 +1,9 @@
+{
+    "scatter3d": {
+        "x": "x",
+        "y": "y",
+        "z": "z",
+        "w": "t1",
+        "kind": "scatter"
+    }
+}

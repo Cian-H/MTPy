@@ -1,5 +1,12 @@
 {
     "scatter2d": {
-        "x": "x", "y": "y", "w": "t1", "kind": "scatter"
+        "kind": "scatter",
+        "x": "x",
+        "y": "y",
+        "w": "t1"
+    },
+    "distribution2d": {
+        "kind": "distribution",
+        "x": "t1"
     }
 }
