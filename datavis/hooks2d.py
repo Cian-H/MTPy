@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 def scatter(colorbar_label: str) -> None:
 
     def hook(plot, element):

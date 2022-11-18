@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterable
 from pathlib import Path
 import json
@@ -12,6 +14,10 @@ from ..utils.apply_defaults import apply_defaults
 
 
 hv.extension("plotly")
+
+config_path = "config/plotter3d.json"
+with open(Path(f"{Path(__file__).parents[0].resolve()}/{config_path}"), "r") as f:
+    config = json.load(f)
 
 
 class Plotter3D(PlotterBase):

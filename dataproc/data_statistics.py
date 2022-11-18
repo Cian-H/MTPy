@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dask
 from functools import partial
 import math
@@ -83,16 +85,15 @@ class DataStatistics(DataLoader):
             d["ci_max"] = d["mean"] + d["ci_error"]
 
         # Finally, export the datasheets based on the file extension given
-        match filepath.suffix:
-            case ".xls" | ".xlsx" | ".xlsm" | ".xlsb":
-                writer = partial(pd.ExcelWriter, engine="openpyxl")
-                write_func = self._to_excel
-            case ".odf" | ".ods" | ".odt":
-                writer = partial(pd.ExcelWriter, engine="odf")
-                write_func = self._to_excel
-            case _:
-                writer = self._csv_writer
-                write_func = self._to_csv
+        if filepath.suffix in (".xls" , ".xlsx" , ".xlsm" , ".xlsb"):
+            writer = partial(pd.ExcelWriter, engine="openpyxl")
+            write_func = self._to_excel
+        elif filepath.suffix in (".odf" , ".ods" , ".odt"):
+            writer = partial(pd.ExcelWriter, engine="odf")
+            write_func = self._to_excel
+        else:
+            writer = self._csv_writer
+            write_func = self._to_csv
         
         with writer(filepath) as w:
             for grouping, data in stats.items():

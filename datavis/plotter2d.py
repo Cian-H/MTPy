@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterable
 from pathlib import Path
 import json
@@ -88,7 +90,7 @@ class Plotter2D(PlotterBase):
 
         # filter dataframe based on ranges given
         for axis, axis_range in zip(
-            (kwargs["x"], kwargs.get("y"), kwargs.get("z")), (xrange, yrange, zrange)
+            (kwargs.get("x"), kwargs.get("y"), kwargs.get("z")), (xrange, yrange, zrange)
         ):
             if axis_range is None:
                 continue

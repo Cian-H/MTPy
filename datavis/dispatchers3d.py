@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from . import hooks3d as hooks
 
 from dask.dataframe import DataFrame

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import annotations
+
 import operator as op
 from types import FunctionType, MethodType
 
@@ -135,7 +137,10 @@ class DataThresholder(DataLoader):
     def mask_xyrectangles(self, sample_map: dict):
         """Masks off rectangles as samples based on a dict where keys are sample numbers and values
         are tuples of ((x1, x2), (y1, y2)), then bump all points outside those samples"""
-        self.data["sample"] = -1
-        for sample, (xrange, yrange) in sample_map.items():
-            self.data["sample"] = self.data["sample"].where( ~( self.data["x"].between(*xrange) & self.data["y"].between(*yrange) ), other=sample)
+        def map_func(row):
+            for sample, ((x_min, x_max), (y_min, y_max)) in sample_map.items():
+                if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
+                    return sample
+        return -1
+        self.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
         self.data = self.data.loc[self.data["sample"].ge(0)]

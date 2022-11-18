@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .data_statistics import DataStatistics
 from .data_thresholder import DataThresholder
 

@@ -3,10 +3,10 @@
         "kind": "scatter",
         "x": "x",
         "y": "y",
-        "w": "t1"
+        "w": "t"
     },
     "distribution2d": {
         "kind": "distribution",
-        "x": "t1"
+        "x": "t"
     }
 }
