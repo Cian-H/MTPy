@@ -5,7 +5,6 @@ from pathlib import Path
 import json
 
 import holoviews as hv
-import holoviews.operation.datashader as hd
 from datashader.reductions import Reduction
 
 from .plotter_base import PlotterBase
@@ -21,9 +20,12 @@ with open(Path(f"{Path(__file__).parents[0].resolve()}/{config_path}"), "r") as 
 
 
 class Plotter3D(PlotterBase):
+    """a 3d plotter class"""
+
     def __init__(self, **kwargs):
+        """initialize the Plotter3D class"""
         super().__init__(**kwargs)
-    
+
     def plot3d(
         self,
         kind: str,
@@ -38,6 +40,30 @@ class Plotter3D(PlotterBase):
         *args,
         **kwargs,
     ):
+        """creates a 3d plot
+
+        Args:
+            kind (str): the kind of plot to produce
+            filename (None | str, optional): file path to save plot to, if desired.
+                Defaults to None.
+            add_to_dashboard (bool, optional): the dashboard to add the plot to, if
+                desired Defaults to False.
+            samples (int | Iterable | None, optional): the samples to include on the plot.
+                Defaults to None.
+            xrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of x
+                values to plot. Defaults to None.
+            yrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of y
+                values to plot. Defaults to None.
+            zrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of z
+                values to plot. Defaults to None.
+            groupby (str | list[str] | None, optional): the groupby to apply to the dataframe
+                before plotting. Defaults to None.
+            aggregator (Reduction | None, optional): the aggregator to apply to the plot.
+                Defaults to None.
+
+        Returns:
+            Plot: a holoviz plot
+        """
         chunk = self.data
 
         # Filter to relevant samples
@@ -81,7 +107,7 @@ class Plotter3D(PlotterBase):
             view_id += f"{str(zrange)}"
         if groupby is not None:
             view_id += f"_g{str(groupby)}"
-        
+
         f_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **kwargs)
 
         plot = chunk
@@ -96,13 +122,18 @@ class Plotter3D(PlotterBase):
             self._qprint(f"Saving to {filename}...")
             hv.save(plot, filename)
             self._qprint(f"{filename} saved!")
-        
+
         # If adding to dashboard, add this plot to the dashboard
         if add_to_dashboard and self.dashboard:
             self.add_to_dashboard(plot)
-        
+
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
     def scatter3d(self, *args, **kwargs):
+        """creates a 3d scatter plot
+
+        Returns:
+            Plot: a holoviz plot
+        """
         return self.plot3d(*args, **apply_defaults(kwargs, config["scatter3d"]))

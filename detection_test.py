@@ -2,7 +2,6 @@ from julia import Main
 from MTPy.mtpy import MeltpoolTomography
 import numpy as np
 from matplotlib import pyplot as plt
-import plotly.express as px
 from pathlib import Path
 
 # Include the julia module
@@ -43,24 +42,30 @@ if __name__ == "__main__":
     splitpoints = data[out2_corrected, :]
     plt.scatter(data[:, 0], data[:, 1], s=markersize)
     plt.scatter(turningpoints[:, 0], turningpoints[:, 1], s=markersize)
-    plt.savefig("output1.png", figsize=(width/dpi, height/dpi), dpi=dpi)
+    plt.savefig("output1.png", figsize=(width / dpi, height / dpi), dpi=dpi)
     plt.clf()
     plt.scatter(data[:, 0], data[:, 1], s=markersize)
     plt.scatter(splitpoints[:, 0], splitpoints[:, 1], s=markersize)
-    plt.savefig("output2.png", figsize=(width/dpi, height/dpi), dpi=dpi)
+    plt.savefig("output2.png", figsize=(width / dpi, height / dpi), dpi=dpi)
     plt.clf()
     # Plots every second slice of dataset based on splitpoints
-    separated1 = np.concatenate([data[out2_corrected[i]:out2_corrected[i+1], :]
-                                for i in list(range(0, len(splitpoints)-1, 2))]
-                                )
-    separated2 = np.concatenate([data[out2_corrected[i]:out2_corrected[i+1], :]
-                                for i in list(range(1, len(splitpoints), 2))]
-                                )
+    separated1 = np.concatenate(
+        [
+            data[out2_corrected[i] : out2_corrected[i + 1], :]
+            for i in list(range(0, len(splitpoints) - 1, 2))
+        ]
+    )
+    separated2 = np.concatenate(
+        [
+            data[out2_corrected[i] : out2_corrected[i + 1], :]
+            for i in list(range(1, len(splitpoints), 2))
+        ]
+    )
     plt.scatter(separated1[:, 0], separated1[:, 1], s=markersize)
-    plt.savefig("output3.png", figsize=(width/dpi, height/dpi), dpi=dpi)
+    plt.savefig("output3.png", figsize=(width / dpi, height / dpi), dpi=dpi)
     plt.clf()
     plt.scatter(separated2[:, 0], separated2[:, 1], s=markersize)
-    plt.savefig("output4.png", figsize=(width/dpi, height/dpi), dpi=dpi)
+    plt.savefig("output4.png", figsize=(width / dpi, height / dpi), dpi=dpi)
     plt.clf()
 
 # Test 1:

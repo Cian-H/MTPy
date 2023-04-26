@@ -4,13 +4,15 @@ import dask
 from functools import partial
 import math
 import pandas as pd
-from pathlib import Path
 
 from .data_loader import DataLoader
 
 
 class DataStatistics(DataLoader):
+    """A class that handles data statistics for the data pipeline."""
+
     def __init__(self, **kwargs):
+        """Initialises a DataStatistics object."""
         super().__init__(**kwargs)
 
     def calculate_stats(
@@ -18,6 +20,17 @@ class DataStatistics(DataLoader):
         groupby: str | list[str] | None = None,
         confidence_interval: float = 0.95,
     ) -> dict:
+        """Calculates numerical statistics for the current dataframe.
+
+        Args:
+            groupby (str | list[str] | None, optional): a groupby string to be applied to the
+                dataframe before calculation. Defaults to None.
+            confidence_interval (float, optional): The confidence interval at which to perform
+                statistical calculations. Defaults to 0.95.
+
+        Returns:
+            dict: A dict containing the calculated statistics.
+        """
         group = self.data.groupby(groupby)
         ops = [group.min(), group.max(), group.mean(), group.std()]
         stats = dict(zip(("min", "max", "mean", "std"), dask.compute(*ops)))
@@ -36,7 +49,21 @@ class DataStatistics(DataLoader):
         sample_layers: bool = True,
         confidence_interval: float = 0.95,
     ) -> None:
-        "Generates a spreadsheet containing temperature data for processed samples"
+        """Generates a spreadsheet containing temperature data for processed samples
+
+        Args:
+            filepath (str): the path to which a datasheet will be written.
+            overall (bool, optional): whether or not to calculate statistics for the
+                overall dataframe. Defaults to True.
+            layers (bool, optional): whether or not to calculate statistics for each layer
+                current dataframe. Defaults to True.
+            samples (bool, optional): whether or not to calculate statistics for each sample
+                current dataframe. Defaults to True.
+            sample_layers (bool, optional): whether or not to calculate statistics for each layer
+                in each individual sample in the current dataframe. Defaults to True.
+            confidence_interval (float, optional): The confidence interval at which to perform
+                statistical calculations. Defaults to 0.95.
+        """
 
         # Fill a dask pipeline for efficient, optimised stat calculation
         ops = []
@@ -60,7 +87,7 @@ class DataStatistics(DataLoader):
         if overall:
             d = {}
             d["min"], d["max"], d["mean"], d["std"], *combined_stats = combined_stats
-            stats["overall"] = { k: v.to_frame() for k, v in d.items() }
+            stats["overall"] = {k: v.to_frame() for k, v in d.items()}
         if layers:
             d = {}
             d["min"], d["max"], d["mean"], d["std"], *combined_stats = combined_stats
@@ -83,16 +110,18 @@ class DataStatistics(DataLoader):
             d["ci_max"] = d["mean"] + d["ci_error"]
 
         # Finally, export the datasheets based on the file extension given
-        if filepath.split(".")[-1] in ("xls" , "xlsx" , "xlsm" , "xlsb"):
-            writer = partial(pd.ExcelWriter, engine="openpyxl", storage_options=self.fs.storage_options)
+        if filepath.split(".")[-1] in ("xls", "xlsx", "xlsm", "xlsb"):
+            writer = partial(
+                pd.ExcelWriter, engine="openpyxl", storage_options=self.fs.storage_options
+            )
             write_func = self._to_excel
-        elif filepath.split(".")[-1] in ("odf" , "ods" , "odt"):
+        elif filepath.split(".")[-1] in ("odf", "ods", "odt"):
             writer = partial(pd.ExcelWriter, engine="odf", storage_options=self.fs.storage_options)
             write_func = self._to_excel
         else:
             writer = self._csv_writer
             write_func = self._to_csv
-        
+
         with writer(filepath) as w:
             for grouping, data in stats.items():
                 # combine dataframes into a single sheet
@@ -103,15 +132,18 @@ class DataStatistics(DataLoader):
                 write_func(w, df, sheet_name=grouping)
 
         self._qprint(f"Datasheets generated at {filepath}!")
-        
+
     @staticmethod
     def _to_excel(w, df, sheet_name):
+        """A method for handling writing to excel files."""
         df.to_excel(w, sheet_name=sheet_name)
 
     @staticmethod
     def _to_csv(w, df, sheet_name):
+        """A method for handling writing to csv files."""
         w.write(f"\n{''*80}\n{sheet_name}\n{''*80}\n")
         df.to_csv(w)
 
     def _csv_writer(self, filepath, *args, **kwargs):
+        """A csv writer method that handles writing to a remote filesystem."""
         return self.fs.open(filepath, "w+")

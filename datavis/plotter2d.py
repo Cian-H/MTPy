@@ -4,16 +4,15 @@ from typing import Iterable
 from pathlib import Path
 import json
 
-import dask
 import holoviews as hv
-import holoviews.operation.datashader as hd
 from datashader.reductions import Reduction
 
 from .plotter_base import PlotterBase, pn
 from .dispatchers2d import plot_dispatch
 from ..utils.apply_defaults import apply_defaults
 
-# NOTES: Matplotlib and plotly clearly arent up to the job alone here. Implement holoviews + datashading
+# NOTES: Matplotlib and plotly clearly arent up to the job alone here.
+#   Implement holoviews + datashading
 # to give interactive, dynamically updating plots
 # Added bonus: holoviews also makes possible to create interactive dashboards from plots
 # See:
@@ -22,7 +21,8 @@ from ..utils.apply_defaults import apply_defaults
 
 # TODO: replace dash with holoviz panels
 #   - https://panel.holoviz.org/index.html
-# NOTE: panels added but itneractivesloders are currently creating an error. need to diagnose this later
+# NOTE: panels added but itneractivesloders are currently creating an error.
+#   Need to diagnose this later
 #   - for possible solution see: https://panel.holoviz.org/gallery/simple/save_filtered_df.html
 
 # Currently implemented plot kinds:
@@ -37,10 +37,14 @@ with open(Path(f"{Path(__file__).parents[0].resolve()}/{config_path}"), "r") as 
 
 
 class Plotter2D(PlotterBase):
+    """The 2D plotter class"""
+
     def __init__(self, **kwargs):
+        """initialize the Plotter2D class"""
         super().__init__(**kwargs)
 
     def init_panel(self, *args, **kwargs):
+        """initialize the panel widgets"""
         super().init_panel(*args, **kwargs)
         # Bind 2d plotting functions to the panel
         self.scatter2d_panel = pn.bind(
@@ -79,6 +83,30 @@ class Plotter2D(PlotterBase):
         *args,
         **kwargs,
     ):
+        """creates a 2d plot
+
+        Args:
+            kind (str): the kind of plot to produce
+            filename (None | str, optional): file path to save plot to, if desired.
+                Defaults to None.
+            add_to_dashboard (bool, optional): the dashboard to add the plot to, if
+                desired Defaults to False.
+            samples (int | Iterable | None, optional): the samples to include on the plot.
+                Defaults to None.
+            xrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of x
+                values to plot. Defaults to None.
+            yrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of y
+                values to plot. Defaults to None.
+            zrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of z
+                values to plot. Defaults to None.
+            groupby (str | list[str] | None, optional): the groupby to apply to the dataframe
+                before plotting. Defaults to None.
+            aggregator (Reduction | None, optional): the aggregator to apply to the plot.
+                Defaults to None.
+
+        Returns:
+            Plot: a holoviz plot
+        """
         chunk = self.data
 
         # Filter to relevant samples
@@ -148,7 +176,17 @@ class Plotter2D(PlotterBase):
         return plot
 
     def scatter2d(self, *args, **kwargs):
+        """creates a 2d scatter plot
+
+        Returns:
+            Plot: a holoviz plot
+        """
         return self.plot2d(*args, **apply_defaults(kwargs, config["scatter2d"]))
 
     def distribution2d(self, *args, **kwargs):
+        """creates a 2d distribution plot
+
+        Returns:
+            Plot: a holoviz plot
+        """
         return self.plot2d(*args, **apply_defaults(kwargs, config["distribution2d"]))
