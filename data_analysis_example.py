@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from MTPy.metlpool_tomography import MeltpoolTomography  # noqa
+from MTPy import MeltpoolTomography
 from pathlib import Path
 from memory_profiler import profile
 
