@@ -141,6 +141,5 @@ class DataThresholder(DataLoader):
             for sample, ((x_min, x_max), (y_min, y_max)) in sample_map.items():
                 if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
                     return sample
-        return -1
         self.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
         self.data = self.data.loc[self.data["sample"].ge(0)]

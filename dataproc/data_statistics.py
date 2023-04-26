@@ -29,7 +29,7 @@ class DataStatistics(DataLoader):
 
     def export_datasheet(
         self,
-        filepath: str | Path,
+        filepath: str,
         overall: bool = True,
         layers: bool = True,
         samples: bool = True,
@@ -37,8 +37,6 @@ class DataStatistics(DataLoader):
         confidence_interval: float = 0.95,
     ) -> None:
         "Generates a spreadsheet containing temperature data for processed samples"
-        if not isinstance(filepath, Path):
-            filepath = Path(filepath)
 
         # Fill a dask pipeline for efficient, optimised stat calculation
         ops = []
@@ -85,11 +83,11 @@ class DataStatistics(DataLoader):
             d["ci_max"] = d["mean"] + d["ci_error"]
 
         # Finally, export the datasheets based on the file extension given
-        if filepath.suffix in (".xls" , ".xlsx" , ".xlsm" , ".xlsb"):
-            writer = partial(pd.ExcelWriter, engine="openpyxl")
+        if filepath.split(".")[-1] in ("xls" , "xlsx" , "xlsm" , "xlsb"):
+            writer = partial(pd.ExcelWriter, engine="openpyxl", storage_options=self.fs.storage_options)
             write_func = self._to_excel
-        elif filepath.suffix in (".odf" , ".ods" , ".odt"):
-            writer = partial(pd.ExcelWriter, engine="odf")
+        elif filepath.split(".")[-1] in ("odf" , "ods" , "odt"):
+            writer = partial(pd.ExcelWriter, engine="odf", storage_options=self.fs.storage_options)
             write_func = self._to_excel
         else:
             writer = self._csv_writer
@@ -97,7 +95,6 @@ class DataStatistics(DataLoader):
         
         with writer(filepath) as w:
             for grouping, data in stats.items():
-                data, Path(f"{str(filepath)}")
                 # combine dataframes into a single sheet
                 df = pd.DataFrame()
                 for statistic, dd in data.items():
@@ -115,7 +112,6 @@ class DataStatistics(DataLoader):
     def _to_csv(w, df, sheet_name):
         w.write(f"\n{''*80}\n{sheet_name}\n{''*80}\n")
         df.to_csv(w)
-    
-    @staticmethod
-    def _csv_writer(filepath, *args, **kwargs):
-        return open(filepath, "w+")
+
+    def _csv_writer(self, filepath, *args, **kwargs):
+        return self.fs.open(filepath, "w+")

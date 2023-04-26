@@ -31,6 +31,7 @@ openpyxl = "^3.0.10"
 odfpy = "^1.4.1"
 cudf-cu11 = "^22.10.0"
 dask-cudf-cu11 = "^22.10.0"
+fsspec = "^2022.11.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -48,6 +49,10 @@ name = "nvidia"
 url = "https://pypi.ngc.nvidia.com"
 default = false
 secondary = false
+
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^6.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
