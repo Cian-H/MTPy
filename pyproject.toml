@@ -6,33 +6,28 @@ authors = ["Cian Hughes <cian.hughes@dcu.ie>",]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "3.9.*"
-julia = "^0.5.7"
-numpy = "^1.23.1"
-matplotlib = "^3.5.2"
-plotly = "^5.9.0"
-dask = { extras = ["distributed", "graphviz"], version = "^2022.7.0" }
-tqdm = "^4.64.0"
-psutil = "^5.9.1"
-read_layers = { file = "wheels/read_layers-0.1.0-cp39-cp39-linux_x86_64.whl" }
-pandas = "^1.4.3"
-tables = "^3.7.0"
-lz4 = "^4.0.2"
-bokeh = "^2.4.3"
-holoviews = "^1.15.1"
-datashader = "^0.14.2"
-jupyterlab = "^3.4.8"
-dash = "^2.6.2"
-jupyterlab-dash = "^0.1.0-alpha.3"
-pyvista = "^0.36.1"
-ipyvtklink = "^0.2.3"
-pyvista-xarray = "^0.1.2"
-openpyxl = "^3.0.10"
-odfpy = "^1.4.1"
-cudf-cu11 = "^22.10.0"
-dask-cudf-cu11 = "^22.10.0"
-fsspec = "^2022.11.0"
-sphinx-pyproject = "^0.1.0"
+python = ">=3.9,<3.12" # "3.9.*"
+# julia = "^0.5.7"
+numpy = "*"
+matplotlib = "*"
+plotly = "*"
+dask = { extras = ["distributed", "graphviz"], version = "*" }
+tqdm = "*"
+psutil = "*"
+read_layers = { file = "wheels/read_layers-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl" }
+pandas = "*"
+tables = "*"
+lz4 = "*"
+bokeh = "*"
+holoviews = "*"
+datashader = "*"
+jupyterlab = "*"
+dash = "*"
+jupyterlab-dash = "*"
+openpyxl = "*"
+odfpy = "*"
+fsspec = "*"
+sphinx-pyproject = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -46,17 +41,14 @@ jupyter = "^1.0.0"
 ipykernel = "^6.16.0"
 
 [[tool.poetry.source]]
-name = "nvidia"
-url = "https://pypi.ngc.nvidia.com"
-default = false
-secondary = false
-
+name = "PyPI"
+priority = "primary"
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^6.2.1"
 pre-commit = "^3.2.2"
 sphinx-rtd-theme = "^1.2.0"
-docstring-generator = "^0.2.2"
+# docstring-generator = "^0.2.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

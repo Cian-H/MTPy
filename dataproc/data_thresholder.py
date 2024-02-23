@@ -7,6 +7,7 @@ import operator as op
 from types import FunctionType, MethodType
 
 import numpy as np
+import pandas as pd
 from math import pi, sin, cos
 
 from .data_loader import DataLoader
@@ -176,10 +177,19 @@ class DataThresholder(DataLoader):
             sample_map (dict): a dict of sample labels and tuples of ((x1, x2), (y1, y2))
         """
 
-        def map_func(row):
-            for sample, ((x_min, x_max), (y_min, y_max)) in sample_map.items():
-                if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
-                    return sample
+        # def map_func(row):
+        #     for sample, ((x_min, x_max), (y_min, y_max)) in sample_map.items():
+        #         if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
+        #             return sample
 
-        self.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
+        # self.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
+        def map_func(df):
+            samples = np.full(len(df), -1, dtype=int)
+            for k, ((x1, x2), (y1, y2)) in sample_map.items():
+                x_min, x_max = min(x1, x2), max(x1, x2)
+                y_min, y_max = min(y1, y2), max(y1, y2)
+                samples[df["x"].between(x_min, x_max) & df["y"].between(y_min, y_max)] = k
+            return pd.Series(samples, index=df.index, name="sample")
+        
+        self.data["sample"] = self.data.map_partitions(map_func)
         self.data = self.data.loc[self.data["sample"].ge(0)]

@@ -11,6 +11,11 @@ from .plotter_base import PlotterBase, pn
 from .dispatchers2d import plot_dispatch
 from ..utils.apply_defaults import apply_defaults
 
+# TEMPORARY FIX FOR WARNINGS
+import warnings
+warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", module="bokeh")
+
 # NOTES: Matplotlib and plotly clearly arent up to the job alone here.
 #   Implement holoviews + datashading
 # to give interactive, dynamically updating plots

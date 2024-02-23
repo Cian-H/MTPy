@@ -7,6 +7,11 @@ manufacturing pyrometry data and the generation of graphs and tomographs from
 the resulting meltpool data
 """
 
+# TEMPORARY FIX FOR WARNINGS
+import warnings
+warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", module="bokeh")
+
 __version__ = "0.1.0"
 __license__ = "MIT"
 __status__ = "Prototype"

@@ -25,6 +25,11 @@ from ..utils.large_hash import large_hash
 from ..utils.metadata_tagging import add_metadata, read_metadata
 from ..utils.tar_handling import entry_size, parse_header, uncompressed_tarfile_size, unpack_file
 
+# TEMPORARY FIX FOR WARNINGS
+import warnings
+warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", module="bokeh")
+
 # Conditional imports depending on whether a GPU is present
 if "GPU" in dask.config.global_config["distributed"]["worker"]["resources"]:
     dask.config.set({"array.backend": "cupy"})
@@ -62,7 +67,7 @@ class DataLoader(Base):
         )
         if data_cache is None:
             data_cache = Path().cwd()
-        if cluster is None:
+        if (cluster is None) and (client is None):
             self.cluster = LocalCluster(
                 n_workers=(psutil.cpu_count() - 1 * 2), threads_per_worker=1
             )
@@ -98,7 +103,7 @@ class DataLoader(Base):
         # TODO: bug here if user passes dask client and intends to continue using outside MTPy?
         # Without this code though, dask clients could be left causing mem leaks.
         # Need to find a solution
-        self.cluster.close()
+        self.client.cluster.close()
         self.client.close()
         # Delete cache files if still present
         self.fs.rm(self._data_cache, recursive=True)
@@ -134,12 +139,12 @@ class DataLoader(Base):
         ):
             file_size = data_fs.size(p.strip("/"))
             try:
-                mem_limit = self.cluster._memory_per_worker() // 4
+                mem_limit = self.client.cluster._memory_per_worker() // 4
             except AttributeError:
-                if "_adaptive" in self.cluster.__dict__:
-                    nworkers = getattr(self.cluster._adaptive, "maximum", psutil.cpu_count())
+                if "_adaptive" in self.client.cluster.__dict__:
+                    nworkers = getattr(self.client.cluster._adaptive, "maximum", psutil.cpu_count())
                 mem_limit = psutil.virtual_memory().total // (
-                    2 * self.cluster._threads_per_worker() * nworkers
+                    2 * self.client.cluster._threads_per_worker() * nworkers
                 )  # aim to use half ram per worker
             assert file_size < (mem_limit), "File size too large for available RAM!"
             acc += file_size
@@ -155,7 +160,7 @@ class DataLoader(Base):
         # Then read files (offloaded to local rust library "read_layers")
         if self.fs.protocol == "file":
             local_fs = self.fs
-            read_arr_cache = f"{self._data_cache}/tmp_arr"
+            read_arr_cache = f"{self._data_cache}tmp_arr"
         else:
             local_fs = LocalFileSystem()
             read_arr_cache = "tmp_arr"
@@ -416,8 +421,11 @@ class DataLoader(Base):
         # Get cache metadata, and store to tag onto tail of savefile
         metadata = self.cache_metadata
         # Finally, compress the cache and its contents
+        import logging # DEBUG
+        logging.basicConfig(filename="debug.log", level=logging.DEBUG) # DEBUG
         with tarfile.open(filepath, mode="w:gz") as tarball:
             for f in self.progressbar(self.fs.get_mapper(self._data_cache)):
+                logging.debug(f"CACHE_TARGET: {self._data_cache}{f}") # DEBUG
                 with self.fs.open(f"{self._data_cache}{f}", "rb") as cache_file:
                     fileobj = BytesIO(cache_file.f.read())
                     tarinfo = tarfile.TarInfo(name=f"{f}")
@@ -530,7 +538,7 @@ class DataLoader(Base):
 
         working_path = f"{self._data_cache}working"
         self.data = dd.read_parquet(
-            self._data_cache_fs.unstrip_protocol(working_path),
+            working_path,
             storage_options=self.fs.storage_options,
             parquet_file_extension=".parquet",
         )

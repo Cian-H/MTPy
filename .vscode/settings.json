@@ -1,3 +1,4 @@
 {
     "python.analysis.typeCheckingMode": "off",
+    "GitHooks.hooksDirectory": "/home/cianh/Programming/Git_Projects/MTPy/.git/hooks",
 }
