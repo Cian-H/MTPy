@@ -1,32 +1,24 @@
-# MTPy
+# plan of action
 
-## Overview
-
-A python based tool for Meltpool Tomography. Currently very much a work in progress. In the process of being refactored, reorganized, and redesigned a little to turn it from a draft tool into a more polished and useful library ready to be rolled out to the broader community.
-
-## Todo
-
-[ ] reorganize project folder structure (proper /src directory, etc)\
 [ ] implement mypy type annotations to enforce types and prevent errors\
-[ ] add missing docstrings, conforming to a standard (currently using numpy standard)\
-[X] add automated UML generation\
+[ ] add docstrings that conform to a standard (probably numpy standard)\
+[ ] add automated UML generation\
+[ ] reorganize project folder structure (proper /src directory, etc)
 [ ] add tests using pytest and hypothesis\
-[ ] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)\
-[ ] add proper debug logging\
-[ ] REFACTOR AND IMPLEMENT PATTERNS USING [`attrs`](https://www.attrs.org/en/stable/)\
+[ ] add debug logging\
 [ ] use `__init__.py` to simplify API\
+[ ] REFACTOR AND IMPLEMENT PATTERNS USING [`attrs`](https://www.attrs.org/en/stable/)\
+[ ] maybe use pyvista or ipyvolume instead of plotly???\
 [ ] clean up namespaces with config files?\
+[ ] Add a dashboard using dash\
+[ ] implement Dask GPU support\
+[ ] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)\
 [ ] add automated documentation via mkdocs (and remove sphinx docs)\
 [ ] implement a CLI for basic functions\
-[ ] rewrite experimental GUI using flet\
-[ ] implement Dask GPU support\
-[ ] Add a dashboard using dash\
-[ ] fix 3d tomography visualizations (see in-progress project)\
+[ ] write new GUI using flet\
 [ ] clean up project in general (e.g: remove unused files, remove old code, etc.)
 
-Note: This project is an absolute mess right now, i need to remember to make sure i branch each subsection of this work in git to manage it properly.
-
-## Project UML
+Note: This project is an absolute clusterfuck right now, i need to make sure i branch each subsection of this work in git to manage it properly.
 
 ```mermaid
 classDiagram

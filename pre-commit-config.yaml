@@ -9,8 +9,3 @@ repos:
     hooks:
       - id: ruff
         language_version: python3.9
-  - repo: https://github.com/sphinx-toolbox/sphinx-pyproject
-    rev: master
-    hooks:
-      - id: sphinx-pyproject
-        language_version: python3.9
