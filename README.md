@@ -6,7 +6,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 
 ## Todo
 
-[ ] reorganize project folder structure (proper /src directory, etc)\
+[X] reorganize project folder structure (proper /src directory, etc)\
 [ ] implement mypy type annotations to enforce types and prevent errors\
 [ ] add missing docstrings, conforming to a standard (currently using numpy standard)\
 [X] add automated UML generation\

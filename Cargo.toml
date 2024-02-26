@@ -1,0 +1,17 @@
+[package]
+name = "read_layers"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+glob = "*"
+ndarray = { version = "0.15.6", features = ["rayon"] }
+numpy = "*"
+pyo3 = { version = "0.18.1", features = ["extension-module"] }
+csv = "*"
+ndarray-csv = "*"
+rayon = "*"
+indicatif="*"

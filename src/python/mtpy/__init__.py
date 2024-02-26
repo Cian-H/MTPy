@@ -16,3 +16,5 @@ __version__ = "0.1.0"
 __license__ = "MIT"
 __status__ = "Prototype"
 __modpath__ = __file__[: __file__.rfind("/")]
+
+from . import meltpool_tomography # noqa
