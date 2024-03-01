@@ -1,0 +1,22 @@
+default_language_version:
+  python: python3.11
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        types: [python]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        types: [python]
+        # args: [--strict]
+  
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: master
+    hooks:
+    - id: fmt
+    - id: cargo-check
