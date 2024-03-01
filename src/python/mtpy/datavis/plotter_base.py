@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import dask
 import panel as pn
 
 # import dash
 # from dash import html
 # from holoviews.plotting.plotly.dash import to_dash
-
 from ..common.base import Base
 
 
@@ -35,38 +33,52 @@ class PlotterBase(Base):
         #     self.dash_args = dash_args
         #     self.dash_kargs = dash_kwargs
 
-    def init_panel(self, *args, **kwargs):
-        """initialize the panel widgets"""
-        if hasattr(self, "data"):
-            # Create basic builtin panel widget items
-            ops = [
-                self.data["x"].min(),
-                self.data["x"].max(),
-                self.data["y"].min(),
-                self.data["y"].max(),
-                self.data["z"].min(),
-                self.data["z"].max(),
-                self.data["z"].unique(),
-            ]
-            if "samples" in self.data:
-                ops.append(self.data["samples"].unique())
-                xmin, xmax, ymin, ymax, zmin, zmax, layers, samples = dask.compute(*ops)
-                self.sample_slider = pn.widgets.DiscreteSlider(
-                    name="Sample", options=list(samples), value=None
-                )
-            else:
-                xmin, xmax, ymin, ymax, zmin, zmax, layers = dask.compute(*ops)
-                self.sample_slider = None
+    # # Commenting this out as this feature isn't complete yet, it may be changed in future, and
+    # # for now all it's doing is wreaking havoc on mypy
+    # def init_panel(self, *args, **kwargs) -> None:
+    #     """initialize the panel widgets"""
+    #     if hasattr(self, "data"):
+    #         # Create basic builtin panel widget items
+    #         ops = [
+    #             self.data["x"].min(),
+    #             self.data["x"].max(),
+    #             self.data["y"].min(),
+    #             self.data["y"].max(),
+    #             self.data["z"].min(),
+    #             self.data["z"].max(),
+    #             self.data["z"].unique(),
+    #         ]
+    #         if "samples" in self.data:
+    #             ops.append(self.data["samples"].unique())
+    #             xmin, xmax, ymin, ymax, zmin, zmax, layers, samples = dask.compute(*ops)
+    #             self.sample_slider = pn.widgets.DiscreteSlider(
+    #                 name="Sample", options=list(samples), value=None
+    #             )
+    #         else:
+    #             xmin, xmax, ymin, ymax, zmin, zmax, layers = dask.compute(*ops)
+    #             self.sample_slider = None
 
-            self.xmin_slider = pn.widgets.FloatSlider(name="xmin", value=xmin, start=xmin, end=xmax)
-            self.xmax_slider = pn.widgets.FloatSlider(name="xmax", value=xmin, start=xmin, end=xmax)
-            self.ymin_slider = pn.widgets.FloatSlider(name="ymin", value=ymin, start=ymin, end=ymax)
-            self.ymax_slider = pn.widgets.FloatSlider(name="ymax", value=ymin, start=ymin, end=ymax)
-            self.zmin_slider = pn.widgets.FloatSlider(name="zmin", value=zmin, start=zmin, end=zmax)
-            self.zmax_slider = pn.widgets.FloatSlider(name="zmax", value=zmin, start=zmin, end=zmax)
-            self.layer_slider = pn.widgets.DiscreteSlider(
-                name="Layer", options=list(layers), value=None
-            )
+    #         self.xmin_slider = pn.widgets.FloatSlider(
+    #             name="xmin", value=xmin, start=xmin, end=xmax
+    #         )
+    #         self.xmax_slider = pn.widgets.FloatSlider(
+    #             name="xmax", value=xmin, start=xmin, end=xmax
+    #         )
+    #         self.ymin_slider = pn.widgets.FloatSlider(
+    #             name="ymin", value=ymin, start=ymin, end=ymax
+    #         )
+    #         self.ymax_slider = pn.widgets.FloatSlider(
+    #             name="ymax", value=ymin, start=ymin, end=ymax
+    #         )
+    #         self.zmin_slider = pn.widgets.FloatSlider(
+    #             name="zmin", value=zmin, start=zmin, end=zmax
+    #         )
+    #         self.zmax_slider = pn.widgets.FloatSlider(
+    #             name="zmax", value=zmin, start=zmin, end=zmax
+    #         )
+    #         self.layer_slider = pn.widgets.DiscreteSlider(
+    #             name="Layer", options=list(layers), value=None
+    #         )
 
     # def add_to_dashboard(self, plot):
     #     # If a dashboard exists and it has components, add the new plot to the components

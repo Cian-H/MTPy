@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from .plotter2d import Plotter2D
 from .plotter3d import Plotter3D
 

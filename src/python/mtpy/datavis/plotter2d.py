@@ -1,18 +1,22 @@
 from __future__ import annotations
 
-from typing import Iterable
-from pathlib import Path
 import json
-
-import holoviews as hv
-from datashader.reductions import Reduction
-
-from .plotter_base import PlotterBase, pn
-from .dispatchers2d import plot_dispatch
-from ..utils.apply_defaults import apply_defaults
+from pathlib import Path
+from typing import Iterable, Optional, Tuple, Union
 
 # TEMPORARY FIX FOR WARNINGS
 import warnings
+
+from datashader.reductions import Reduction
+import holoviews as hv
+from holoviews.element.chart import Chart
+
+from ..utils.apply_defaults import apply_defaults
+from ..utils.type_guards import is_float_pair_tuple
+from .dispatchers2d import plot_dispatch
+from .plotter_base import PlotterBase  # pn
+
+
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", module="bokeh")
 
@@ -48,69 +52,70 @@ class Plotter2D(PlotterBase):
         """initialize the Plotter2D class"""
         super().__init__(**kwargs)
 
-    def init_panel(self, *args, **kwargs):
-        """initialize the panel widgets"""
-        super().init_panel(*args, **kwargs)
-        # Bind 2d plotting functions to the panel
-        self.scatter2d_panel = pn.bind(
-            self.scatter2d,
-            xrange=(self.xmin_slider, self.xmax_slider),
-            yrange=(self.ymin_slider, self.ymax_slider),
-            zrange=(self.zmin_slider, self.zmax_slider),
-            samples=self.sample_slider,
-        )
-        self.layer_scatter2d_panel = pn.bind(
-            self.scatter2d,
-            xrange=(self.xmin_slider, self.xmax_slider),
-            yrange=(self.ymin_slider, self.ymax_slider),
-            zrange=self.layer_slider,
-            samples=self.sample_slider,
-        )
-        self.distribution2d_panel = pn.bind(
-            self.distribution2d,
-            xrange=(self.xmin_slider, self.xmax_slider),
-            yrange=(self.ymin_slider, self.ymax_slider),
-            zrange=self.layer_slider,
-            samples=self.sample_slider,
-        )
+    # # Similar to base: commented out because for now its unneeded and only causing headaches
+    # def init_panel(self, *args, **kwargs):
+    #     """initialize the panel widgets"""
+    #     super().init_panel(*args, **kwargs)
+    #     # Bind 2d plotting functions to the panel
+    #     self.scatter2d_panel = pn.bind(
+    #         self.scatter2d,
+    #         xrange=(self.xmin_slider, self.xmax_slider),
+    #         yrange=(self.ymin_slider, self.ymax_slider),
+    #         zrange=(self.zmin_slider, self.zmax_slider),
+    #         samples=self.sample_slider,
+    #     )
+    #     self.layer_scatter2d_panel = pn.bind(
+    #         self.scatter2d,
+    #         xrange=(self.xmin_slider, self.xmax_slider),
+    #         yrange=(self.ymin_slider, self.ymax_slider),
+    #         zrange=self.layer_slider,
+    #         samples=self.sample_slider,
+    #     )
+    #     self.distribution2d_panel = pn.bind(
+    #         self.distribution2d,
+    #         xrange=(self.xmin_slider, self.xmax_slider),
+    #         yrange=(self.ymin_slider, self.ymax_slider),
+    #         zrange=self.layer_slider,
+    #         samples=self.sample_slider,
+    #     )
 
     def plot2d(
         self,
         kind: str,
-        filename: None | str = None,
+        filename: Optional[str] = None,
         add_to_dashboard: bool = False,
-        samples: int | Iterable | None = None,
-        xrange: tuple[float | None, float | None] | float | None = None,
-        yrange: tuple[float | None, float | None] | float | None = None,
-        zrange: tuple[float | None, float | None] | float | None = None,
-        groupby: str | list[str] | None = None,
-        aggregator: Reduction | None = None,
+        samples: Optional[Union[int, Iterable[int]]] = None,
+        xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
+        yrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
+        zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
+        groupby: Optional[Union[str, Iterable[str]]] = None,
+        aggregator: Optional[Reduction] = None,
         *args,
         **kwargs,
-    ):
+    ) -> Chart:
         """creates a 2d plot
 
         Args:
             kind (str): the kind of plot to produce
-            filename (None | str, optional): file path to save plot to, if desired.
+            filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
             samples (int | Iterable | None, optional): the samples to include on the plot.
                 Defaults to None.
-            xrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of x
-                values to plot. Defaults to None.
-            yrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of y
-                values to plot. Defaults to None.
-            zrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of z
-                values to plot. Defaults to None.
+            xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                x values to plot. Defaults to None.
+            yrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                y values to plot. Defaults to None.
+            zrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                z values to plot. Defaults to None.
             groupby (str | list[str] | None, optional): the groupby to apply to the dataframe
                 before plotting. Defaults to None.
-            aggregator (Reduction | None, optional): the aggregator to apply to the plot.
+            aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
 
         Returns:
-            Plot: a holoviz plot
+            Chart: a holoviz plot
         """
         chunk = self.data
 
@@ -127,14 +132,16 @@ class Plotter2D(PlotterBase):
         ):
             if axis_range is None:
                 continue
-            elif type(axis_range) is float:
+            elif isinstance(axis_range, float):
                 chunk = chunk.loc[chunk[axis].eq(float(axis_range))]
-            else:
+            elif is_float_pair_tuple(axis_range):
                 axis_min, axis_max = axis_range
                 if axis_min is not None:
                     chunk = chunk.loc[chunk[axis].ge(float(axis_min))]
                 elif axis_max is not None:
                     chunk = chunk.loc[chunk[axis].le(float(axis_max))]
+            else:
+                raise ValueError(f"Invalid range for {axis}: {axis_range}")
 
         # Then group if groupby is present (NOTE: NOT TESTED YET!)
         if groupby is not None:
@@ -180,18 +187,18 @@ class Plotter2D(PlotterBase):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter2d(self, *args, **kwargs):
+    def scatter2d(self, *args, **kwargs) -> Chart:
         """creates a 2d scatter plot
 
         Returns:
-            Plot: a holoviz plot
+            Chart: a holoviz plot
         """
         return self.plot2d(*args, **apply_defaults(kwargs, config["scatter2d"]))
 
-    def distribution2d(self, *args, **kwargs):
+    def distribution2d(self, *args, **kwargs) -> Chart:
         """creates a 2d distribution plot
 
         Returns:
-            Plot: a holoviz plot
+            Chart: a holoviz plot
         """
         return self.plot2d(*args, **apply_defaults(kwargs, config["distribution2d"]))

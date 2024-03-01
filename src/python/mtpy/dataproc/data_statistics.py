@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-import dask
-from functools import partial
+from functools import singledispatchmethod
+from io import TextIOWrapper
 import math
+from typing import Any, Dict, Iterable, Optional, TypeVar, Union
+
+import dask
+from fsspec.spec import AbstractBufferedFile
 import pandas as pd
 
 from .data_loader import DataLoader
+
+
+T = TypeVar("T")
 
 
 class DataStatistics(DataLoader):
@@ -17,23 +24,29 @@ class DataStatistics(DataLoader):
 
     def calculate_stats(
         self,
-        groupby: str | list[str] | None = None,
+        groupby: Optional[Union[str, Iterable[str]]] = None,
         confidence_interval: float = 0.95,
-    ) -> dict:
+    ) -> Dict[str, Any]:
         """Calculates numerical statistics for the current dataframe.
 
         Args:
-            groupby (str | list[str] | None, optional): a groupby string to be applied to the
-                dataframe before calculation. Defaults to None.
+            groupby (Optional[Union[str, Iterable[str]]], optional): a groupby string to be applied
+                to the dataframe before calculation. Defaults to None.
             confidence_interval (float, optional): The confidence interval at which to perform
                 statistical calculations. Defaults to 0.95.
 
         Returns:
-            dict: A dict containing the calculated statistics.
+            Dict[str, Any]: A dict containing the calculated statistics.
         """
         group = self.data.groupby(groupby)
         ops = [group.min(), group.max(), group.mean(), group.std()]
-        stats = dict(zip(("min", "max", "mean", "std"), dask.compute(*ops)))
+        results = dask.compute(*ops)
+        stats = {
+            "min": results[0],
+            "max": results[1],
+            "mean": results[2],
+            "std": results[3],
+        }
         stats["stderr"] = stats["std"] / math.sqrt(len(stats))
         stats["ci_error"] = confidence_interval * stats["stderr"]
         stats["ci_min"] = stats["mean"] - stats["ci_error"]
@@ -110,40 +123,78 @@ class DataStatistics(DataLoader):
             d["ci_max"] = d["mean"] + d["ci_error"]
 
         # Finally, export the datasheets based on the file extension given
-        if filepath.split(".")[-1] in ("xls", "xlsx", "xlsm", "xlsb"):
-            writer = partial(
-                pd.ExcelWriter, engine="openpyxl", storage_options=self.fs.storage_options
-            )
-            write_func = self._to_excel
-        elif filepath.split(".")[-1] in ("odf", "ods", "odt"):
-            writer = partial(pd.ExcelWriter, engine="odf", storage_options=self.fs.storage_options)
-            write_func = self._to_excel
-        else:
-            writer = self._csv_writer
-            write_func = self._to_csv
+        self.write_to_file(stats, filepath)
+        self._qprint(f"Datasheets generated at {filepath}!")
 
-        with writer(filepath) as w:
+    def write_to_file(self, stats: Dict[str, Any], filepath: str) -> None:
+        """Writes a dictionary of statistics to a file.
+
+        Args:
+            stats (Dict[str, Any]): the statistics to be written to file.
+            filepath (str): the path to which a datasheet will be written.
+        """
+        with self._get_writer(filepath) as w:
             for grouping, data in stats.items():
                 # combine dataframes into a single sheet
                 df = pd.DataFrame()
                 for statistic, dd in data.items():
                     df[[f"{x}_{statistic}".strip("0_") for x in dd.keys()]] = dd
                 # Then, write a sheet to the file for each grouping present
-                write_func(w, df, sheet_name=grouping)
+                self._write(w, df, sheet_name=grouping)
 
-        self._qprint(f"Datasheets generated at {filepath}!")
+    def _get_writer(
+        self, filepath: str
+    ) -> Union[pd.ExcelWriter, TextIOWrapper, AbstractBufferedFile]:
+        file_extension = filepath.split(".")[-1]
+        storage_options = getattr(self.fs, "storage_options", None)
+        if file_extension in ("xls", "xlsx", "xlsm", "xlsb"):
+            return pd.ExcelWriter(filepath, engine="openpyxl", storage_options=storage_options)
+        elif filepath.split(".")[-1] in ("odf", "ods", "odt"):
+            return pd.ExcelWriter(filepath, engine="odf", storage_options=storage_options)
+        return self._csv_writer(filepath)
 
-    @staticmethod
-    def _to_excel(w, df, sheet_name):
-        """A method for handling writing to excel files."""
+    def _csv_writer(
+        self, filepath: str, *args, **kwargs
+    ) -> Union[TextIOWrapper, AbstractBufferedFile]:
+        """A csv writer method that handles writing to a remote filesystem.
+
+        Args:
+            filepath (str): the path to which a datasheet will be written.
+        """
+        return self.fs.open(filepath, "w+")
+
+    @singledispatchmethod
+    def _write(self, w: T, df: pd.DataFrame, sheet_name: str) -> None:
+        """A method for handling writing to files.
+
+        Args:
+            w (T): the writer object to which a datasheet will be written.
+            df (pd.DataFrame): the dataframe to be written to the datasheet.
+            sheet_name (str): the name of the sheet to be written.
+        """
+        raise NotImplementedError(f"Writing to {type(w)} is not supported")
+
+    @_write.register
+    def _write_excel(self, w: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
+        """A method for handling writing to excel files.
+
+        Args:
+            w (pd.ExcelWriter): the writer object to which a datasheet will be written.
+            df (pd.DataFrame): the dataframe to be written to the datasheet.
+            sheet_name (str): the name of the sheet to be written.
+        """
         df.to_excel(w, sheet_name=sheet_name)
 
-    @staticmethod
-    def _to_csv(w, df, sheet_name):
-        """A method for handling writing to csv files."""
+    @_write.register
+    def _write_csv(
+        self, w: Union[TextIOWrapper, AbstractBufferedFile], df: pd.DataFrame, sheet_name: str
+    ) -> None:
+        """A method for handling writing to csv files.
+
+        Args:
+            w (TextIOWrapper): the writer object to which a datasheet will be written.
+            df (pd.DataFrame): the dataframe to be written to the datasheet.
+            sheet_name (str): the name of the heading under which the dataframe csv will be written.
+        """
         w.write(f"\n{''*80}\n{sheet_name}\n{''*80}\n")
         df.to_csv(w)
-
-    def _csv_writer(self, filepath, *args, **kwargs):
-        """A csv writer method that handles writing to a remote filesystem."""
-        return self.fs.open(filepath, "w+")

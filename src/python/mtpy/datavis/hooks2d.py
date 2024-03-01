@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+from typing import Callable
 
-def scatter(colorbar_label: str) -> None:
+
+def scatter(colorbar_label: str) -> Callable[..., None]:
     """generates hooks for 2d holoviz plots
 
     Args:
         colorbar_label (str): the colorbar label
+    Returns:
+        Callable[..., None]: a hook function for 2d holoviz plots
     """
 
-    def hook(plot, element):
+    def hook(plot, element) -> None:
         plot.handles["components"]["traces"][0]["colorbar"][
             "title"
         ] = colorbar_label  # Set colorbar label

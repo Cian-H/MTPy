@@ -1,8 +1,10 @@
+from pathlib import Path
+
 from julia import Main
+from matplotlib import pyplot as plt
 from MTPy.mtpy import MeltpoolTomography
 import numpy as np
-from matplotlib import pyplot as plt
-from pathlib import Path
+
 
 # Include the julia module
 Main.include("raster_detection.jl")

@@ -1,4 +1,7 @@
 {
-    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.typeCheckingMode": "basic",
     "GitHooks.hooksDirectory": "/home/cianh/Programming/Git_Projects/MTPy/.git/hooks",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportPrivateImportUsage": "none"
+    }    
 }

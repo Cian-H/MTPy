@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from typing import Iterable
-from pathlib import Path
 import json
+from pathlib import Path
+from typing import Iterable, Optional, Tuple, Union
 
-import holoviews as hv
 from datashader.reductions import Reduction
+import holoviews as hv
+from holoviews.element.chart import Chart
 
-from .plotter_base import PlotterBase
-from .dispatchers3d import plot_dispatch
 from ..utils.apply_defaults import apply_defaults
+from .dispatchers3d import plot_dispatch
+from .plotter_base import PlotterBase
 
 
 hv.extension("plotly")
@@ -29,40 +30,40 @@ class Plotter3D(PlotterBase):
     def plot3d(
         self,
         kind: str,
-        filename: None | str = None,
+        filename: Optional[str] = None,
         add_to_dashboard: bool = False,
-        samples: int | Iterable | None = None,
-        xrange: tuple[float | None, float | None] | None = None,
-        yrange: tuple[float | None, float | None] | None = None,
-        zrange: tuple[float | None, float | None] | None = None,
-        groupby: str | list[str] | None = None,
+        samples: Optional[Union[int, Iterable[int]]] = None,
+        xrange: Tuple[Optional[float], Optional[float]] | None = None,
+        yrange: Tuple[Optional[float], Optional[float]] | None = None,
+        zrange: Tuple[Optional[float], Optional[float]] | None = None,
+        groupby: Optional[Union[str, Iterable[str]]] = None,
         aggregator: Reduction | None = None,
         *args,
         **kwargs,
-    ):
+    ) -> Chart:
         """creates a 3d plot
 
         Args:
             kind (str): the kind of plot to produce
-            filename (None | str, optional): file path to save plot to, if desired.
+            filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            samples (int | Iterable | None, optional): the samples to include on the plot.
-                Defaults to None.
-            xrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of x
-                values to plot. Defaults to None.
-            yrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of y
-                values to plot. Defaults to None.
-            zrange (tuple[float  |  None, float  |  None] | float | None, optional): the range of z
-                values to plot. Defaults to None.
-            groupby (str | list[str] | None, optional): the groupby to apply to the dataframe
-                before plotting. Defaults to None.
+            samples (Optional[Union[int, Iterable[int]]], optional): the samples to include on the
+                plot. Defaults to None.
+            xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                x values to plot. Defaults to None.
+            yrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                y values to plot. Defaults to None.
+            zrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                z values to plot. Defaults to None.
+            groupby (Optional[Union[str, Iterable[str]]], optional): the groupby to apply to the
+                dataframe before plotting. Defaults to None.
             aggregator (Reduction | None, optional): the aggregator to apply to the plot.
                 Defaults to None.
 
         Returns:
-            Plot: a holoviz plot
+            Chart: a holoviz plot
         """
         chunk = self.data
 
@@ -123,17 +124,18 @@ class Plotter3D(PlotterBase):
             hv.save(plot, filename)
             self._qprint(f"{filename} saved!")
 
-        # If adding to dashboard, add this plot to the dashboard
-        if add_to_dashboard and self.dashboard:
-            self.add_to_dashboard(plot)
+        # The code below is currently part of a planned feature to add plots to a dashboard
+        # # If adding to dashboard, add this plot to the dashboard
+        # if add_to_dashboard and hasattr(self, "dashboard") :
+        #     self.add_to_dashboard(plot)
 
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter3d(self, *args, **kwargs):
+    def scatter3d(self, *args, **kwargs) -> Chart:
         """creates a 3d scatter plot
 
         Returns:
-            Plot: a holoviz plot
+            Chart: a holoviz plot
         """
         return self.plot3d(*args, **apply_defaults(kwargs, config["scatter3d"]))

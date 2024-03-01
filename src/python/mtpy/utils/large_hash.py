@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from hashlib import sha1 as default_hash
-from _hashlib import HASH as Hash
+from typing import Optional
+
+from _hashlib import HASH as _Hash
 
 
-def hash_update_from_file(fs, filepath: str, hash: Hash) -> Hash:
+def hash_update_from_file(fs, filepath: str, hash: _Hash) -> _Hash:
     """A function for updating a hash object with the name and checksum of a file
 
     Args:
@@ -22,23 +24,22 @@ def hash_update_from_file(fs, filepath: str, hash: Hash) -> Hash:
 
 
 # A function for efficiently hashing large files and directories
-def large_hash(fs, filepath: str, hash: None | Hash = None) -> int:
+def large_hash(fs, filepath: str, hash: Optional[_Hash] = None) -> int:
     """a function for efficiently hashing large files and directories
 
     Args:
         fs (filesystem): an fsspec filesystem
         filepath (str): a path to hte file or directory to hash
-        hash (None | Hash, optional): the hashlib hash object to apply.
+        hash (Optional[Hash], optional): the hashlib hash object to apply.
             Defaults to None.
 
     Returns:
         int: the hash result as an integer
     """
-    if hash is None:
-        hash = default_hash()
+    hash_obj = default_hash() if hash is None else hash
     if fs.isfile(filepath):
-        hash = hash_update_from_file(fs, filepath, hash)
+        hash_obj = hash_update_from_file(fs, filepath, hash_obj)
     elif fs.isdir(filepath):
         for path in sorted(fs.find(filepath)):
-            hash = hash_update_from_file(fs, path, hash)
-    return int.from_bytes(hash.digest(), "big")
+            hash_obj = hash_update_from_file(fs, path, hash_obj)
+    return int.from_bytes(hash_obj.digest(), "big")

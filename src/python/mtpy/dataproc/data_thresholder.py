@@ -3,13 +3,16 @@
 
 from __future__ import annotations
 
+from math import cos, pi, sin
 import operator as op
-from types import FunctionType, MethodType
+from typing import Any, Callable, Dict, Iterable, Tuple, Union, cast
 
+from dask import dataframe as dd
 import numpy as np
 import pandas as pd
-from math import pi, sin, cos
 
+from ..utils.type_coercions import ensure_sized_iterable
+from ..utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
 from .data_loader import DataLoader
 
 
@@ -35,26 +38,18 @@ class DataThresholder(DataLoader):
             angle (float): the angle by which to rotate the coordinates.
         """
         sin_theta, cos_theta = sin(angle / degrees_per_rad), cos(angle / degrees_per_rad)
-        x, y = self.data["x"], self.data["y"]
+        # For this entire next section: dask's type hinting sucks. This is a bit of a mess
+        x = cast(dd.Series, self.data["x"])
+        y = cast(dd.Series, self.data["y"])
         self.data["x"] = (x.mul(cos_theta)) + (y.mul(sin_theta))
         self.data["y"] = (x.mul(-sin_theta)) + (y.mul(cos_theta))
 
-    def vx_rolling_sum(self, series, window):
-        """A specialised method for calculating the rolling sum of a series on a vaex dataframe.
-        (DEPRECATED)
-        """
-        array = [0.0 for i in range(window)]
-        max = series.shape[0]
-        for i, j in zip(range(0, max - window), range(window, max)):
-            array.append(series[i:j].sum())
-        return array
-
-    def avgspeed_threshold(self, threshold_percent=1, avgof=1):
+    def avgspeed_threshold(self, threshold_percent: float = 1, avgof: int = 1) -> None:
         """Thresholds layer data (x,y,w) based on percentage of max average slope
             of rolling average of displacement
 
         Args:
-            threshold_percent (int, optional): the percentage of the max speed above which points
+            threshold_percent (float, optional): the percentage of the max speed above which points
             will be removed. Defaults to 1.
             avgof (int, optional): the number of points to average over. Defaults to 1.
         """
@@ -77,57 +72,81 @@ class DataThresholder(DataLoader):
         self.data = self.data.extract()
         self.data.drop("filter", inplace=True)
 
-    def avg_threshold(self, threshold_percent=1, column="w1", comparison_func=None):
+    def avg_threshold(
+        self,
+        threshold_percent: float = 1,
+        column: str = "w1",
+        comparison_func: Callable[[float, float], bool] = op.gt,
+    ) -> None:
         """Selectively keeps data based on comparison with a percentage of the
             mean of whatever column is specified
 
         Args:
-            threshold_percent (int, optional): the percentage of the mean to threshold by.
+            threshold_percent (float, optional): the percentage of the mean to threshold by.
                 Defaults to 1.
             column (str, optional): the column to threshold by. Defaults to "w1".
-            comparison_func (_type_, optional): The comparison function by which to threshold.
-                Defaults to None.
+            comparison_func (Callable[[float, float], bool], optional): The comparison function by
+            which to threshold. Defaults to f(x, y): x > y.
         """
         threshold_percent /= 100.0  # convert threshold percent to decimal
-        threshold = threshold_percent * self.data[column].mean()
+        threshold = threshold_percent * cast(dd.Series, self.data[column]).mean()
         self.data = self.data[comparison_func(self.data[column], threshold)]
         self.data = self.data.extract()
 
-    def avg_greaterthan(self, column="w1", threshold_percent=1):
+    def avg_greaterthan(self, column: str = "w1", threshold_percent: float = 1):
         """Keeps all values greater than threshold percent of average for column
 
         Args:
             column (str, optional): column to threshold by. Defaults to "w1".
-            threshold_percent (int, optional): the percentage to threshold by. Defaults to 1.
+            threshold_percent (float, optional): the percentage to threshold by. Defaults to 1.
         """
         self.avg_threshold(
             column=column, threshold_percent=threshold_percent, comparison_func=op.gt
         )
 
-    def avg_lessthan(self, column="w1", threshold_percent=1):
+    def avg_lessthan(self, column: str = "w1", threshold_percent: float = 1):
         """Keeps all values less than threshold percent of average for column
 
         Args:
             column (str, optional): column to threshold by. Defaults to "w1".
-            threshold_percent (int, optional): the percentage to threshold by. Defaults to 1.
+            threshold_percent (float, optional): the percentage to threshold by. Defaults to 1.
         """
         self.avg_threshold(
             column=column, threshold_percent=threshold_percent, comparison_func=op.lt
         )
 
-    def threshold_all_layers(self, thresh_functions: list, threshfunc_kwargs: list):
+    def threshold_all_layers(
+        self,
+        thresh_functions: Union[
+            Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]
+        ],
+        threshfunc_kwargs: Union[Dict[str, Any], Iterable[Dict[str, Any]]],
+    ) -> None:
         """Thresholds all layers by applying listed functions to the current dataframe with
             listed params.
 
         Args:
-            thresh_functions (list): a list of functions to apply
-            threshfunc_kwargs (list): a list of kwargs for the functions to apply
+            thresh_functions (
+                    Union[Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]]
+                ): a list of functions to apply
+            threshfunc_kwargs (Union[Dict[str, Any], Iterable[Dict[str, Any]]]):
+                a list of kwargs for the functions to apply
         """
         # if conversion to dict is needed for single function, then convert
-        if type(thresh_functions) in (FunctionType, MethodType):
-            thresh_functions = (thresh_functions,)
-        if type(threshfunc_kwargs) is dict:
-            threshfunc_kwargs = (threshfunc_kwargs,)
+        # if isinstance(thresh_functions, Callable):
+        #     thresh_functions = (thresh_functions,)
+        # if is_str_key_dict(threshfunc_kwargs):
+        #     threshfunc_kwargs = (threshfunc_kwargs,)
+        if not (is_sized_iterable(thresh_functions) or is_callable(thresh_functions)):
+            raise ValueError("thresh_functions must be a sized iterable or a callable")
+        thresh_functions = ensure_sized_iterable(thresh_functions)
+
+        if not (is_sized_iterable(threshfunc_kwargs) or is_str_key_dict(threshfunc_kwargs)):
+            raise ValueError("threshfunc_kwargs must be a sized iterable or a Dict[str, Any]")
+        threshfunc_kwargs = ensure_sized_iterable(threshfunc_kwargs)
+
+        if len(thresh_functions) != len(threshfunc_kwargs):
+            raise ValueError("thresh_functions and threshfunc_kwargs must be the same length")
 
         self._qprint("\nThresholding data")
 
@@ -169,12 +188,15 @@ class DataThresholder(DataLoader):
     #     self.data.rename("prediction_kmeans", "sample")
     #     self._qprint("\nSample detection complete!")
 
-    def mask_xyrectangles(self, sample_map: dict):
+    def mask_xyrectangles(
+        self, sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]
+    ) -> None:
         """Masks off rectangles as samples based on a dict where keys are sample numbers and values
             are tuples of ((x1, x2), (y1, y2)), then dump all points outside those samples
 
         Args:
-            sample_map (dict): a dict of sample labels and tuples of ((x1, x2), (y1, y2))
+            sample_map (Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]):
+                a dict of sample labels and tuples of ((x1, x2), (y1, y2))
         """
 
         # def map_func(row):
@@ -190,6 +212,6 @@ class DataThresholder(DataLoader):
                 y_min, y_max = min(y1, y2), max(y1, y2)
                 samples[df["x"].between(x_min, x_max) & df["y"].between(y_min, y_max)] = k
             return pd.Series(samples, index=df.index, name="sample")
-        
+
         self.data["sample"] = self.data.map_partitions(map_func)
         self.data = self.data.loc[self.data["sample"].ge(0)]
