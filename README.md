@@ -30,59 +30,8 @@ Note: This project is an absolute mess right now, i need to remember to make sur
 
 ```mermaid
 classDiagram
-  class MTPy {
-  }
-  class common {
-  }
-  class base {
-  }
-  class dataproc {
-  }
-  class data_loader {
-  }
-  class data_processor {
-  }
-  class data_statistics {
-  }
-  class data_thresholder {
-  }
-  class datavis {
-  }
-  class data_plotter {
-  }
-  class dispatchers2d {
-  }
-  class dispatchers3d {
-  }
-  class hooks2d {
-  }
-  class hooks3d {
-  }
-  class plotter2d {
-  }
-  class plotter3d {
-  }
-  class plotter_base {
-  }
-  class meltpool_tomography {
-  }
-  data_processor --> data_statistics
-  data_processor --> data_thresholder
-  data_statistics --> data_loader
-  data_thresholder --> data_loader
-  data_plotter --> plotter2d
-  data_plotter --> plotter3d
-  plotter2d --> dispatchers2d
-  plotter2d --> plotter_base
-  plotter3d --> dispatchers3d
-  plotter3d --> plotter_base
-  meltpool_tomography --> data_processor
-  meltpool_tomography --> data_plotter
-```
-
-```mermaid
-classDiagram
   class Base {
+    data
     progressbar : tqdm_asyncio
     quiet : bool
   }
@@ -91,63 +40,54 @@ classDiagram
     client
     cluster : NoneType
     data
-    fs
+    fs : Optional[AbstractFileSystem]
     temp_label : str
-    temp_units : NoneType, str
-    apply_calibration_curve(calibration_curve: FunctionType | None, temp_column: str, units: str | None)
-    commit()
-    generate_metadata(path: str | None) dict
-    load(filepath: Path | str)
-    read_layers(data_path: str, calibration_curve: FunctionType | None, temp_units: str, chunk_size: int)
-    reload_raw()
-    save(filepath: Path | str)
-    tree_metadata(path: str | None, meta_dict: dict | None) dict
+    temp_units : str
+    apply_calibration_curve(calibration_curve: Optional[CalibrationFunction], temp_column: str, units: Optional[str]) None
+    commit() None
+    construct_cached_ddf(data_path: str, chunk_size: int) None
+    generate_metadata(path: Optional[str]) PathMetadataTree
+    get_memory_limit() int
+    load(filepath: Union[Path, str]) None
+    read_layers(data_path: str, calibration_curve: Optional[CalibrationFunction], temp_units: str, chunk_size: int) None
+    reload_raw() None
+    save(filepath: Path | str) None
+    tree_metadata(path: Optional[str], meta_dict: Optional[PathMetadataTree]) PathMetadataTree
   }
   class DataPlotter {
   }
   class DataProcessor {
   }
   class DataStatistics {
-    calculate_stats(groupby: str | list[str] | None, confidence_interval: float) dict
-    export_datasheet(filepath: str, overall: bool, layers: bool, samples: bool, sample_layers: bool, confidence_interval: float) None
+    calculate_stats(groupby: Optional[Union[str, Iterable[str]]], confidence_interval: float) Dict[str, Any]
+    export_datasheet(filepath: str) None
+    write_to_file(stats: Dict[str, Any], filepath: str) None
   }
   class DataThresholder {
     data
-    avg_greaterthan(column, threshold_percent)
-    avg_lessthan(column, threshold_percent)
-    avg_threshold(threshold_percent, column, comparison_func)
-    avgspeed_threshold(threshold_percent, avgof)
-    mask_xyrectangles(sample_map: dict)
+    avg_greaterthan(column: str, threshold_percent: float) None
+    avg_lessthan(column: str, threshold_percent: float) None
+    avg_threshold(threshold_percent: float, column: str, comparison_func: Callable[[float, float], bool]) None
+    avgspeed_threshold(threshold_percent: float, avgof: int) None
+    mask_xyrectangles(sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]) None
     rotate_xy(angle: float) None
-    threshold_all_layers(thresh_functions: list, threshfunc_kwargs: list)
-    vx_rolling_sum(series, window)
+    threshold_all_layers(thresh_functions: Union[Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]], threshfunc_kwargs: Union[Dict[str, Any], Iterable[Dict[str, Any]]]) None
   }
   class MeltpoolTomography {
   }
   class Plotter2D {
-    distribution2d_panel
-    layer_scatter2d_panel
-    scatter2d_panel
-    distribution2d()
-    init_panel()
-    plot2d(kind: str, filename: None | str, add_to_dashboard: bool, samples: int | Iterable | None, xrange: tuple[float | None, float | None] | float | None, yrange: tuple[float | None, float | None] | float | None, zrange: tuple[float | None, float | None] | float | None, groupby: str | list[str] | None, aggregator: Reduction | None)
-    scatter2d()
+    distribution2d() Chart
+    plot2d(kind: str, filename: Optional[str]) Chart
+    scatter2d() Chart
   }
   class Plotter3D {
-    plot3d(kind: str, filename: None | str, add_to_dashboard: bool, samples: int | Iterable | None, xrange: tuple[float | None, float | None] | None, yrange: tuple[float | None, float | None] | None, zrange: tuple[float | None, float | None] | None, groupby: str | list[str] | None, aggregator: Reduction | None)
-    scatter3d()
+    plot3d(kind: str, filename: Optional[str]) Chart
+    scatter3d() Chart
   }
   class PlotterBase {
-    layer_slider
-    sample_slider : NoneType
-    views : dict
-    xmax_slider
-    xmin_slider
-    ymax_slider
-    ymin_slider
-    zmax_slider
-    zmin_slider
-    init_panel()
+    view_tag : str
+    views : Dict[str, Chart]
+    generate_view_id(kind: str, samples: Optional[Union[int, Iterable[int]]], kwargs: Optional[dict], xrange: Tuple[Optional[float], Optional[float]] | Optional[float], yrange: Tuple[Optional[float], Optional[float]] | Optional[float], zrange: Tuple[Optional[float], Optional[float]] | Optional[float], groupby: Optional[Union[str, Iterable[str]]]) str
   }
   DataLoader --|> Base
   DataProcessor --|> DataStatistics

@@ -53,6 +53,9 @@ types-psutil = "^5.9.5.20240205"
 mkdocs = "^1.5.3"
 mkdocstrings = "^0.24.1"
 mkdocs-material = "^9.5.12"
+mkdocs-git-revision-date-localized-plugin = "^1.2.4"
+mkdocs-gen-files = "^0.5.0"
+mkdocstrings-python = "^1.8.0"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -77,6 +80,7 @@ exclude = '''
 |\.jl$
 |\.rs$
 |\.md$
+|\docs/
 '''
 
 [tool.ruff]
@@ -84,6 +88,7 @@ exclude = '''
 line-length = 100
 # Assume Python 3.11
 target-version = "py311"
+exclude = ["docs/",]
 
 [tool.ruff.lint]
 # Configure ruff to be *heavily* opinionated. We want to enforce a consistent style across all code.
@@ -116,7 +121,7 @@ unfixable = []
 exclude = [
     ".bzr", ".direnv", ".eggs", ".git", ".hg", ".mypy_cache", ".nox", ".pants.d", ".pytype",
     ".ruff_cache", ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "build",
-    "dist", "node_modules", "venv", ".vscode"
+    "dist", "node_modules", "venv", ".vscode", "docs",
 ]
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
@@ -144,6 +149,7 @@ mypy-init-return = true
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
+exclude = ["docs/",]
 
 [[tool.mypy.overrides]]
 module = ["flet.*", "flet_core.*", "fsspec.*"]

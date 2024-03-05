@@ -27,6 +27,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Documentation: documentation.md
   # - Getting Started:
   #   - Installation: installation.md
   #   - Usage: usage.md
@@ -63,6 +64,9 @@ plugins:
   # - material/projects
   # - material/typeset
   - search
+  - gen-files:
+      scripts:
+        - docs/docs.py
   - mkdocstrings
   - git-revision-date-localized:
       enable_creation_date: true
