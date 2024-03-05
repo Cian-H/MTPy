@@ -7,12 +7,12 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 ## Todo
 
 [X] reorganize project folder structure (proper /src directory, etc)\
-[ ] implement mypy type annotations to enforce types and prevent errors\
-[ ] add missing docstrings, conforming to a standard (currently using numpy standard)\
+[X] implement mypy type annotations to enforce types and prevent errors\
+[X] add missing docstrings, conforming to a standard (currently using google convention)\
 [X] add automated UML generation\
 [ ] add tests using pytest and hypothesis\
-[ ] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)\
-[ ] add proper debug logging\
+[X] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)\
+[ ] ~~add proper debug logging~~ <- This need is probably better addressed by [`snoop`](https://github.com/alexmojaki/snoop)\
 [ ] REFACTOR AND IMPLEMENT PATTERNS USING [`attrs`](https://www.attrs.org/en/stable/)\
 [ ] use `__init__.py` to simplify API\
 [ ] clean up namespaces with config files?\

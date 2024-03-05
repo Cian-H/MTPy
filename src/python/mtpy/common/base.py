@@ -1,9 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import annotations
+"""A base class on which all other classes in this package are built."""
 
-from typing import Any, Dict
+from __future__ import annotations
 
 from dask import dataframe as dd
 import pandas as pd
@@ -13,20 +12,22 @@ from tqdm.auto import tqdm
 class Base:
     """A base class on which all other classes in this package are built."""
 
-    __slots__ = ["quiet", "progressbar", "data"]
+    __slots__ = ["data", "progressbar", "quiet"]
 
     def __init__(
-        self,
+        self: "Base",
+        *,
         quiet: bool = False,
         progressbar: type[tqdm] = tqdm,  # todo: replace this with a progressbar interface
-        **kwargs: Dict[str, Any],
     ) -> None:
         """Initialisation shared by all classes in this package.
 
         Args:
+            self (Base): The class instance.
             quiet (bool, optional): Sets the verbosity of the program. Defaults to False.
             progressbar (tqdm, optional):
                 A passthrough iterative wrapper that updates a progress bar. Defaults to tqdm.
+            **kwargs (Dict[str, Any]): Additional keyword arguments (unused).
         """
         self.quiet = quiet
         self.progressbar = progressbar
@@ -38,8 +39,8 @@ class Base:
         # print()
         # self._jl_interpreter = Main
 
-    def _qprint(self, string: str) -> None:
-        """Prints a line if self.quiet is False
+    def _qprint(self: "Base", string: str) -> None:
+        """Prints a line if self.quiet is False.
 
         Args:
             string (str): The string to be printed.

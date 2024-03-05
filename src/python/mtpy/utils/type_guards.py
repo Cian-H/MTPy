@@ -1,42 +1,70 @@
+# -*- coding: utf-8 -*-
+# ruff: noqa: ANN401 # Disable ANN401 since the module is a collection of type guards
+
+"""A module containing type guards for enforcing type safety."""
+
 from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeVar
 
 from dask import dataframe as dd
 
-from .types import SizedIterable
-
+from .types import JSONData, JSONDict, JSONList, JSONValue, PathMetadataTree, SizedIterable
 
 T = TypeVar("T")
+TWO = 2
 
 
-def is_str_key_dict(d: Any) -> TypeGuard[Dict[str, Any]]:
-    """Type guard for a dictionary with string keys and any values.
-
-    Args:
-        d (Dict): the dictionary to check
-
-    Returns:
-        TypeGuard[Dict[str, Any]]: True if the dictionary has string keys, False otherwise
-    """
-    if not isinstance(d, dict):
-        return False
-    else:
-        return all(isinstance(key, str) for key in d.keys())
-
-
-def guarded_str_key_dict(d: Any) -> Dict[str, Any]:
-    """A function for type guarding a dictionary with string keys and any values.
+def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]:
+    """Create type guards (`is_<type>` and `guarded_<type>`) for a given type.
 
     Args:
-        d (Any): the dictionary to check
+        type (T): the type to create guards for
 
     Returns:
-        Dict[str, Any]: the dictionary if it has string keys
+        Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]: the type guards
     """
-    if not is_str_key_dict(d):
-        raise TypeError("Expected a dictionary with string keys")
-    return d
+
+    def is_type(t: Any) -> TypeGuard[T]:
+        return isinstance(t, _type)
+
+    def guarded_type(t: Any) -> T:
+        if not is_type(t):
+            msg = f"Expected {_type}"
+            raise TypeError(msg)
+        return t
+
+    is_type.__name__ = f"is_{_type.__name__}"
+    is_type.__doc__ = f"""Type guard for {_type}.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        TypeGuard[{_type}]: True if the object is {_type}, False otherwise
+    """
+
+    guarded_type.__name__ = f"guarded_{_type.__name__}"
+    guarded_type.__doc__ = f"""A function for type guarding {_type}.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        {_type}: the object if it is {_type}
+    """
+
+    return is_type, guarded_type
 
 
+is_int, guarded_int = create_type_guard(int)
+is_str_key_dict, guarded_str_key_dict = create_type_guard(Dict[str, Any])
+is_dask_dataframe, guarded_dask_dataframe = create_type_guard(dd.DataFrame)
+is_bytes, guarded_bytes = create_type_guard(bytes)
+is_json_dict, guarded_json_dict = create_type_guard(JSONDict)
+is_json_list, guarded_json_list = create_type_guard(JSONList)
+is_pathmetadatatree, guarded_pathmetadatatree = create_type_guard(PathMetadataTree)
+
+
+# The following are type guards that need a bit more of a custom implementation
 def is_float_pair_tuple(t: Any) -> TypeGuard[Tuple[float, float]]:
     """Type guard for a tuple of two floats.
 
@@ -48,49 +76,11 @@ def is_float_pair_tuple(t: Any) -> TypeGuard[Tuple[float, float]]:
     """
     if not isinstance(t, tuple):
         return False
-    if len(t) != 2:
+    if len(t) != TWO:
         return False
     if not all(isinstance(x, float) for x in t):
         return False
     return True
-
-
-def is_dask_dataframe(df: Any) -> TypeGuard[dd.DataFrame]:
-    """Type guard for a dask dataframe.
-
-    Args:
-        df (Any): the dataframe to check
-
-    Returns:
-        TypeGuard[dd.DataFrame]: True if the dataframe is a dask dataframe, False otherwise
-    """
-    return isinstance(df, dd.DataFrame)
-
-
-def guarded_dask_dataframe(df: Any) -> dd.DataFrame:
-    """A function for type guarding a dask dataframe.
-
-    Args:
-        df (Any): the dataframe to check
-
-    Returns:
-        dd.DataFrame: the dataframe if it is a dask dataframe
-    """
-    if not is_dask_dataframe(df):
-        raise TypeError("Expected a dask dataframe")
-    return df
-
-
-def is_iterable(t: Any) -> TypeGuard[Iterable[T]]:
-    """Type guard for an iterable.
-
-    Args:
-        t (Any): the iterable to check
-
-    Returns:
-        TypeGuard[Iterable[T]]: True if the object is an iterable, False otherwise
-    """
-    return isinstance(t, Iterable)
 
 
 def is_callable(t: Any) -> TypeGuard[Callable]:
@@ -115,8 +105,21 @@ def guarded_callable(t: Any) -> Callable:
         Callable: the object if it is callable
     """
     if not is_callable(t):
-        raise TypeError("Expected a callable")
+        msg = "Expected a callable"
+        raise TypeError(msg)
     return t
+
+
+def is_iterable(t: Any) -> TypeGuard[Iterable[T]]:
+    """Type guard for an iterable.
+
+    Args:
+        t (Any): the iterable to check
+
+    Returns:
+        TypeGuard[Iterable[T]]: True if the object is an iterable, False otherwise
+    """
+    return isinstance(t, Iterable)
 
 
 def is_sized(t: Any) -> TypeGuard[Sized]:
@@ -141,3 +144,57 @@ def is_sized_iterable(t: Any) -> TypeGuard[SizedIterable[T]]:
         TypeGuard[SizedIterable[T]]: True if the object is a sized iterable, False otherwise
     """
     return is_iterable(t) and is_sized(t)
+
+
+def is_json_data(t: Any) -> TypeGuard[JSONData]:
+    """Type guard for JSON data.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        TypeGuard[JSONData]: True if the object is JSON data, False otherwise
+    """
+    return isinstance(t, (dict, list))
+
+
+def guarded_json_data(t: Any) -> JSONData:
+    """A function for type guarding JSON data.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        JSONData: the object if it is JSON data
+    """
+    if not is_json_data(t):
+        msg = "Expected JSON data"
+        raise TypeError(msg)
+    return t
+
+
+def is_json_value(t: Any) -> TypeGuard[JSONValue]:
+    """Type guard for JSON values.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        TypeGuard[JSONValues]: True if the object is a JSON value, False otherwise
+    """
+    return isinstance(t, (str, int, float, bool, dict, list))
+
+
+def guarded_json_value(t: Any) -> JSONValue:
+    """A function for type guarding JSON values.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        JSONValues: the object if it is a JSON value
+    """
+    if not is_json_value(t):
+        msg = "Expected a JSON value"
+        raise TypeError(msg)
+    return t

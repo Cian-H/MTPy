@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# *_* coding: utf-8 *_*
+# -*- coding: utf-8 -*-
 
-"""
-Common components to be used throughout the MTPy module
-"""
+"""Common components to be used throughout the MTPy module."""

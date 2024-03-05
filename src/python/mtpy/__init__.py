@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-# *_* coding: utf-8 *_*
+# -*- coding: utf-8 -*-
 
-"""
+"""L-PBF meltpool tomography in python.
+
 MTPy is a module containing tools useful for the processing of metal additive
 manufacturing pyrometry data and the generation of graphs and tomographs from
-the resulting meltpool data
+the resulting meltpool data.
 """
 
 # TEMPORARY FIX FOR WARNINGS
 import warnings
-
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", module="bokeh")

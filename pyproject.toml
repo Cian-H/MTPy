@@ -80,9 +80,25 @@ line-length = 100
 target-version = "py311"
 
 [tool.ruff.lint]
-# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-select = ["E", "F"]
-ignore = []
+# Configure ruff to be *heavily* opinionated. We want to enforce a consistent style across all code.
+# Enable checks for pydocstyle (`D`), pycodestyle (`E`, `W`), Pyflakes (`F`), McCabe Complexity (C90)
+# isort (`I`), pep8 naming (`N`), flake8 (`A`, `ANN`, `B`, `C4`, `EM`, `FBT`, `ICN`, `INT`, `ISC`, `PT`,
+# `PTH`, `RET`, `SIM`, `TCH`, and `TID`), perflint (`PERF`), refurb (`FURB`), numpy rules (`NPY`), pandas
+# rules (`PD`), pylint (`PL`), ruff rules (`RUF`).
+select = [
+    "D", "E", "W", "F", "C90", "I", "N",
+    "A", "ANN", "B", "C4", "EM", "FBT", "ICN", "INT", "ISC", "PT", "PTH", "RET", "SIM", "TCH", "TID",
+    "PERF", "FURB", "NPY", "PD", "PL", "RUF"]
+# Reasons for disabling certain rules:
+# - PD002: despite its problems we need to use inplace operations for performance reasons.
+# - ANN002: as much as i'd like to enforce this using `TypedDict`s and a `__kwargs__`
+#       dunder, it would tightly couple us to external libraries.
+# - ANN003: same as above.
+# - PLR0913: as nice as smaller functions are for maintenance and readability, this rule
+#       is unenforceable in such a data-heavy library.
+# - PLR0914: same as above.
+# - PLR0917: same as above.
+ignore = ["PD002", "ANN002", "ANN003", "PLR0913", "PLR0914", "PLR0917"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [
     "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE",
@@ -102,7 +118,10 @@ extend-select = ["I"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = true
-lines-after-imports = 2
+lines-after-imports = -1
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.format]
 quote-style = "double"
@@ -112,6 +131,9 @@ line-ending = "auto"
 [tool.ruff.lint.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
 
 [tool.mypy]
 check_untyped_defs = true

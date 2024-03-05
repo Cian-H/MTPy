@@ -1,24 +1,31 @@
+# -*- coding: utf-8 -*-
+
+"""A module for handling tarfiles and their contents."""
+
 from __future__ import annotations
 
 from math import ceil
-from typing import Any, Dict, Tuple
+from typing import TYPE_CHECKING, ClassVar, Dict, Tuple, Union
 
-from fsspec.spec import AbstractFileSystem
+if TYPE_CHECKING:
+    from fsspec.spec import AbstractFileSystem
 
-from .types import FileLike, JSONDict
+    from .types import FileLike, JSONDict
 
 
 class FastSeek:
     """A class for fast seeking in files."""
 
-    _instances: Dict[Tuple, FastSeek] = {}
+    _instances: ClassVar[Dict[Tuple, FastSeek]] = {}
     __key__ = None
 
-    def __new__(cls, fs: AbstractFileSystem, *args, **kwargs) -> FastSeek:
+    def __new__(cls: "type[FastSeek]", fs: AbstractFileSystem, *args, **kwargs) -> FastSeek:
         """A function for creating a new instance of the FastSeek class.
 
         Args:
             fs (AbstractFileSystem): an fsspec filesystem
+            *args: positional arguments to pass to the filesystem open method
+            **kwargs: keyword arguments to pass to the filesystem open method
 
         Raises:
             IOError: File was closed before seeking could be performed
@@ -38,43 +45,53 @@ class FastSeek:
             cls.cursor = 0
             cls.fopen: FileLike = fs.open(*args, **kwargs)
             cls._seek = cls.fopen.seek
-            #! Ignore the type error. Is this janky? Yes. Does it work? Also yes.
-            #! We're exploiting duck typing and the infinite mutability of Python
-            #! here. It may be a pain point in the future, but it works well as
-            #! long as we can trust maintainers to not abuse FastSeek.
+            # ! Ignore the type error. Is this janky? Yes. Does it work? Also yes.
+            # ! We're exploiting duck typing and the infinite mutability of Python
+            # ! here. It may be a pain point in the future, but it works well as
+            # ! long as we can trust maintainers to not abuse FastSeek.
             cls.fopen.seek = cls.seek  # type: ignore
             cls._read = cls.fopen.read
             cls.fopen.read = cls.read  # type: ignore
         return self
 
-    def close(self):
-        """A function for closing the file."""
+    def close(self: "FastSeek") -> None:
+        """A function for closing the file.
+
+        Args:
+            self (FastSeek): the FastSeek instance
+        """
         self.fopen.close()
-        if hasattr(self, "__key__"):
-            if self.__key__ in FastSeek._instances:
-                del FastSeek._instances[self.__key__]
+        if hasattr(self, "__key__") and (self.__key__ in FastSeek._instances):
+            del FastSeek._instances[self.__key__]
 
     @staticmethod
-    def close_all():
+    def close_all() -> None:
         """A function for closing all open FastSeek instances."""
         for buffer in FastSeek._instances.values():
             buffer.close()
 
-    def seek(self, cursor: int, *args, **kwargs):
+    def seek(self: "FastSeek", cursor: int, *args, **kwargs) -> int:
         """A function for seeking to a position in a file.
 
         Args:
             cursor (int): the position to seek to
+            *args: additional arguments to pass to the seek method
+            **kwargs: additional keyword arguments to pass to the seek method
+
+        Returns:
+            int: the new position in the file
         """
         change = cursor - self.cursor
         self.cursor = cursor
-        self._seek(change, 1, *args, **kwargs)
+        return self._seek(change, 1, *args, **kwargs)
 
-    def read(self, read_length: int, *args, **kwargs) -> Any:
+    def read(self: "FastSeek", read_length: int, *args, **kwargs) -> Union[str, bytes]:
         """A function for reading a number of bytes from a file.
 
         Args:
             read_length (int): the number of bytes to read
+            *args: additional arguments to pass to the read method
+            **kwargs: additional keyword arguments to pass to the read method
 
         Returns:
             any: the bytes read from the file
@@ -101,7 +118,8 @@ def uncompressed_tarfile_size(tree_metadata: JSONDict, blocksize: int = 512) -> 
         if not item["is_dir"]:
             item_size = item["size"]
             if not isinstance(item_size, int):
-                raise ValueError(f"Invalid size for {item['name']}")
+                msg = f"Invalid size for {item['name']}"
+                raise ValueError(msg)
             size += entry_size(item_size, blocksize)  # entry data
     size += 2 * blocksize  # tarfile ends with 2 blocks of zeroes
     return size
@@ -137,16 +155,17 @@ def parse_header(header: bytes) -> Dict[str, str | int]:
 
 
 def open_as_fast_seekable(fs: AbstractFileSystem, *args, **kwargs) -> FastSeek:
-    """opens a file as a fast seekable file
+    """Opens a file as a fast seekable file.
 
     Args:
         fs (AbstractFileSystem): an fsspec filesystem
+        *args: positional arguments to pass to the filesystem open method
+        **kwargs: keyword arguments to pass to the filesystem open method
 
     Returns:
         file: a fast seekable file
     """
-    fopen = FastSeek(fs, *args, **kwargs)
-    return fopen
+    return FastSeek(fs, *args, **kwargs)
 
 
 def unpack_file(

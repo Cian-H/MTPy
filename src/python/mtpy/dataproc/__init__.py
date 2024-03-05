@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# *_* coding: utf-8 *_*
+# -*- coding: utf-8 -*-
 
-"""
-Data handling and processing components of the MTPy module
-"""
+"""Data handling and processing components of the MTPy module."""

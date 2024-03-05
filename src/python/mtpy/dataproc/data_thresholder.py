@@ -1,5 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+"""A class that handles thresholding of data for the data pipeline."""
 
 from __future__ import annotations
 
@@ -11,10 +12,10 @@ from dask import dataframe as dd
 import numpy as np
 import pandas as pd
 
-from ..utils.type_coercions import ensure_sized_iterable
-from ..utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
-from .data_loader import DataLoader
+from mtpy.utils.type_coercions import ensure_sized_iterable
+from mtpy.utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
 
+from .data_loader import DataLoader
 
 degrees_per_rad = 180 / pi
 
@@ -22,7 +23,7 @@ degrees_per_rad = 180 / pi
 class DataThresholder(DataLoader):
     """A class that handles thresholding of data for the data pipeline."""
 
-    def __init__(self, **kwargs):
+    def __init__(self: "DataThresholder", **kwargs) -> None:
         """Initialises a DataThresholder object."""
         super().__init__(**kwargs)
         # Include and bind julia counterpart to this module
@@ -31,7 +32,7 @@ class DataThresholder(DataLoader):
         #     self._jl_interpreter, __file__.split("/")[-1].split(".")[0]
         # )
 
-    def rotate_xy(self, angle: float) -> None:
+    def rotate_xy(self: "DataThresholder", angle: float) -> None:
         """Rotates the x and y coordinates of the current dataframe by the given angle.
 
         Args:
@@ -44,9 +45,15 @@ class DataThresholder(DataLoader):
         self.data["x"] = (x.mul(cos_theta)) + (y.mul(sin_theta))
         self.data["y"] = (x.mul(-sin_theta)) + (y.mul(cos_theta))
 
-    def avgspeed_threshold(self, threshold_percent: float = 1, avgof: int = 1) -> None:
-        """Thresholds layer data (x,y,w) based on percentage of max average slope
-            of rolling average of displacement
+    def avgspeed_threshold(
+        self: "DataThresholder", threshold_percent: float = 1, avgof: int = 1
+    ) -> None:
+        """Thresholds layer data (x,y,w) based on average speed.
+
+        Thresholds layer data based on (x, y) average speed. Average speed is calculated as the
+        average slope of the rolling average of displacement. Points are then thresholded out if
+        they are above a certain percentage of the max speed, based on the assumption they are
+        intersample traversal paths.
 
         Args:
             threshold_percent (float, optional): the percentage of the max speed above which points
@@ -73,13 +80,15 @@ class DataThresholder(DataLoader):
         self.data.drop("filter", inplace=True)
 
     def avg_threshold(
-        self,
+        self: "DataThresholder",
         threshold_percent: float = 1,
         column: str = "w1",
         comparison_func: Callable[[float, float], bool] = op.gt,
     ) -> None:
-        """Selectively keeps data based on comparison with a percentage of the
-            mean of whatever column is specified
+        """Threshold by comparison with the mean of a column.
+
+        Selectively keeps data based on comparison with a percentage of the mean of whatever column
+        is specified.
 
         Args:
             threshold_percent (float, optional): the percentage of the mean to threshold by.
@@ -93,8 +102,12 @@ class DataThresholder(DataLoader):
         self.data = self.data[comparison_func(self.data[column], threshold)]
         self.data = self.data.extract()
 
-    def avg_greaterthan(self, column: str = "w1", threshold_percent: float = 1):
-        """Keeps all values greater than threshold percent of average for column
+    def avg_greaterthan(
+        self: "DataThresholder",
+        column: str = "w1",
+        threshold_percent: float = 1,
+    ) -> None:
+        """Keeps all values greater than threshold percent of average for column.
 
         Args:
             column (str, optional): column to threshold by. Defaults to "w1".
@@ -104,8 +117,12 @@ class DataThresholder(DataLoader):
             column=column, threshold_percent=threshold_percent, comparison_func=op.gt
         )
 
-    def avg_lessthan(self, column: str = "w1", threshold_percent: float = 1):
-        """Keeps all values less than threshold percent of average for column
+    def avg_lessthan(
+        self: "DataThresholder",
+        column: str = "w1",
+        threshold_percent: float = 1,
+    ) -> None:
+        """Keeps all values less than threshold percent of average for column.
 
         Args:
             column (str, optional): column to threshold by. Defaults to "w1".
@@ -116,43 +133,48 @@ class DataThresholder(DataLoader):
         )
 
     def threshold_all_layers(
-        self,
+        self: "DataThresholder",
         thresh_functions: Union[
             Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]
         ],
         threshfunc_kwargs: Union[Dict[str, Any], Iterable[Dict[str, Any]]],
     ) -> None:
-        """Thresholds all layers by applying listed functions to the current dataframe with
-            listed params.
+        """Thresholds all layers in a single pass.
+
+        Thresholds all layers by applying listed functions to the current dataframe with
+        listed params.
 
         Args:
-            thresh_functions (
-                    Union[Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]]
-                ): a list of functions to apply
+            thresh_functions (Union[Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]]):
+                a list of functions to apply
             threshfunc_kwargs (Union[Dict[str, Any], Iterable[Dict[str, Any]]]):
                 a list of kwargs for the functions to apply
-        """
+        """  # noqa: E501
         # if conversion to dict is needed for single function, then convert
         # if isinstance(thresh_functions, Callable):
         #     thresh_functions = (thresh_functions,)
         # if is_str_key_dict(threshfunc_kwargs):
         #     threshfunc_kwargs = (threshfunc_kwargs,)
         if not (is_sized_iterable(thresh_functions) or is_callable(thresh_functions)):
-            raise ValueError("thresh_functions must be a sized iterable or a callable")
+            msg = "thresh_functions must be a sized iterable or a callable"
+            raise ValueError(msg)
         thresh_functions = ensure_sized_iterable(thresh_functions)
 
         if not (is_sized_iterable(threshfunc_kwargs) or is_str_key_dict(threshfunc_kwargs)):
-            raise ValueError("threshfunc_kwargs must be a sized iterable or a Dict[str, Any]")
+            msg = "threshfunc_kwargs must be a sized iterable or a Dict[str, Any]"
+            raise ValueError(msg)
+
         threshfunc_kwargs = ensure_sized_iterable(threshfunc_kwargs)
 
         if len(thresh_functions) != len(threshfunc_kwargs):
-            raise ValueError("thresh_functions and threshfunc_kwargs must be the same length")
+            msg = "thresh_functions and threshfunc_kwargs must be the same length"
+            raise ValueError(msg)
 
         self._qprint("\nThresholding data")
 
         # Prep progress bar iterator (assigned to variable for code clarity)
         progbar_iterator = self.progressbar(
-            zip(thresh_functions, threshfunc_kwargs),
+            zip(thresh_functions, threshfunc_kwargs, strict=False),
             total=len(thresh_functions),
             position=1,
             leave=False,
@@ -189,23 +211,24 @@ class DataThresholder(DataLoader):
     #     self._qprint("\nSample detection complete!")
 
     def mask_xyrectangles(
-        self, sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]
+        self: "DataThresholder", sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]
     ) -> None:
-        """Masks off rectangles as samples based on a dict where keys are sample numbers and values
-            are tuples of ((x1, x2), (y1, y2)), then dump all points outside those samples
+        """Mask rectangles on the projected xy plane.
+
+        Masks off rectangles as samples based on a dict where keys are sample numbers and values
+        are tuples of ((x1, x2), (y1, y2)), then dump all points outside those samples
 
         Args:
             sample_map (Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]):
                 a dict of sample labels and tuples of ((x1, x2), (y1, y2))
         """
-
         # def map_func(row):
         #     for sample, ((x_min, x_max), (y_min, y_max)) in sample_map.items():
         #         if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
         #             return sample
 
         # self.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
-        def map_func(df):
+        def map_func(df: pd.DataFrame) -> pd.Series:
             samples = np.full(len(df), -1, dtype=int)
             for k, ((x1, x2), (y1, y2)) in sample_map.items():
                 x_min, x_max = min(x1, x2), max(x1, x2)

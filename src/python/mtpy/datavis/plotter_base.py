@@ -1,12 +1,20 @@
+# -*- coding: utf-8 -*-
+
+"""Data visualisation components of the MTPy module."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING, Dict, Iterable, Optional, Tuple, Union
 
 import panel as pn
 
 # import dash
 # from dash import html
 # from holoviews.plotting.plotly.dash import to_dash
-from ..common.base import Base
+from mtpy.common.base import Base
 
+if TYPE_CHECKING:
+    from holoviews.element.chart import Chart
 
 pn.extension()
 
@@ -15,15 +23,16 @@ class PlotterBase(Base):
     """The base class for all plotter classes."""
 
     def __init__(
-        self,
+        self: "PlotterBase",
         #  dashboard: bool | dash.dash.Dash = False,
         #  dash_args: list = [],
         #  dash_kwargs: dict = {},
         **kwargs,
-    ):
-        """initialize the PlotterBase class"""
+    ) -> None:
+        """Initialize the PlotterBase class."""
         super().__init__(**kwargs)
-        self.views = {}
+        self.views: Dict[str, Chart] = {}
+        self.view_tag = self.__class__.__name__
         # if dashboard:
         #     if isinstance(dashboard, dash.dash.Dash):
         #         self.dashboard = dashboard
@@ -32,6 +41,58 @@ class PlotterBase(Base):
         #     self.dashboard_components = []
         #     self.dash_args = dash_args
         #     self.dash_kargs = dash_kwargs
+
+    def generate_view_id(
+        self: "PlotterBase",
+        kind: str,
+        samples: Optional[Union[int, Iterable[int]]] = None,
+        kwargs: Optional[dict] = None,
+        xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
+        yrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
+        zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
+        groupby: Optional[Union[str, Iterable[str]]] = None,
+    ) -> str:
+        """Generates a view id string for caching views.
+
+        Args:
+            self (PlotterBase): the PlotterBase object
+            kind (str): the kind of plot to produce
+            samples (Optional[Union[int, Iterable[int]]], optional): The samples in the view.
+                Defaults to None.
+            kwargs (Optional[dict], optional): The kwargs for hte plotting function.
+                Defaults to None.
+            xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): The range
+                of x values to be plotted. Defaults to None.
+            yrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): The range
+                of y values to be plotted. Defaults to None.
+            zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): The range
+                of z values to be plotted. Defaults to None.
+            groupby (Optional[Union[str, Iterable[str]]], optional): _description_.
+                Defaults to None.
+
+        Returns:
+            str: The view ID.
+        """
+        if kwargs is None:
+            kwargs = {}
+
+        view_id = f"{self.view_tag}_{kind}"
+
+        if samples is not None:
+            view_id += f"_s{samples!s}"
+        view_id += f"_{kwargs['x']}"
+        if xrange is not None:
+            view_id += f"{xrange!s}"
+        view_id += f"_{kwargs.get('y', '')}"
+        if yrange is not None:
+            view_id += f"{yrange!s}"
+        view_id += f"_{kwargs.get('w', '')}"
+        view_id += f"_{kwargs.get('z', '')}"
+        if zrange is not None:
+            view_id += f"{zrange!s}"
+        if groupby is not None:
+            view_id += f"_g{groupby!s}"
+        return view_id
 
     # # Commenting this out as this feature isn't complete yet, it may be changed in future, and
     # # for now all it's doing is wreaking havoc on mypy

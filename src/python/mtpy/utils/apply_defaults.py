@@ -1,10 +1,15 @@
+# -*- coding: utf-8 -*-
+
+"""DEPRECATED: will switch to using dict.update(defaults_dict) instead."""
+
 from __future__ import annotations
 
 from typing import Any, AnyStr, Dict
 
 
-def apply_defaults(dict: Dict[AnyStr, Any], defaults_dict: Dict[AnyStr, Any]) -> Dict[AnyStr, Any]:
+def apply_defaults(_dict: Dict[AnyStr, Any], defaults_dict: Dict[AnyStr, Any]) -> Dict[AnyStr, Any]:
     """A function for applying defaults to a dicts, intended for applying default kwargs.
+
     (DEPRECATED: will switch to using dict.update(defaults_dict) instead)
 
     Args:
@@ -14,5 +19,5 @@ def apply_defaults(dict: Dict[AnyStr, Any], defaults_dict: Dict[AnyStr, Any]) ->
     Returns:
         dict: the updated Dict[AnyStr, Any]
     """
-    keys = set(dict.keys()).union(set(defaults_dict.keys()))
-    return {k: dict.get(k, defaults_dict.get(k)) for k in keys}
+    keys = set(_dict.keys()).union(set(defaults_dict.keys()))
+    return {k: _dict.get(k, defaults_dict.get(k)) for k in keys}

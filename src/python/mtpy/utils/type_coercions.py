@@ -1,13 +1,16 @@
+# -*- coding: utf-8 -*-
+
+"""A module containing functions for safely coercing types."""
+
 from typing import Any, TypeVar
 
 from .type_guards import is_iterable, is_sized_iterable
 from .types import SizedIterable
 
-
 T = TypeVar("T")
 
 
-def ensure_sized_iterable(obj: Any) -> SizedIterable[T]:
+def ensure_sized_iterable(obj: Any) -> SizedIterable[T]:  # noqa: ANN401
     """Ensures that an object is an iterable.
 
     Args:
@@ -18,7 +21,6 @@ def ensure_sized_iterable(obj: Any) -> SizedIterable[T]:
     """
     if is_sized_iterable(obj):
         return obj
-    elif is_iterable(obj):
+    if is_iterable(obj):
         return list(obj)
-    else:
-        return [obj]
+    return [obj]

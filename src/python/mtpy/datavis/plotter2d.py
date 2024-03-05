@@ -1,21 +1,27 @@
+# -*- coding: utf-8 -*-
+
+"""Data visualisation components of the MTPy module."""
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
 # TEMPORARY FIX FOR WARNINGS
 import warnings
 
-from datashader.reductions import Reduction
 import holoviews as hv
-from holoviews.element.chart import Chart
 
-from ..utils.apply_defaults import apply_defaults
-from ..utils.type_guards import is_float_pair_tuple
+from mtpy.utils.apply_defaults import apply_defaults
+from mtpy.utils.type_guards import is_float_pair_tuple
+
 from .dispatchers2d import plot_dispatch
 from .plotter_base import PlotterBase  # pn
 
+if TYPE_CHECKING:
+    from datashader.reductions import Reduction
+    from holoviews.element.chart import Chart
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", module="bokeh")
@@ -41,15 +47,20 @@ warnings.filterwarnings("ignore", module="bokeh")
 hv.extension("plotly")
 
 config_path = "config/plotter2d.json"
-with open(Path(f"{Path(__file__).parents[0].resolve()}/{config_path}"), "r") as f:
+with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("r") as f:
     config = json.load(f)
 
 
 class Plotter2D(PlotterBase):
-    """The 2D plotter class"""
+    """The 2D plotter class."""
 
-    def __init__(self, **kwargs):
-        """initialize the Plotter2D class"""
+    def __init__(self: "Plotter2D", **kwargs) -> None:
+        """Initialize the Plotter2D class.
+
+        Args:
+            self (Plotter2D): the Plotter2D object
+            **kwargs: keyword arguments to be passed to the parent class initialiser
+        """
         super().__init__(**kwargs)
 
     # # Similar to base: commented out because for now its unneeded and only causing headaches
@@ -80,9 +91,10 @@ class Plotter2D(PlotterBase):
     #     )
 
     def plot2d(
-        self,
+        self: "Plotter2D",
         kind: str,
         filename: Optional[str] = None,
+        *args,
         add_to_dashboard: bool = False,
         samples: Optional[Union[int, Iterable[int]]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
@@ -90,10 +102,9 @@ class Plotter2D(PlotterBase):
         zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         groupby: Optional[Union[str, Iterable[str]]] = None,
         aggregator: Optional[Reduction] = None,
-        *args,
         **kwargs,
     ) -> Chart:
-        """creates a 2d plot
+        """Creates a 2d plot.
 
         Args:
             kind (str): the kind of plot to produce
@@ -101,6 +112,7 @@ class Plotter2D(PlotterBase):
                 Defaults to None.
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
+            *args: additional positional arguments to be passed to the plotting function
             samples (int | Iterable | None, optional): the samples to include on the plot.
                 Defaults to None.
             xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
@@ -113,6 +125,7 @@ class Plotter2D(PlotterBase):
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
+            **kwargs: additional keyword arguments to be passed to the plotting function
 
         Returns:
             Chart: a holoviz plot
@@ -128,48 +141,37 @@ class Plotter2D(PlotterBase):
 
         # filter dataframe based on ranges given
         for axis, axis_range in zip(
-            (kwargs.get("x"), kwargs.get("y"), kwargs.get("z")), (xrange, yrange, zrange)
+            (kwargs.get("x"), kwargs.get("y"), kwargs.get("z")),
+            (xrange, yrange, zrange),
+            strict=False,
         ):
             if axis_range is None:
                 continue
-            elif isinstance(axis_range, float):
+            if isinstance(axis_range, float):
                 chunk = chunk.loc[chunk[axis].eq(float(axis_range))]
             elif is_float_pair_tuple(axis_range):
                 axis_min, axis_max = axis_range
-                if axis_min is not None:
-                    chunk = chunk.loc[chunk[axis].ge(float(axis_min))]
-                elif axis_max is not None:
-                    chunk = chunk.loc[chunk[axis].le(float(axis_max))]
+                chunk = (
+                    chunk.loc[chunk[axis].ge(float(axis_min))] if axis_min is not None else chunk
+                )
+                chunk = (
+                    chunk.loc[chunk[axis].le(float(axis_max))] if axis_max is not None else chunk
+                )
             else:
-                raise ValueError(f"Invalid range for {axis}: {axis_range}")
+                msg = f"Invalid range for {axis}: {axis_range}"
+                raise ValueError(msg)
 
         # Then group if groupby is present (NOTE: NOT TESTED YET!)
-        if groupby is not None:
-            chunk = chunk.groupby(groupby)
+        chunk = chunk.groupby(groupby) if groupby is not None else chunk
 
         # generate a view id string for caching views
-        view_id = f"plot2D_{kind}"
-
-        if samples is not None:
-            view_id += f"_s{str(samples)}"
-        view_id += f"_{kwargs['x']}"
-        if xrange is not None:
-            view_id += f"{str(xrange)}"
-        view_id += f"_{kwargs.get('y', '')}"
-        if yrange is not None:
-            view_id += f"{str(yrange)}"
-        view_id += f"_{kwargs.get('w', '')}"
-        view_id += f"_{kwargs.get('z', '')}"
-        if zrange is not None:
-            view_id += f"{str(zrange)}"
-        if groupby is not None:
-            view_id += f"_g{str(groupby)}"
+        view_id = self.generate_view_id(kind, samples, kwargs, xrange, yrange, zrange, groupby)
 
         f_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **kwargs)
 
         plot = chunk
-        for f, kwargs in zip(f_list, kwargs_list):
-            plot = f(plot, **kwargs)
+        for f, plot_kwargs in zip(f_list, kwargs_list, strict=False):
+            plot = f(plot, **plot_kwargs)
         plot = plot.opts(**opts)
 
         self.views[view_id] = plot
@@ -187,16 +189,16 @@ class Plotter2D(PlotterBase):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter2d(self, *args, **kwargs) -> Chart:
-        """creates a 2d scatter plot
+    def scatter2d(self: "Plotter2D", *args, **kwargs) -> Chart:
+        """Creates a 2d scatter plot.
 
         Returns:
             Chart: a holoviz plot
         """
         return self.plot2d(*args, **apply_defaults(kwargs, config["scatter2d"]))
 
-    def distribution2d(self, *args, **kwargs) -> Chart:
-        """creates a 2d distribution plot
+    def distribution2d(self: "Plotter2D", *args, **kwargs) -> Chart:
+        """Creates a 2d distribution plot.
 
         Returns:
             Chart: a holoviz plot

@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
+
+"""Data visualisation components of the MTPy module."""
+
 from __future__ import annotations
 
 from typing import Callable
 
 
 def scatter(colorbar_label: str) -> Callable[..., None]:
-    """generates hooks for 3d holoviz plots
+    """Generates hooks for 3d holoviz plots.
 
     Args:
         colorbar_label (str): the colorbar label
@@ -12,7 +16,7 @@ def scatter(colorbar_label: str) -> Callable[..., None]:
         Callable[..., None]: a hook function for 3d holoviz plots
     """
 
-    def hook(plot, element) -> None:
+    def hook(plot, element) -> None:  # noqa: ANN001
         plot.handles["components"]["traces"][0]["colorbar"][
             "title"
         ] = colorbar_label  # Set colorbar label
