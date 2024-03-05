@@ -48,6 +48,12 @@ pandas-stubs = "^2.2.0.240218"
 types-tqdm = "^4.66.0.20240106"
 types-psutil = "^5.9.5.20240205"
 
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.3"
+mkdocstrings = "^0.24.1"
+mkdocs-material = "^9.5.12"
+
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"

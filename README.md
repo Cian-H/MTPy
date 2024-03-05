@@ -22,7 +22,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 [ ] implement Dask GPU support\
 [ ] Add a dashboard using dash\
 [ ] fix 3d tomography visualizations (see in-progress project)\
-[ ] clean up project in general (e.g: remove unused files, remove old code, etc.)
+[ ] clean up project in general (e.g: remove unused files, remove old code, etc.)\
 
 Note: This project is an absolute mess right now, i need to remember to make sure i branch each subsection of this work in git to manage it properly.
 

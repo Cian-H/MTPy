@@ -1,0 +1,68 @@
+site_name: MTPy
+repo_url: https://github.com/Cian-H/MTPy
+repo_name: Cian-H/MTPy
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github-alt
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      accent: teal
+      toggle:
+        icon: material/lightbulb 
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      accent: teal
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  # - Getting Started:
+  #   - Installation: installation.md
+  #   - Usage: usage.md
+  # - CLI Usage:
+  #   - Commands: commands.md
+  #   - Configuration: configuration.md
+  #   - Deployment: deployment.md
+  # - Developer:
+  #   - autoignition: src/autoignition.md
+  #   - cli: src/cli.md
+  #   - config: src/config.md
+  #   - create_img: src/create_img.md
+  #   - create_disk: src/create_disk.md
+  #   - debug: src/debug.md
+  #   - ip_interface: src/ip_interface.md
+  #   - utils: src/utils.md
+  # - Reference:
+  #   - FAQ: faq.md
+  #   - Troubleshooting: troubleshooting.md
+  #   - Changelog: changelog.md
+  #   - License: license.md
+
+extra:
+  version:
+    provider: mike
+
+# markdown_extensions: 
+#   - mkdocs-typer
+
+plugins:
+  #TODO: Add plugins, they seem to be broken at the moment
+  # - material/optimize
+  # - material/privacy
+  # - material/projects
+  # - material/typeset
+  - search
+  - mkdocstrings
+  - git-revision-date-localized:
+      enable_creation_date: true
