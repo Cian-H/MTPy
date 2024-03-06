@@ -4,14 +4,16 @@
 
 from __future__ import annotations
 
+import asyncio
 from functools import partial
+from inspect import iscoroutinefunction
 from io import BytesIO
 from itertools import repeat
 from pathlib import Path
 import pickle
 import tarfile
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 # TEMPORARY FIX FOR WARNINGS
 import warnings
@@ -19,6 +21,8 @@ import warnings
 import dask
 from dask import array as da
 from dask.distributed import Client, LocalCluster, as_completed
+from dask.distributed.deploy import Cluster
+from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
 import psutil
@@ -35,13 +39,7 @@ from mtpy.utils.type_guards import (
     guarded_json_dict,
     guarded_pathmetadatatree,
 )
-from mtpy.utils.types import JSONData, PathMetadata
-
-if TYPE_CHECKING:
-    from dask.distributed.deploy import Cluster
-    from fsspec import AbstractFileSystem
-
-    from mtpy.utils.types import CalibrationFunction, PathMetadataTree
+from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", module="bokeh")
@@ -144,9 +142,12 @@ class DataLoader(Base):
         # TODO: bug here if user passes dask client and intends to continue using outside MTPy?
         # Without this code though, dask clients could be left causing mem leaks.
         # Need to find a solution
-        if self.client.cluster is not None:
-            self.client.cluster.close()
-        self.client.close()
+        for obj in (self.client, self.client.cluster, self.cluster):
+            if (obj is not None) and (getattr(obj, "close", None) is not None):
+                if iscoroutinefunction(obj.close):
+                    asyncio.run(obj.close(timeout=1))
+                else:
+                    obj.close(timeout=1)
         # Delete cache files if still present
         self.fs.rm(self._data_cache, recursive=True)
         # super().__del__(**kwargs) # Not needed currently, but will be if __del__ added to parent
@@ -190,9 +191,6 @@ class DataLoader(Base):
         data_fs = DirFileSystem(path=data_path, fs=self.fs)
         # Prepare batches of files wtih total size less than memory_limit to read at once
         pcd_files = data_fs.glob("*.pcd", detail=False)
-        if not isinstance(pcd_files, str):
-            msg = "This code is only intended to work with single pattern globs."
-            raise TypeError(msg)
         for p in sorted(pcd_files, key=lambda x: float(x.split("/")[-1].split(".")[0])):
             file_size = data_fs.size(p.strip("/"))
             try:

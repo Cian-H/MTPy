@@ -5,11 +5,10 @@
 from __future__ import annotations
 
 from hashlib import sha1 as default_hash
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
-if TYPE_CHECKING:
-    from _hashlib import HASH
-    from fsspec import AbstractFileSystem
+from _hashlib import HASH
+from fsspec import AbstractFileSystem
 
 
 def hash_update_from_file(fs: AbstractFileSystem, filepath: str, _hash: HASH) -> HASH:

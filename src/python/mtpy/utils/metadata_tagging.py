@@ -5,13 +5,11 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
+from fsspec.spec import AbstractFileSystem
 from mtpy.utils.type_guards import guarded_bytes
-
-if TYPE_CHECKING:
-    from fsspec.spec import AbstractFileSystem
-    from mtpy.utils.types import JSONData
+from mtpy.utils.types import JSONData
 
 
 def add_metadata(fs: AbstractFileSystem, file: str, meta: JSONData) -> None:

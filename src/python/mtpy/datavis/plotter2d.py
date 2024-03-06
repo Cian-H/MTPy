@@ -6,22 +6,20 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 
 # TEMPORARY FIX FOR WARNINGS
 import warnings
 
+from datashader.reductions import Reduction
 import holoviews as hv
+from holoviews.element.chart import Chart
 
 from mtpy.utils.apply_defaults import apply_defaults
 from mtpy.utils.type_guards import is_float_pair_tuple
 
 from .dispatchers2d import plot_dispatch
 from .plotter_base import PlotterBase  # pn
-
-if TYPE_CHECKING:
-    from datashader.reductions import Reduction
-    from holoviews.element.chart import Chart
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", module="bokeh")
@@ -141,7 +139,7 @@ class Plotter2D(PlotterBase):
 
         # filter dataframe based on ranges given
         for axis, axis_range in zip(
-            (kwargs.get("x"), kwargs.get("y"), kwargs.get("z")),
+            (kwargs.get("x", "x"), kwargs.get("y", "y"), kwargs.get("z", "z")),
             (xrange, yrange, zrange),
             strict=False,
         ):

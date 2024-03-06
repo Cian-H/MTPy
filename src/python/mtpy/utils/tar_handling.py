@@ -5,12 +5,11 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import TYPE_CHECKING, ClassVar, Dict, Tuple, Union
+from typing import ClassVar, Dict, Tuple, Union
 
-if TYPE_CHECKING:
-    from fsspec.spec import AbstractFileSystem
+from fsspec.spec import AbstractFileSystem
 
-    from .types import FileLike, JSONDict
+from .types import FileLike, JSONDict
 
 
 class FastSeek:

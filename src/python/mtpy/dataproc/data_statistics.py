@@ -5,18 +5,15 @@
 from __future__ import annotations
 
 from functools import singledispatchmethod
+from io import TextIOWrapper
 import math
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, TypeVar, Union
+from typing import Any, Dict, Iterable, Optional, TypeVar, Union
 
 import dask
+from fsspec.spec import AbstractBufferedFile
 import pandas as pd
 
 from .data_loader import DataLoader
-
-if TYPE_CHECKING:
-    from io import TextIOWrapper
-
-    from fsspec.spec import AbstractBufferedFile
 
 T = TypeVar("T")
 
@@ -184,8 +181,8 @@ class DataStatistics(DataLoader):
         msg = f"Writing to {type(w)} is not supported"
         raise NotImplementedError(msg)
 
-    @_write.register
     @staticmethod
+    @_write.register
     def _write_excel(w: pd.ExcelWriter, df: pd.DataFrame, sheet_name: str) -> None:
         """A method for handling writing to excel files.
 
@@ -196,8 +193,8 @@ class DataStatistics(DataLoader):
         """
         df.to_excel(w, sheet_name=sheet_name)
 
-    @_write.register
     @staticmethod
+    @_write.register
     def _write_csv(
         w: Union[TextIOWrapper, AbstractBufferedFile], df: pd.DataFrame, sheet_name: str
     ) -> None:

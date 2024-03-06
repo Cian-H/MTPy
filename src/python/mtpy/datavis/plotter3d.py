@@ -6,18 +6,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 
+from datashader.reductions import Reduction
 import holoviews as hv
+from holoviews.element.chart import Chart
 
 from mtpy.utils.apply_defaults import apply_defaults
 
 from .dispatchers3d import plot_dispatch
 from .plotter_base import PlotterBase
-
-if TYPE_CHECKING:
-    from datashader.reductions import Reduction
-    from holoviews.element.chart import Chart
 
 hv.extension("plotly")
 

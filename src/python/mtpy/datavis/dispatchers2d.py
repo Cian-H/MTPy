@@ -4,23 +4,22 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from dask.dataframe import DataFrame
 import datashader as ds
+from datashader.reductions import Reduction
 import holoviews as hv
 import holoviews.operation.datashader as hd
 
-from . import hooks2d as hooks
-from .utils.type_guards import guarded_callable, guarded_str_key_dict
+from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
-if TYPE_CHECKING:
-    from dask.dataframe import DataFrame
-    from datashader.reductions import Reduction
+from . import hooks2d as hooks
 
 
 def plot_dispatch(
     kind: str, chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
-) -> Tuple[List[Callable], List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
     """A dispatcher for 2d plotting functions.
 
     Args:
@@ -47,7 +46,7 @@ def plot_dispatch(
 
 def scatter(
     chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
-) -> Tuple[List[Callable], List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a scatter plot.
 
     Args:
@@ -96,7 +95,7 @@ def scatter(
 
 def distribution(
     chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
-) -> Tuple[List[Callable], List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a distribution plot.
 
     Args:

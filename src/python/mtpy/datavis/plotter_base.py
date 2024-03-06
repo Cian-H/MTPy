@@ -4,17 +4,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Iterable, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 
+from holoviews.element.chart import Chart
 import panel as pn
 
 # import dash
 # from dash import html
 # from holoviews.plotting.plotly.dash import to_dash
 from mtpy.common.base import Base
-
-if TYPE_CHECKING:
-    from holoviews.element.chart import Chart
 
 pn.extension()
 

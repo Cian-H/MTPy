@@ -56,7 +56,6 @@ def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Ca
 
 
 is_int, guarded_int = create_type_guard(int)
-is_str_key_dict, guarded_str_key_dict = create_type_guard(Dict[str, Any])
 is_dask_dataframe, guarded_dask_dataframe = create_type_guard(dd.DataFrame)
 is_bytes, guarded_bytes = create_type_guard(bytes)
 is_json_dict, guarded_json_dict = create_type_guard(JSONDict)
@@ -65,6 +64,34 @@ is_pathmetadatatree, guarded_pathmetadatatree = create_type_guard(PathMetadataTr
 
 
 # The following are type guards that need a bit more of a custom implementation
+def is_str_key_dict(t: Any) -> TypeGuard[Dict[str, Any]]:
+    """Type guard for a dictionary with string keys.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        TypeGuard[Dict[str, T]]: True if the object is a dictionary with string keys,
+            False otherwise
+    """
+    return isinstance(t, dict) and all(isinstance(k, str) for k in t)
+
+
+def guarded_str_key_dict(t: Any) -> Dict[str, Any]:
+    """A function for type guarding a dictionary with string keys.
+
+    Args:
+        t (Any): the object to check
+
+    Returns:
+        Dict[str, T]: the object if it is a dictionary with string keys
+    """
+    if not is_str_key_dict(t):
+        msg = "Expected a dictionary with string keys"
+        raise TypeError(msg)
+    return t
+
+
 def is_float_pair_tuple(t: Any) -> TypeGuard[Tuple[float, float]]:
     """Type guard for a tuple of two floats.
 

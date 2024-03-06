@@ -30,6 +30,8 @@ jupyterlab-dash = "*"
 openpyxl = "*"
 odfpy = "*"
 fsspec = "*"
+pyarrow = "^15.0.0"
+selenium = "^4.18.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -109,7 +111,10 @@ select = [
 #       is unenforceable in such a data-heavy library.
 # - PLR0914: same as above.
 # - PLR0917: same as above.
-ignore = ["PD002", "ANN002", "ANN003", "PLR0913", "PLR0914", "PLR0917"]
+# - TCH001: the `TYPE_CHECKING` blocks either don't work or i'm too stupid to get them to work.
+# - TCH002: same as above.
+# - TCH003: same as above.
+ignore = ["PD002", "ANN002", "ANN003", "PLR0913", "PLR0914", "PLR0917", "TCH001", "TCH002", "TCH003"]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [
     "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE",

@@ -4,18 +4,17 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from dask.dataframe import DataFrame
 import datashader as ds
+from datashader.reductions import Reduction
 import holoviews as hv
 import holoviews.operation.datashader as hd
 
-from . import hooks3d as hooks
-from .utils.type_guards import guarded_callable, guarded_str_key_dict
+from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
-if TYPE_CHECKING:
-    from dask.dataframe import DataFrame
-    from datashader.reductions import Reduction
+from . import hooks3d as hooks
 
 # This module might be mostly copy/pasted from the 2d version, was busy implementing the 3d version
 # when i had to stop to focus on other things.
