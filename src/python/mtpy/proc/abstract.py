@@ -3,8 +3,7 @@ from abc import ABC
 from .protocol import LoaderProtocol
 
 
-class AbstractProcessor(ABC):
-    def __init__(self: "DataStatistics", loader: LoaderProtocol) -> None:
-        """Initialises a DataStatistics object."""
+class AbstractProcessor(ABC): # noqa: B024 <- This is a deliberate choice, not a mistake
+    def __init__(self: "AbstractProcessor", loader: LoaderProtocol) -> None:
+        """Initialises a AbstractProcessor object."""
         self.loader = loader
-

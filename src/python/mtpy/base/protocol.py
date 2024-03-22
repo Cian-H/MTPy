@@ -28,7 +28,7 @@ class Base:
             **kwargs (Dict[str, Any]): Additional keyword arguments (unused).
         """
         self.quiet = quiet
-        tqdm = progressbar
+        self.progressbar = progressbar
         # We need to create a dummy dataframe to avoid errors when calling methods
         self.data: dd.DataFrame = dd.from_pandas(pd.DataFrame(), npartitions=1)
         # embed a Julia interpreter at base for interoperability

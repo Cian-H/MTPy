@@ -13,9 +13,6 @@ import pandas as pd
 
 from .abstract import AbstractProcessor
 
-from io import TextIOWrapper
-from fsspec.spec import AbstractBufferedFile
-
 T = TypeVar("T")
 
 

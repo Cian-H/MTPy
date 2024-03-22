@@ -3,11 +3,10 @@ from typing import Iterable, Optional, Protocol, Tuple, Union
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
 
-from ..loaders.protocol import LoaderProtocol
+from mtpy.loaders.protocol import LoaderProtocol
 
 
 class PlotterProtocol(Protocol):
-
     loader: LoaderProtocol
 
     def plot(
@@ -51,7 +50,6 @@ class PlotterProtocol(Protocol):
             Chart: a holoviz plot
         """
         ...
-
 
     def generate_view_id(
         self: "PlotterProtocol",

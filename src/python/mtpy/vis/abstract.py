@@ -5,13 +5,11 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Optional, Tuple, Union
 
-from holoviews.element.chart import Chart
-import panel as pn
 from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
-from ..loaders.protocol import LoaderProtocol
+from mtpy.loaders.protocol import LoaderProtocol
 
 # import dash
 # from dash import html
@@ -42,7 +40,6 @@ class AbstractPlotter(ABC):
         #     self.dashboard_components = []
         #     self.dash_args = dash_args
         #     self.dash_kargs = dash_kwargs
-
 
     @abstractmethod
     def plot(

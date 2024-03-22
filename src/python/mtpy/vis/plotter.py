@@ -8,8 +8,9 @@ from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
-from ..loaders.dummy import DummyLoader
-from ..loaders.protocol import LoaderProtocol
+from mtpy.loaders.dummy import DummyLoader
+from mtpy.loaders.protocol import LoaderProtocol
+
 from .abstract import AbstractPlotter
 from .protocol import PlotterProtocol
 from .vis2d.plotter import Plotter as Plotter2D
@@ -88,31 +89,29 @@ class CombinedPlotter(AbstractPlotter):
                 zrange,
                 groupby,
                 aggregator,
-                **kwargs
+                **kwargs,
             )
-        else:
-            for plotter in self.plotters.values():
-                try:
-                    plot = plotter.plot(
-                        plot_kind,
-                        filename,
-                        add_to_dashboard,
-                        *args,
-                        samples,
-                        xrange,
-                        yrange,
-                        zrange,
-                        groupby,
-                        aggregator,
-                        **kwargs
-                    )
-                    return plot
-                except ValueError:
-                    continue
-        raise ValueError("Plot kind is not valid in any subplotters")
+        for plotter in self.plotters.values():
+            try:
+                return plotter.plot(
+                    plot_kind,
+                    filename,
+                    add_to_dashboard,
+                    *args,
+                    samples,
+                    xrange,
+                    yrange,
+                    zrange,
+                    groupby,
+                    aggregator,
+                    **kwargs,
+                )
+            except ValueError:
+                continue
+        msg = "Plot kind is not valid in any subplotters"
+        raise ValueError(msg)
 
-
-    def __getattr__(self, attr: str) -> Any:
+    def __getattr__(self: "CombinedPlotter", attr: str) -> Any: # noqa: ANN401
         for obj in self.plotters.values():
             if hasattr(obj, attr):
                 return getattr(obj, attr)
@@ -120,12 +119,10 @@ class CombinedPlotter(AbstractPlotter):
 
 
 class Plotter(CombinedPlotter):
-
-    def __init__(self, loader: LoaderProtocol) -> None:
-       super().__init__(
+    def __init__(self: "Plotter", loader: LoaderProtocol) -> None:
+        super().__init__(
             {
                 "2d": Plotter2D(loader),
                 "3d": Plotter3D(loader),
             }
         )
-

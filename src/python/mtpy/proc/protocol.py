@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from ..loaders.protocol import LoaderProtocol
+from mtpy.loaders.protocol import LoaderProtocol
 
 
 class ProcessorProtocol(Protocol):

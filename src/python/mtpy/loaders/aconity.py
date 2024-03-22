@@ -31,7 +31,9 @@ else:
 class AconityLoader(AbstractLoader):
     """A class for loading and preprocessing data."""
 
-    def construct_cached_ddf(self: "AconityLoader", data_path: str, chunk_size: int = 3276800) -> None:
+    def construct_cached_ddf(
+        self: "AconityLoader", data_path: str, chunk_size: int = 3276800
+    ) -> None:
         """Constructs a cached dask dataframe from the data at the specified path.
 
         Args:

@@ -14,7 +14,7 @@ import holoviews.operation.datashader as hd
 
 from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
-from . import hooks as hooks
+from . import hooks
 
 
 def plot_dispatch(

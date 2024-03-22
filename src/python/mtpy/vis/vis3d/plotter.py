@@ -13,8 +13,8 @@ import holoviews as hv
 from holoviews.element.chart import Chart
 
 from mtpy.utils.apply_defaults import apply_defaults
+from mtpy.vis.abstract import AbstractPlotter
 
-from ..abstract import AbstractPlotter
 from .dispatchers import plot_dispatch
 
 hv.extension("plotly")

@@ -17,8 +17,8 @@ from holoviews.element.chart import Chart
 
 from mtpy.utils.apply_defaults import apply_defaults
 from mtpy.utils.type_guards import is_float_pair_tuple
+from mtpy.vis.abstract import AbstractPlotter
 
-from ..abstract import AbstractPlotter
 from .dispatchers import plot_dispatch
 
 warnings.filterwarnings("ignore")

@@ -13,7 +13,7 @@ from pathlib import Path
 import pickle
 import tarfile
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 # TEMPORARY FIX FOR WARNINGS
 import dask
@@ -162,7 +162,9 @@ class AbstractLoader(ABC):
         )  # aim to use half ram per worker
 
     @abstractmethod
-    def construct_cached_ddf(self: "AbstractLoader", data_path: str, chunk_size: int = 3276800) -> None:
+    def construct_cached_ddf(
+        self: "AbstractLoader", data_path: str, chunk_size: int = 3276800
+    ) -> None:
         """Constructs a cached dask dataframe from the data at the specified path.
 
         Args:
@@ -286,7 +288,9 @@ class AbstractLoader(ABC):
             print("working == raw, no changes have been applied")
 
     def tree_metadata(
-        self: "AbstractLoader", path: Optional[str] = None, meta_dict: Optional[PathMetadataTree] = None
+        self: "AbstractLoader",
+        path: Optional[str] = None,
+        meta_dict: Optional[PathMetadataTree] = None,
     ) -> PathMetadataTree:
         """Generates a tree of metadata for the specified path in the cache.
 
