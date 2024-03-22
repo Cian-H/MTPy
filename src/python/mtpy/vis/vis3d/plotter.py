@@ -14,30 +14,21 @@ from holoviews.element.chart import Chart
 
 from mtpy.utils.apply_defaults import apply_defaults
 
-from .dispatchers3d import plot_dispatch
-from .plotter_base import PlotterBase
+from ..abstract import AbstractPlotter
+from .dispatchers import plot_dispatch
 
 hv.extension("plotly")
 
-config_path = "config/plotter3d.json"
+config_path = "plotter.json"
 with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("r") as f:
     config = json.load(f)
 
 
-class Plotter3D(PlotterBase):
+class Plotter(AbstractPlotter):
     """a 3d plotter class."""
 
-    def __init__(self: "Plotter3D", **kwargs) -> None:
-        """Initialize the Plotter3D class.
-
-        Args:
-            self (Plotter3D): the Plotter3D object
-            **kwargs: keyword arguments to be passed to the parent class initialiser
-        """
-        super().__init__(**kwargs)
-
-    def plot3d(
-        self: "Plotter3D",
+    def plot(
+        self: "Plotter",
         kind: str,
         filename: Optional[str] = None,
         *args,
@@ -76,7 +67,7 @@ class Plotter3D(PlotterBase):
         Returns:
             Chart: a holoviz plot
         """
-        chunk = self.data
+        chunk = self.loader.data
 
         # Filter to relevant samples
         if "sample" in chunk:
@@ -112,9 +103,9 @@ class Plotter3D(PlotterBase):
 
         # If filename is given, save to that file
         if filename is not None:
-            self._qprint(f"Saving to {filename}...")
+            print(f"Saving to {filename}...")
             hv.save(plot, filename)
-            self._qprint(f"{filename} saved!")
+            print(f"{filename} saved!")
 
         # The code below is currently part of a planned feature to add plots to a dashboard
         # # If adding to dashboard, add this plot to the dashboard
@@ -124,10 +115,10 @@ class Plotter3D(PlotterBase):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter3d(self: "Plotter3D", *args, **kwargs) -> Chart:
+    def scatter3d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 3d scatter plot.
 
         Returns:
             Chart: a holoviz plot
         """
-        return self.plot3d(*args, **apply_defaults(kwargs, config["scatter3d"]))
+        return self.plot(*args, **apply_defaults(kwargs, config["scatter3d"]))

@@ -2,35 +2,38 @@
 
 """Data visualisation components of the MTPy module."""
 
-from __future__ import annotations
-
+from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Optional, Tuple, Union
 
 from holoviews.element.chart import Chart
 import panel as pn
+from datashader.reductions import Reduction
+import holoviews as hv
+from holoviews.element.chart import Chart
+
+from ..loaders.protocol import LoaderProtocol
 
 # import dash
 # from dash import html
 # from holoviews.plotting.plotly.dash import to_dash
-from mtpy.common.base import Base
 
-pn.extension()
+hv.extension("plotly")
 
 
-class PlotterBase(Base):
+class AbstractPlotter(ABC):
     """The base class for all plotter classes."""
 
     def __init__(
-        self: "PlotterBase",
+        self: "AbstractPlotter",
+        loader: LoaderProtocol,
         #  dashboard: bool | dash.dash.Dash = False,
         #  dash_args: list = [],
         #  dash_kwargs: dict = {},
-        **kwargs,
     ) -> None:
-        """Initialize the PlotterBase class."""
-        super().__init__(**kwargs)
+        """Initialize the AbstractPlotter."""
         self.views: Dict[str, Chart] = {}
         self.view_tag = self.__class__.__name__
+        self.loader = loader
         # if dashboard:
         #     if isinstance(dashboard, dash.dash.Dash):
         #         self.dashboard = dashboard
@@ -40,8 +43,52 @@ class PlotterBase(Base):
         #     self.dash_args = dash_args
         #     self.dash_kargs = dash_kwargs
 
+
+    @abstractmethod
+    def plot(
+        self: "AbstractPlotter",
+        kind: str,
+        filename: Optional[str] = None,
+        *args,
+        add_to_dashboard: bool = False,
+        samples: Optional[Union[int, Iterable[int]]] = None,
+        xrange: Tuple[Optional[float], Optional[float]] | None = None,
+        yrange: Tuple[Optional[float], Optional[float]] | None = None,
+        zrange: Tuple[Optional[float], Optional[float]] | None = None,
+        groupby: Optional[Union[str, Iterable[str]]] = None,
+        aggregator: Optional[Reduction] = None,
+        **kwargs,
+    ) -> Chart:
+        """Creates a plot.
+
+        Args:
+            kind (str): the kind of plot to produce
+            filename (Optional[str], optional): file path to save plot to, if desired.
+                Defaults to None.
+            *args: additional arguments to be passed to the plotting function for the given kind
+            add_to_dashboard (bool, optional): the dashboard to add the plot to, if
+                desired Defaults to False.
+            samples (Optional[Union[int, Iterable[int]]], optional): the samples to include on the
+                plot. Defaults to None.
+            xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                x values to plot. Defaults to None.
+            yrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                y values to plot. Defaults to None.
+            zrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
+                z values to plot. Defaults to None.
+            groupby (Optional[Union[str, Iterable[str]]], optional): the groupby to apply to the
+                dataframe before plotting. Defaults to None.
+            aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
+                Defaults to None.
+            **kwargs: additional keyword arguments to be passed to the plotting function for the
+
+        Returns:
+            Chart: a holoviz plot
+        """
+        ...
+
     def generate_view_id(
-        self: "PlotterBase",
+        self: "AbstractPlotter",
         kind: str,
         samples: Optional[Union[int, Iterable[int]]] = None,
         kwargs: Optional[dict] = None,
@@ -57,7 +104,7 @@ class PlotterBase(Base):
             kind (str): the kind of plot to produce
             samples (Optional[Union[int, Iterable[int]]], optional): The samples in the view.
                 Defaults to None.
-            kwargs (Optional[dict], optional): The kwargs for hte plotting function.
+            kwargs (Optional[dict], optional): The kwargs for the plotting function.
                 Defaults to None.
             xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): The range
                 of x values to be plotted. Defaults to None.
@@ -72,7 +119,7 @@ class PlotterBase(Base):
             str: The view ID.
         """
         if kwargs is None:
-            kwargs = {}
+            kwargs = {"x": "x", "y": "y", "z": "z"}
 
         view_id = f"{self.view_tag}_{kind}"
 

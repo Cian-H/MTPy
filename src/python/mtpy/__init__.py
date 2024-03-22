@@ -19,4 +19,4 @@ __license__ = "MIT"
 __status__ = "Prototype"
 __modpath__ = __file__[: __file__.rfind("/")]
 
-from . import meltpool_tomography  # noqa
+from .meltpool_tomography import MeltpoolTomography  # noqa

@@ -1,66 +1,3 @@
-# MTPy
-
-## Overview
-
-A python based tool for Meltpool Tomography. Currently very much a work in progress. In the process of being refactored, reorganized, and redesigned a little to turn it from a draft tool into a more polished and useful library ready to be rolled out to the broader community.
-
-## Progress Notes
-
-- Reorganized into more sane file tree
-- Converted `Base` class to `BaseProtocol` protocol
-- Implemented `vis` protocol and ABC
-- Implemented rough `loaders` protocol and ABC
-- Problem w/ libstdc++ due to using nixos? preventinf import of dask.dataframe
-
-
-## Todo
-
-- [x] reorganize project folder structure (proper /src directory, etc)
-- [x] implement mypy type annotations to enforce types and prevent errors
-- [x] add missing docstrings, conforming to a standard (currently using google convention)
-- [x] add automated UML generation
-- [ ] add tests using pytest and hypothesis
-- [x] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)
-- [ ] ~~add proper debug logging~~ <- This need is probably better addressed by [`snoop`](https://github.com/alexmojaki/snoop)
-- [ ] Refactor and implement patterns where appropriate
-- [ ] use `__init__.py` to simplify API
-- [ ] clean up namespaces with config files?
-- [x] add automated documentation via mkdocs (and remove sphinx docs)
-- [ ] implement a CLI for basic functions
-- [ ] rewrite experimental GUI using flet
-- [ ] implement Dask GPU support
-- [ ] Add a dashboard using dash
-- [ ] fix 3d tomography visualizations (see in-progress project)
-- [ ] clean up project in general
-    - [ ] remove unused files
-    - [ ] remove old code
-    - [ ] Replace old constructs (e.g: `typing.Union`) with more modern versions
-    - [ ] Update dependencies
-
-## Subprojects
-
-### Loosen class couplings
-
-- [x] Properly plan new UML
-- [ ] Create abstract classes/interfaces
-- [ ] Decouple main classes
-- [ ] Implement logger according to a protocol
-- [ ] Implement progress bars according to a protocol 
-- [ ] Create dummy modules for each class
-
-### Create proper testing regime
-
-- [ ] Create testing modules conforming to protocols
-    - Might make sense for testing modules to be wrappers around hypothesis generators?
-- Implement tests using:
-    - [ ] Traditional scripted testing (e.g: pytest)
-    - [ ] Property based testing (hypothesis)
-
-Note: This project is an absolute mess right now, i need to remember to make sure i branch each subsection of this work in git to manage it properly.
-
-## Project UML
-
-```mermaid
 classDiagram
   class Base {
     data
@@ -134,4 +71,3 @@ classDiagram
   MeltpoolTomography --|> DataProcessor
   MeltpoolTomography --|> DataPlotter
 
-```

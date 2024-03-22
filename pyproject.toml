@@ -14,7 +14,11 @@ python = ">=3.9,<3.12" # "3.9.*"
 numpy = "*"
 matplotlib = "*"
 plotly = "*"
-dask = { extras = ["distributed", "graphviz"], version = "*" }
+dask = { extras = [
+    "dataframe",
+    "distributed",
+    "graphviz",
+], version = "^2024.3.1" }
 tqdm = "*"
 psutil = "*"
 read_layers = { file = "wheels/read_layers-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl" }
@@ -90,7 +94,7 @@ exclude = '''
 line-length = 100
 # Assume Python 3.11
 target-version = "py311"
-exclude = ["docs/",]
+exclude = ["docs/"]
 
 [tool.ruff.lint]
 # Configure ruff to be *heavily* opinionated. We want to enforce a consistent style across all code.
@@ -99,9 +103,35 @@ exclude = ["docs/",]
 # `PTH`, `RET`, `SIM`, `TCH`, and `TID`), perflint (`PERF`), refurb (`FURB`), numpy rules (`NPY`), pandas
 # rules (`PD`), pylint (`PL`), ruff rules (`RUF`).
 select = [
-    "D", "E", "W", "F", "C90", "I", "N",
-    "A", "ANN", "B", "C4", "EM", "FBT", "ICN", "INT", "ISC", "PT", "PTH", "RET", "SIM", "TCH", "TID",
-    "PERF", "FURB", "NPY", "PD", "PL", "RUF"]
+    "D",
+    "E",
+    "W",
+    "F",
+    "C90",
+    "I",
+    "N",
+    "A",
+    "ANN",
+    "B",
+    "C4",
+    "EM",
+    "FBT",
+    "ICN",
+    "INT",
+    "ISC",
+    "PT",
+    "PTH",
+    "RET",
+    "SIM",
+    "TCH",
+    "TID",
+    "PERF",
+    "FURB",
+    "NPY",
+    "PD",
+    "PL",
+    "RUF",
+]
 # Reasons for disabling certain rules:
 # - PD002: despite its problems we need to use inplace operations for performance reasons.
 # - ANN002: as much as i'd like to enforce this using `TypedDict`s and a `__kwargs__`
@@ -114,19 +144,88 @@ select = [
 # - TCH001: the `TYPE_CHECKING` blocks either don't work or i'm too stupid to get them to work.
 # - TCH002: same as above.
 # - TCH003: same as above.
-ignore = ["PD002", "ANN002", "ANN003", "PLR0913", "PLR0914", "PLR0917", "TCH001", "TCH002", "TCH003"]
+ignore = [
+    "PD002",
+    "ANN002",
+    "ANN003",
+    "PLR0913",
+    # "PLR0914",
+    # "PLR0917",
+    "TCH001",
+    "TCH002",
+    "TCH003",
+]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [
-    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE",
-    "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH",
-    "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY",
-    "UP", "YTT"
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "N",
+    "Q",
+    "S",
+    "T",
+    "W",
+    "ANN",
+    "ARG",
+    "BLE",
+    "COM",
+    "DJ",
+    "DTZ",
+    "EM",
+    "ERA",
+    "EXE",
+    "FBT",
+    "ICN",
+    "INP",
+    "ISC",
+    "NPY",
+    "PD",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "PYI",
+    "RET",
+    "RSE",
+    "RUF",
+    "SIM",
+    "SLF",
+    "TCH",
+    "TID",
+    "TRY",
+    "UP",
+    "YTT",
 ]
 unfixable = []
 exclude = [
-    ".bzr", ".direnv", ".eggs", ".git", ".hg", ".mypy_cache", ".nox", ".pants.d", ".pytype",
-    ".ruff_cache", ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "build",
-    "dist", "node_modules", "venv", ".vscode", "docs",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    ".vscode",
+    "docs",
 ]
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
@@ -154,7 +253,7 @@ mypy-init-return = true
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
-exclude = ["docs/",]
+exclude = ["docs/"]
 
 [[tool.mypy.overrides]]
 module = ["flet.*", "flet_core.*", "fsspec.*"]

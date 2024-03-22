@@ -4,11 +4,11 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 import asyncio
 from functools import partial
 from inspect import iscoroutinefunction
 from io import BytesIO
-from itertools import repeat
 from pathlib import Path
 import pickle
 import tarfile
@@ -16,19 +16,12 @@ from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 # TEMPORARY FIX FOR WARNINGS
-import warnings
-
 import dask
-from dask import array as da
 from dask.distributed import Client, LocalCluster, as_completed
 from dask.distributed.deploy import Cluster
 from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
-import psutil
-from read_layers import read_selected_layers
-
-from mtpy.common.base import Base
 from mtpy.utils.large_hash import large_hash
 from mtpy.utils.metadata_tagging import add_metadata, read_metadata
 from mtpy.utils.tar_handling import entry_size, parse_header, uncompressed_tarfile_size, unpack_file
@@ -40,9 +33,8 @@ from mtpy.utils.type_guards import (
     guarded_pathmetadatatree,
 )
 from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
-
-warnings.filterwarnings("ignore")
-warnings.filterwarnings("ignore", module="bokeh")
+import psutil
+from tqdm.auto import tqdm
 
 # Conditional imports depending on whether a GPU is present
 # Lots of type: ignore comments here because mypy is not happy with these conditional imports
@@ -53,7 +45,7 @@ else:
     from dask import dataframe as dd
 
 
-class DataLoader(Base):
+class AbstractLoader(ABC):
     """A class for loading and preprocessing data."""
 
     __slots__ = [
@@ -70,13 +62,12 @@ class DataLoader(Base):
     ]
 
     def __init__(
-        self: "DataLoader",
+        self: "AbstractLoader",
         client: Optional[Client] = None,
         cluster: Optional[Cluster] = None,
         fs: Optional[AbstractFileSystem] = None,
         data_cache: Optional[Union[Path, str]] = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
-        **kwargs,
     ) -> None:
         """Initialisation of the data loader class.
 
@@ -93,9 +84,6 @@ class DataLoader(Base):
                 cluster. Defaults to {}.
             kwargs: Additional keyword arguments to be passed to the parent class (`Base`).
         """
-        super().__init__(
-            **kwargs,
-        )
         if fs is None:
             fs = LocalFileSystem()
         if cluster_config is None:
@@ -132,7 +120,7 @@ class DataLoader(Base):
         # Misc configuration attributes
         self._file_suffix = "mtp"
 
-    def __del__(self: "DataLoader") -> None:
+    def __del__(self: "AbstractLoader") -> None:
         """Closes the dask client and cluster, then deletes the cache directory.
 
         Args:
@@ -152,7 +140,7 @@ class DataLoader(Base):
         self.fs.rm(self._data_cache, recursive=True)
         # super().__del__(**kwargs) # Not needed currently, but will be if __del__ added to parent
 
-    def get_memory_limit(self: "DataLoader") -> int:
+    def get_memory_limit(self: "AbstractLoader") -> int:
         """Get the memory limit for the current cluster.
 
         Args:
@@ -173,7 +161,8 @@ class DataLoader(Base):
             * nworkers
         )  # aim to use half ram per worker
 
-    def construct_cached_ddf(self: "DataLoader", data_path: str, chunk_size: int = 3276800) -> None:
+    @abstractmethod
+    def construct_cached_ddf(self: "AbstractLoader", data_path: str, chunk_size: int = 3276800) -> None:
         """Constructs a cached dask dataframe from the data at the specified path.
 
         Args:
@@ -185,120 +174,14 @@ class DataLoader(Base):
         Raises:
             TypeError: If the glob pattern is not a string.
         """
-        # Calculate read batches
-        batches: List[List[str]] = [[]]
-        acc = 0
-        data_fs = DirFileSystem(path=data_path, fs=self.fs)
-        # Prepare batches of files wtih total size less than memory_limit to read at once
-        pcd_files = data_fs.glob("*.pcd", detail=False)
-        for p in sorted(pcd_files, key=lambda x: float(x.split("/")[-1].split(".")[0])):
-            file_size = data_fs.size(p.strip("/"))
-            try:
-                mem_limit = (
-                    getattr(
-                        self.client.cluster,
-                        "_memory_per_worker",
-                        lambda: psutil.virtual_memory().available,
-                    )()
-                    // 4
-                )
-            except AttributeError:
-                mem_limit = self.get_memory_limit()
-            assert file_size < (mem_limit), "File size too large for available RAM!"
-            acc += file_size
-            if acc > mem_limit:
-                batches.append([])
-                acc = file_size
-            batches[-1].append(p)
-
-        # Clear the cache so we can create a new one with the layers to be read
-        self.fs.rm(self._data_cache, recursive=True)
-        self.fs.mkdirs(f"{self._data_cache}arr", exist_ok=True)
-
-        # Then read files (offloaded to local rust library "read_layers")
-        if self.fs.protocol == "file":
-            local_fs = self.fs
-            read_arr_cache = f"{self._data_cache}tmp_arr"
-        else:
-            local_fs = LocalFileSystem()
-            read_arr_cache = "tmp_arr"
-        local_fs.mkdirs(read_arr_cache, exist_ok=True)
-        arr_cache_fs = DirFileSystem(path=read_arr_cache, fs=local_fs)
-        for i, file_list in enumerate(self.progressbar(batches, position=2)):
-            # Read each batch in rust to dask dataframe, then add df to compressed parquet table
-            npy_stack_subdir = str(i)
-            arr_cache_fs.mkdirs(npy_stack_subdir, exist_ok=True)
-
-            local_file_list = [
-                f"{read_arr_cache}{x}" for x in (x if x[1] == "/" else f"/{x}" for x in file_list)
-            ]
-            data_fs.get(
-                file_list, local_file_list
-            )  # maybe making this async would speed up process?
-            data = read_selected_layers([Path(f) for f in local_file_list])
-            darr = da.from_array(
-                data,
-                chunks=cast(  # Necessary because the type annotation on this arg is incorrect
-                    str,
-                    (
-                        (
-                            *tuple(repeat(chunk_size, data.shape[0] // chunk_size)),
-                            data.shape[0] % chunk_size,
-                        ),
-                        *((x,) for x in data.shape[1:]),
-                    ),
-                ),
-            )
-            da.to_npy_stack(
-                f"{read_arr_cache}/{npy_stack_subdir}",
-                darr,
-                # storage_options=self.fs.storage_options
-            )
-            arr_cache_fs.rm(arr_cache_fs.glob("*.pcd"))
-
-        darrays = [da.from_npy_stack(npy_stack) for npy_stack in local_fs.ls(read_arr_cache)]
-
-        data = da.concatenate(darrays)
-        data = data.rechunk(balance=True)  # type: ignore # mypy is just wrong here.
-
-        self.fs.mkdirs(f"{self._data_cache}raw", exist_ok=True)
-
-        ddf = dd.from_array(
-            data,
-            columns=["x", "y", "z", "t", "rgb"],
-        ).drop("rgb", axis=1)  # The 'RGB' column is superfluous, as far as i can tell.
-        storage_options = getattr(self.fs, "storage_options", {})
-        target_options = storage_options.get("target_options", storage_options)
-        ddf.to_parquet(
-            self.fs.unstrip_protocol(f"{self._data_cache}raw"),
-            storage_options=target_options,
-            compression="lz4",
-            append=True,
-            compute=True,
-            write_metadata_file=True,
-            ignore_divisions=True,
-        )
-
-        local_fs.rm(read_arr_cache, recursive=True)
-        self.fs.mkdirs(f"{self._data_cache}working", exist_ok=True)
-
-        # if keeping raw data, copy raw files before modifying
-        self.fs.cp(f"{self._data_cache}raw", f"{self._data_cache}working", recursive=True)
-
-        self.data = guarded_dask_dataframe(
-            dd.read_parquet(
-                self.fs.unstrip_protocol(f"{self._data_cache}working"),
-                storage_options=storage_options,
-                parquet_file_extension=".parquet",
-            )
-        )
+        ...
 
     def read_layers(
-        self: "DataLoader",
+        self: "AbstractLoader",
         data_path: str,
         calibration_curve: Optional[CalibrationFunction] = None,
-        temp_units: str = "mV",
-        chunk_size: int = 3276800,  # chunk size calculated to result in ~100MB chunks
+        temp_units: Optional[str] = "mV",
+        chunk_size: Optional[int] = 3276800,  # chunk size calculated to result in ~100MB chunks
     ) -> None:
         """Reads layers from target directory.
 
@@ -312,7 +195,7 @@ class DataLoader(Base):
         """
         if data_path[-1] != "/":
             data_path += "/"
-        self._qprint(f"\nSearching for files at {data_path}")
+        print(f"\nSearching for files at {data_path}")
         self.construct_cached_ddf(data_path, chunk_size)
 
         # If given a calibration curve, apply it
@@ -320,7 +203,7 @@ class DataLoader(Base):
             self.apply_calibration_curve(calibration_curve=calibration_curve)
         self.temp_units = temp_units
 
-    def commit(self: "DataLoader") -> None:
+    def commit(self: "AbstractLoader") -> None:
         """Commits working dataframe to cache."""
         # If data in working doesnt match current dataframe, create new file to replace working
         # if not (self.data == dd.read_parquet("cache/working",)).all().all().compute():
@@ -349,9 +232,9 @@ class DataLoader(Base):
         )
 
     def apply_calibration_curve(
-        self: "DataLoader",
+        self: "AbstractLoader",
         calibration_curve: Optional[CalibrationFunction] = None,
-        temp_column: str = "t",
+        temp_column: Optional[str] = "t",
         units: Optional[str] = None,
     ) -> None:
         """Applies a calibration curve to the current dataframe.
@@ -367,7 +250,7 @@ class DataLoader(Base):
         # if a calibration curve is given
         if calibration_curve is not None:
             # Set temp_column to calibrated values
-            self._qprint("Applying calibration curve")
+            print("Applying calibration curve")
             self.data[temp_column] = calibration_curve(
                 self.data["x"],
                 self.data["y"],
@@ -377,12 +260,12 @@ class DataLoader(Base):
             self.commit()
             if units is not None:
                 self.temp_units = units
-            self._qprint("Calibrated!")
+            print("Calibrated!")
         # otherwise, set to raw values from datafiles
         else:
-            self._qprint("No calibration curve given!")
+            print("No calibration curve given!")
 
-    def reload_raw(self: "DataLoader") -> None:
+    def reload_raw(self: "AbstractLoader") -> None:
         """Reloads the raw data from the cache, replacing the current dataframe."""
         working_path = f"{self._data_cache}working"
         raw_path = f"{self._data_cache}raw"
@@ -400,10 +283,10 @@ class DataLoader(Base):
                 )
             )
         elif unmodified:
-            self._qprint("working == raw, no changes have been applied")
+            print("working == raw, no changes have been applied")
 
     def tree_metadata(
-        self: "DataLoader", path: Optional[str] = None, meta_dict: Optional[PathMetadataTree] = None
+        self: "AbstractLoader", path: Optional[str] = None, meta_dict: Optional[PathMetadataTree] = None
     ) -> PathMetadataTree:
         """Generates a tree of metadata for the specified path in the cache.
 
@@ -437,7 +320,7 @@ class DataLoader(Base):
                 meta_dict = self.tree_metadata(f"{f_as_str}/", meta_dict)
         return meta_dict
 
-    def generate_metadata(self: "DataLoader", path: Optional[str] = None) -> PathMetadataTree:
+    def generate_metadata(self: "AbstractLoader", path: Optional[str] = None) -> PathMetadataTree:
         """Generates a metadata dictionary for the current cache.
 
         Args:
@@ -458,7 +341,7 @@ class DataLoader(Base):
     # return metadata for the cache.
     # Caches last metadata result based on checksum of entire cache folder
     @property
-    def cache_metadata(self: "DataLoader") -> PathMetadataTree:
+    def cache_metadata(self: "AbstractLoader") -> PathMetadataTree:
         """A property containing the entire metadata dict for the current cache.
 
         Returns:
@@ -480,14 +363,14 @@ class DataLoader(Base):
             )
         return self._cache_metadata[1]
 
-    def save(self: "DataLoader", filepath: Path | str = Path("data")) -> None:
+    def save(self: "AbstractLoader", filepath: Path | str = Path("data")) -> None:
         """Save current MTPy session to a file.
 
         Args:
             filepath (Path | str, optional): _description_.
                 Defaults to Path(f"data.{self._file_suffix}").
         """
-        self._qprint("Saving data...")
+        print("Saving data...")
         # First, commit any pending changes
         self.commit()
         # Process filename before saving
@@ -504,7 +387,7 @@ class DataLoader(Base):
             p = f"{filepath[:-4]}({i}){filepath[-4:]}"
             i += 1
         if filepath != p:
-            self._qprint(f"{filepath} already exists! Saving as {p}...")
+            print(f"{filepath} already exists! Saving as {p}...")
             filepath = p
         # Add pickled self.__dict__ (not including temporary attrs) to the data cache
         attrs = self.__dict__.copy()
@@ -516,7 +399,7 @@ class DataLoader(Base):
         metadata = self.cache_metadata
         # Finally, compress the cache and its contents
         with tarfile.open(filepath, mode="w:gz") as tarball:
-            for f in self.progressbar(self.fs.get_mapper(str(self._data_cache))):
+            for f in tqdm(self.fs.get_mapper(str(self._data_cache))):
                 with self.fs.open(f"{self._data_cache}{f}", "rb") as cache_file:
                     # Type checker is wrong below. The attribute `f` DEFINITELY exists here
                     fileobj = BytesIO(cache_file.f.read())
@@ -525,10 +408,10 @@ class DataLoader(Base):
                     tarball.addfile(tarinfo, fileobj=fileobj)
         # metadata will be used to accelerate unpacking
         add_metadata(self.fs, filepath, guarded_json_data(metadata))
-        self._qprint("Data saved!")
+        print("Data saved!")
 
     def _extract_cache(
-        self: "DataLoader",
+        self: "AbstractLoader",
         end: int,
         filepath: str,
         blocksize: int,
@@ -543,7 +426,7 @@ class DataLoader(Base):
             blocksize (int): The blocksize for streaming when unpacking the file.
             tree_metadata (PathMetadataTree): The metadata for the cache to be extracted.
         """
-        pbar = self.progressbar(total=end)
+        pbar = tqdm(total=end)
         seekpos = 0
         prev_null = False
         queue = []
@@ -597,7 +480,7 @@ class DataLoader(Base):
         for _, readsize in as_completed(futures, with_results=True):
             pbar.update(readsize)
 
-    def _unpack_savefile(self: "DataLoader", filepath: str, blocksize: int = 512) -> None:
+    def _unpack_savefile(self: "AbstractLoader", filepath: str, blocksize: int = 512) -> None:
         """Unpacks the specified savefile into the current cache.
 
         Unpacks the specified savefile into the current cache directory. Unmodified files are
@@ -618,7 +501,7 @@ class DataLoader(Base):
         except Exception as no_metadata:
             raise no_metadata
         if metadata_tag == self.cache_metadata:
-            self._qprint("Savefile matches current cache. Skipping load...")
+            print("Savefile matches current cache. Skipping load...")
             return
         metadata = guarded_json_dict(metadata_tag)
         end = guarded_int(metadata["archive_size"])
@@ -629,14 +512,14 @@ class DataLoader(Base):
                 self.fs.mkdirs(k_path, exist_ok=True)
         self._extract_cache(end, filepath, blocksize, tree_metadata)
 
-    def load(self: "DataLoader", filepath: Union[Path, str] = Path("data")) -> None:
+    def load(self: "AbstractLoader", filepath: Union[Path, str] = Path("data")) -> None:
         """Loads the saved MTPy session from the specified file.
 
         Args:
             filepath (Union[Path, str], optional): Path to the target file.
                 Defaults to Path(f"data.{self._file_suffix}").
         """
-        self._qprint("Loading data...")
+        print("Loading data...")
         # Process filename before saving
         if type(filepath) is Path:
             filepath = str(filepath)
@@ -660,4 +543,4 @@ class DataLoader(Base):
                 parquet_file_extension=".parquet",
             )
         )
-        self._qprint("Data loaded!")
+        print("Data loaded!")

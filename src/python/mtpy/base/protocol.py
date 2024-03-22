@@ -2,8 +2,6 @@
 
 """A base class on which all other classes in this package are built."""
 
-from __future__ import annotations
-
 from dask import dataframe as dd
 import pandas as pd
 from tqdm.auto import tqdm
@@ -30,7 +28,7 @@ class Base:
             **kwargs (Dict[str, Any]): Additional keyword arguments (unused).
         """
         self.quiet = quiet
-        self.progressbar = progressbar
+        tqdm = progressbar
         # We need to create a dummy dataframe to avoid errors when calling methods
         self.data: dd.DataFrame = dd.from_pandas(pd.DataFrame(), npartitions=1)
         # embed a Julia interpreter at base for interoperability

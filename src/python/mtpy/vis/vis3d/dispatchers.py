@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""A module for dispatching 2d plotting functions."""
+"""A module for dispatching 3d plotting functions."""
 
 from __future__ import annotations
 
@@ -14,13 +14,16 @@ import holoviews.operation.datashader as hd
 
 from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
-from . import hooks2d as hooks
+from . import hooks
+
+# This module might be mostly copy/pasted from the 2d version, was busy implementing the 3d version
+# when i had to stop to focus on other things.
 
 
 def plot_dispatch(
     kind: str, chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
 ) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
-    """A dispatcher for 2d plotting functions.
+    """A dispatcher for 3d plotting functions.
 
     Args:
         kind (str): the kind of plot
@@ -35,10 +38,12 @@ def plot_dispatch(
         Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
         for generating a holoviz plot
     """
+    # if no aggregator is given, default to aggregated mean of w
+    if aggregator is None:
+        aggregator = ds.reductions.mean(kwargs["w"])
+
     if kind == "scatter":
         return scatter(chunk, aggregator, **kwargs)
-    if kind == "distribution":
-        return distribution(chunk, aggregator, **kwargs)
 
     msg = f"Unknown 2d plot kind given: {kind}"
     raise ValueError(msg)
@@ -58,10 +63,6 @@ def scatter(
         Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
         for generating a holoviz plot
     """
-    # if no aggregator is given, default to aggregated mean of w
-    if aggregator is None:
-        aggregator = ds.reductions.mean(kwargs["w"])
-
     kdims = [kwargs["x"], kwargs["y"]]
     w_col = kwargs.get("w", None)
 
@@ -75,7 +76,7 @@ def scatter(
             {
                 "kdims": kdims,
                 "vdims": [w_col] + [x for x in chunk.columns if (x not in kdims) and (x != w_col)],
-                "label": f"2D Scatter {' vs '.join(([*kdims, w_col]))}",
+                "label": "2D Scatter",
             }
         ),
         guarded_str_key_dict({"aggregator": aggregator}),
@@ -107,10 +108,8 @@ def distribution(
         Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
         for generating a holoviz plot
     """
-    kdims = [kwargs["x"]]
-
     f_list = [guarded_callable(hv.Distribution)]
-    kwargs_list = [guarded_str_key_dict({"kdims": kdims, "label": f"Distribution {kdims[0]}"})]
+    kwargs_list = [guarded_str_key_dict({})]
     opts = guarded_str_key_dict({})
 
     return f_list, kwargs_list, opts

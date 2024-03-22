@@ -11,28 +11,20 @@ from typing import Any, Callable, Dict, Iterable, Tuple, Union, cast
 from dask import dataframe as dd
 import numpy as np
 import pandas as pd
+from tqdm.auto import tqdm
 
 from mtpy.utils.type_coercions import ensure_sized_iterable
 from mtpy.utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
 
-from .data_loader import DataLoader
+from .abstract import AbstractProcessor
 
 degrees_per_rad = 180 / pi
 
 
-class DataThresholder(DataLoader):
+class Thresholder(AbstractProcessor):
     """A class that handles thresholding of data for the data pipeline."""
 
-    def __init__(self: "DataThresholder", **kwargs) -> None:
-        """Initialises a DataThresholder object."""
-        super().__init__(**kwargs)
-        # Include and bind julia counterpart to this module
-        # self._jl_interpreter.include(f"{__file__[:__file__.rfind('.')]}.jl")
-        # self._julia = getattr(
-        #     self._jl_interpreter, __file__.split("/")[-1].split(".")[0]
-        # )
-
-    def rotate_xy(self: "DataThresholder", angle: float) -> None:
+    def rotate_xy(self: "Thresholder", angle: float) -> None:
         """Rotates the x and y coordinates of the current dataframe by the given angle.
 
         Args:
@@ -40,13 +32,13 @@ class DataThresholder(DataLoader):
         """
         sin_theta, cos_theta = sin(angle / degrees_per_rad), cos(angle / degrees_per_rad)
         # For this entire next section: dask's type hinting sucks. This is a bit of a mess
-        x = cast(dd.Series, self.data["x"])
-        y = cast(dd.Series, self.data["y"])
-        self.data["x"] = (x.mul(cos_theta)) + (y.mul(sin_theta))
-        self.data["y"] = (x.mul(-sin_theta)) + (y.mul(cos_theta))
+        x = cast(dd.Series, self.loader.data["x"])
+        y = cast(dd.Series, self.loader.data["y"])
+        self.loader.data["x"] = (x.mul(cos_theta)) + (y.mul(sin_theta))
+        self.loader.data["y"] = (x.mul(-sin_theta)) + (y.mul(cos_theta))
 
     def avgspeed_threshold(
-        self: "DataThresholder", threshold_percent: float = 1, avgof: int = 1
+        self: "Thresholder", threshold_percent: float = 1, avgof: int = 1
     ) -> None:
         """Thresholds layer data (x,y,w) based on average speed.
 
@@ -62,8 +54,8 @@ class DataThresholder(DataLoader):
         """
         threshold_percent /= 100.0  # convert threshold percent to decimal
         # calc displacements using pythagorean theorem
-        x_squared = self.data["x"] * self.data["x"]
-        y_squared = self.data["y"] * self.data["y"]
+        x_squared = self.loader.data["x"] * self.data["x"]
+        y_squared = self.loader.data["y"] * self.data["y"]
         sum_of_squares = x_squared + y_squared
         # Add displacement column to frame
         displacement = sum_of_squares.sqrt()
@@ -73,14 +65,14 @@ class DataThresholder(DataLoader):
         # get absolute average speed based on rolling avg displacement
         absavgdispslope = np.abs(np.diff(rollingavgdisp))
         threshold = threshold_percent * np.max(absavgdispslope)  # thresh val
-        self.data = self.data[avgof:]
-        self.data.add_column(name="filter", f_or_array=absavgdispslope < threshold)
-        self.data = self.data[self.data["filter"]]
-        self.data = self.data.extract()
-        self.data.drop("filter", inplace=True)
+        self.loader.data = self.data[avgof:]
+        self.loader.data.add_column(name="filter", f_or_array=absavgdispslope < threshold)
+        self.loader.data = self.data[self.data["filter"]]
+        self.loader.data = self.data.extract()
+        self.loader.data.drop("filter", inplace=True)
 
     def avg_threshold(
-        self: "DataThresholder",
+        self: "Thresholder",
         threshold_percent: float = 1,
         column: str = "w1",
         comparison_func: Callable[[float, float], bool] = op.gt,
@@ -98,12 +90,12 @@ class DataThresholder(DataLoader):
             which to threshold. Defaults to f(x, y): x > y.
         """
         threshold_percent /= 100.0  # convert threshold percent to decimal
-        threshold = threshold_percent * cast(dd.Series, self.data[column]).mean()
-        self.data = self.data[comparison_func(self.data[column], threshold)]
-        self.data = self.data.extract()
+        threshold = threshold_percent * cast(dd.Series, self.loader.data[column]).mean()
+        self.loader.data = self.data[comparison_func(self.data[column], threshold)]
+        self.loader.data = self.data.extract()
 
     def avg_greaterthan(
-        self: "DataThresholder",
+        self: "Thresholder",
         column: str = "w1",
         threshold_percent: float = 1,
     ) -> None:
@@ -118,7 +110,7 @@ class DataThresholder(DataLoader):
         )
 
     def avg_lessthan(
-        self: "DataThresholder",
+        self: "Thresholder",
         column: str = "w1",
         threshold_percent: float = 1,
     ) -> None:
@@ -133,7 +125,7 @@ class DataThresholder(DataLoader):
         )
 
     def threshold_all_layers(
-        self: "DataThresholder",
+        self: "Thresholder",
         thresh_functions: Union[
             Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]
         ],
@@ -170,10 +162,10 @@ class DataThresholder(DataLoader):
             msg = "thresh_functions and threshfunc_kwargs must be the same length"
             raise ValueError(msg)
 
-        self._qprint("\nThresholding data")
+        print("\nThresholding data")
 
         # Prep progress bar iterator (assigned to variable for code clarity)
-        progbar_iterator = self.progressbar(
+        progbar_iterator = tqdm(
             zip(thresh_functions, threshfunc_kwargs, strict=False),
             total=len(thresh_functions),
             position=1,
@@ -187,31 +179,31 @@ class DataThresholder(DataLoader):
 
     # def detect_samples_kmeans(self, n_samples):
     #     "Uses a clustering algorithm to detect samples automatically"
-    #     self._qprint("\nDetecting contiguous samples\n")
+    #     print("\nDetecting contiguous samples\n")
     #     # KMeans train to recognize clusters
     #     self.kmeans_model = KMeans(
     #         n_clusters=n_samples, features=["x", "y"], verbose=(not self.quiet)
     #     )
     #     # Loop repeats the kmeans training until desired num of samples found
     #     while True:
-    #         self.kmeans_model.fit(self.data)
+    #         self.kmeans_model.fit(self.loader.data)
     #         # Label samples
-    #         self._qprint("\nKmeans training complete!\nLabelling samples...")
-    #         data = self.kmeans_model.transform(self.data)
+    #         print("\nKmeans training complete!\nLabelling samples...")
+    #         data = self.kmeans_model.transform(self.loader.data)
     #         n_found = len(data["prediction_kmeans"].unique())
     #         if n_found < n_samples:
     #             print(f"\nRepeating Kmeans training (samples found: {n_found})\n")
     #         else:
-    #             self.data = data
+    #             self.loader.data = data
     #             break
 
     #     # Save centroids for positioning of labels
     #     self.sample_labels = np.asarray(self.kmeans_model.cluster_centers)
-    #     self.data.rename("prediction_kmeans", "sample")
-    #     self._qprint("\nSample detection complete!")
+    #     self.loader.data.rename("prediction_kmeans", "sample")
+    #     print("\nSample detection complete!")
 
     def mask_xyrectangles(
-        self: "DataThresholder", sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]
+        self: "Thresholder", sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]
     ) -> None:
         """Mask rectangles on the projected xy plane.
 
@@ -227,7 +219,7 @@ class DataThresholder(DataLoader):
         #         if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
         #             return sample
 
-        # self.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
+        # self.loader.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
         def map_func(df: pd.DataFrame) -> pd.Series:
             samples = np.full(len(df), -1, dtype=int)
             for k, ((x1, x2), (y1, y2)) in sample_map.items():
@@ -236,5 +228,5 @@ class DataThresholder(DataLoader):
                 samples[df["x"].between(x_min, x_max) & df["y"].between(y_min, y_max)] = k
             return pd.Series(samples, index=df.index, name="sample")
 
-        self.data["sample"] = self.data.map_partitions(map_func)
-        self.data = self.data.loc[self.data["sample"].ge(0)]
+        self.loader.data["sample"] = self.data.map_partitions(map_func)
+        self.loader.data = self.data.loc[self.data["sample"].ge(0)]

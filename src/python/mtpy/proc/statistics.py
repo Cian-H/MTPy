@@ -2,8 +2,6 @@
 
 """A module for handling data statistics for the data pipeline."""
 
-from __future__ import annotations
-
 from functools import singledispatchmethod
 from io import TextIOWrapper
 import math
@@ -13,20 +11,19 @@ import dask
 from fsspec.spec import AbstractBufferedFile
 import pandas as pd
 
-from .data_loader import DataLoader
+from .abstract import AbstractProcessor
+
+from io import TextIOWrapper
+from fsspec.spec import AbstractBufferedFile
 
 T = TypeVar("T")
 
 
-class DataStatistics(DataLoader):
+class Statistics(AbstractProcessor):
     """A class that handles data statistics for the data pipeline."""
 
-    def __init__(self: "DataStatistics", **kwargs) -> None:
-        """Initialises a DataStatistics object."""
-        super().__init__(**kwargs)
-
     def calculate_stats(
-        self: "DataStatistics",
+        self: "Statistics",
         groupby: Optional[Union[str, Iterable[str]]] = None,
         confidence_interval: float = 0.95,
     ) -> Dict[str, Any]:
@@ -41,7 +38,7 @@ class DataStatistics(DataLoader):
         Returns:
             Dict[str, Any]: A dict containing the calculated statistics.
         """
-        group = self.data.groupby(groupby)
+        group = self.loader.data.groupby(groupby)
         ops = [group.min(), group.max(), group.mean(), group.std()]
         results = dask.compute(*ops)
         stats = {
@@ -57,7 +54,7 @@ class DataStatistics(DataLoader):
         return stats
 
     def export_datasheet(
-        self: "DataStatistics",
+        self: "Statistics",
         filepath: str,
         *,
         overall: bool = True,
@@ -84,15 +81,15 @@ class DataStatistics(DataLoader):
         # Fill a dask pipeline for efficient, optimised stat calculation
         ops = []
         if overall:
-            ops += [self.data.min(), self.data.max(), self.data.mean(), self.data.std()]
+            ops += [self.loader.data.min(), self.data.max(), self.data.mean(), self.data.std()]
         if layers:
-            group = self.data.groupby("z")
+            group = self.loader.data.groupby("z")
             ops += [group.min(), group.max(), group.mean(), group.std()]
         if samples:
-            group = self.data.groupby("sample")
+            group = self.loader.data.groupby("sample")
             ops += [group.min(), group.max(), group.mean(), group.std()]
         if sample_layers:
-            group = self.data.groupby(["sample", "z"])
+            group = self.loader.data.groupby(["sample", "z"])
             ops += [group.min(), group.max(), group.mean(), group.std()]
 
         # Compute results
@@ -127,9 +124,9 @@ class DataStatistics(DataLoader):
 
         # Finally, export the datasheets based on the file extension given
         self.write_to_file(stats, filepath)
-        self._qprint(f"Datasheets generated at {filepath}!")
+        print(f"Datasheets generated at {filepath}!")
 
-    def write_to_file(self: "DataStatistics", stats: Dict[str, Any], filepath: str) -> None:
+    def write_to_file(self: "Statistics", stats: Dict[str, Any], filepath: str) -> None:
         """Writes a dictionary of statistics to a file.
 
         Args:
@@ -146,10 +143,10 @@ class DataStatistics(DataLoader):
                 self._write(w, combined_df, sheet_name=grouping)
 
     def _get_writer(
-        self: "DataStatistics", filepath: str
+        self: "Statistics", filepath: str
     ) -> Union[pd.ExcelWriter, TextIOWrapper, AbstractBufferedFile]:
         file_extension = filepath.split(".")[-1]
-        storage_options = getattr(self.fs, "storage_options", None)
+        storage_options = getattr(self.loader.fs, "storage_options", None)
         if file_extension in {"xls", "xlsx", "xlsm", "xlsb"}:
             return pd.ExcelWriter(filepath, engine="openpyxl", storage_options=storage_options)
         if filepath.split(".")[-1] in {"odf", "ods", "odt"}:
@@ -157,7 +154,7 @@ class DataStatistics(DataLoader):
         return self._csv_writer(filepath)
 
     def _csv_writer(
-        self: "DataStatistics", filepath: str, *args, **kwargs
+        self: "Statistics", filepath: str, *args, **kwargs
     ) -> Union[TextIOWrapper, AbstractBufferedFile]:
         """A csv writer method that handles writing to a remote filesystem.
 
@@ -166,7 +163,7 @@ class DataStatistics(DataLoader):
             *args: additional arguments to be passed to the writer.
             **kwargs: additional keyword arguments to be passed to the writer.
         """
-        return self.fs.open(filepath, "w+")
+        return self.loader.fs.open(filepath, "w+")
 
     @singledispatchmethod
     @staticmethod

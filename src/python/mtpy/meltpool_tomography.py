@@ -2,21 +2,60 @@
 # -*- coding: utf-8 -*-
 """A module for handling L-PBF meltpool tomography data."""
 
-from .dataproc.data_processor import DataProcessor
-from .datavis.data_plotter import DataPlotter
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
+
+from dask.distributed import Client
+from dask.distributed.deploy import Cluster
+from fsspec import AbstractFileSystem
+
+from .loaders.aconity import AconityLoader
+from .loaders.protocol import LoaderProtocol
+from .proc.processor import Processor
+from .vis.plotter import Plotter
 
 
-class MeltpoolTomography(DataProcessor, DataPlotter):
+class MeltpoolTomography:
     """a class for handling the data pipeline and visualisation of meltpool tomography data."""
 
-    def __init__(self: "MeltpoolTomography", **kwargs) -> None:
+    _loaders = {
+        "aconity": AconityLoader,
+    }
+
+    def __init__(
+            self: "MeltpoolTomography",
+            loader_type: Optional[str] = "aconity", # Currently the only one implemented
+            client: Optional[Client] = None,
+            cluster: Optional[Cluster] = None,
+            fs: Optional[AbstractFileSystem] = None,
+            data_cache: Optional[Union[Path, str]] = "cache",
+            cluster_config: Optional[Dict[str, Any]] = None,
+        ) -> None:
         """Initialises a MeltpoolTomography object.
 
         Args:
             self (MeltpoolTomography): The MeltpoolTomography object.
             **kwargs: keyword arguments to be passed to the parent class initialisers
         """
-        # Then call super and set attributes
-        super().__init__(**kwargs)
-        # Initialize bool for suppressing certain prints during callbacks
-        self._quiet_callback = False
+        if loader_type not in self._loaders:
+            raise ValueError(
+                f"No implementation for loader \"{loader}\" found."
+            )
+
+        self.loader: LoaderProtocol = self._loaders[loader_type](
+            client,
+            cluster,
+            fs,
+            data_cache,
+            cluster_config,
+        )
+
+        self.processor = Processor(self.loader)
+        self.plotter = Plotter(self.loader)
+
+
+    def __getattr__(self, attr: str) -> Any:
+        for obj in (self.loader, self.processor, self.plotter):
+            if hasattr(obj, attr):
+                return getattr(obj, attr)
+        return AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")

@@ -2,12 +2,11 @@
 
 """A module for adding and reading metadata tags to and from files."""
 
-from __future__ import annotations
-
 import json
 from typing import cast
 
 from fsspec.spec import AbstractFileSystem
+
 from mtpy.utils.type_guards import guarded_bytes
 from mtpy.utils.types import JSONData
 

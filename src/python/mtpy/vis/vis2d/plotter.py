@@ -18,8 +18,8 @@ from holoviews.element.chart import Chart
 from mtpy.utils.apply_defaults import apply_defaults
 from mtpy.utils.type_guards import is_float_pair_tuple
 
-from .dispatchers2d import plot_dispatch
-from .plotter_base import PlotterBase  # pn
+from ..abstract import AbstractPlotter
+from .dispatchers import plot_dispatch
 
 warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", module="bokeh")
@@ -44,22 +44,13 @@ warnings.filterwarnings("ignore", module="bokeh")
 
 hv.extension("plotly")
 
-config_path = "config/plotter2d.json"
+config_path = "plotter.json"
 with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("r") as f:
     config = json.load(f)
 
 
-class Plotter2D(PlotterBase):
+class Plotter(AbstractPlotter):
     """The 2D plotter class."""
-
-    def __init__(self: "Plotter2D", **kwargs) -> None:
-        """Initialize the Plotter2D class.
-
-        Args:
-            self (Plotter2D): the Plotter2D object
-            **kwargs: keyword arguments to be passed to the parent class initialiser
-        """
-        super().__init__(**kwargs)
 
     # # Similar to base: commented out because for now its unneeded and only causing headaches
     # def init_panel(self, *args, **kwargs):
@@ -88,8 +79,8 @@ class Plotter2D(PlotterBase):
     #         samples=self.sample_slider,
     #     )
 
-    def plot2d(
-        self: "Plotter2D",
+    def plot(
+        self: "Plotter",
         kind: str,
         filename: Optional[str] = None,
         *args,
@@ -128,7 +119,7 @@ class Plotter2D(PlotterBase):
         Returns:
             Chart: a holoviz plot
         """
-        chunk = self.data
+        chunk = self.loader.data
 
         # Filter to relevant samples
         if "sample" in chunk:
@@ -176,9 +167,9 @@ class Plotter2D(PlotterBase):
 
         # If filename is given, save to that file
         if filename is not None:
-            self._qprint(f"Saving to {filename}...")
+            print(f"Saving to {filename}...")
             hv.save(plot, filename)
-            self._qprint(f"{filename} saved!")
+            print(f"{filename} saved!")
 
         # # If adding to dashboard, add this plot to the dashboard
         # if add_to_dashboard and self.dashboard:
@@ -187,18 +178,18 @@ class Plotter2D(PlotterBase):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter2d(self: "Plotter2D", *args, **kwargs) -> Chart:
+    def scatter2d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 2d scatter plot.
 
         Returns:
             Chart: a holoviz plot
         """
-        return self.plot2d(*args, **apply_defaults(kwargs, config["scatter2d"]))
+        return self.plot(*args, **apply_defaults(kwargs, config["scatter2d"]))
 
-    def distribution2d(self: "Plotter2D", *args, **kwargs) -> Chart:
+    def distribution2d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 2d distribution plot.
 
         Returns:
             Chart: a holoviz plot
         """
-        return self.plot2d(*args, **apply_defaults(kwargs, config["distribution2d"]))
+        return self.plot(*args, **apply_defaults(kwargs, config["distribution2d"]))
