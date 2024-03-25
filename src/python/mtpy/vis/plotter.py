@@ -10,26 +10,31 @@ from holoviews.element.chart import Chart
 
 from mtpy.loaders.dummy import DummyLoader
 from mtpy.loaders.protocol import LoaderProtocol
-
-from .abstract import AbstractPlotter
-from .protocol import PlotterProtocol
-from .vis2d.plotter import Plotter as Plotter2D
-from .vis3d.plotter import Plotter as Plotter3D
+from mtpy.utils.type_guards import guarded_plotter_protocol
+from mtpy.vis.abstract import AbstractPlotter
+from mtpy.vis.protocol import PlotterProtocol
+from mtpy.vis.vis2d.plotter import Plotter as Plotter2D
+from mtpy.vis.vis3d.plotter import Plotter as Plotter3D
 
 hv.extension("plotly")
 
 
 class CombinedPlotter(AbstractPlotter):
-    """This class combines other plotters to create a plotter that combines the
-    functions of both.
+    """This class is a factory that combines multiple plotters in a single class.
+
+    Attributes:
+        plotters (Dict[str, PlotterProtocol]): A dict of mapping labels to subplotters.
+            The keys (labels) are labels that will be prepended when directing a call
+            at a specific plotter.
     """
 
     def __init__(self: "CombinedPlotter", plotters: Dict[str, PlotterProtocol]) -> None:
         """Initialises CombinedPlotter object.
 
         Args:
-            plotters (Dict[str, PlotterProtocol]): A dict of plotters to combine
-            where the keys are labels to prepend for each plotter.
+            plotters (Dict[str, PlotterProtocol]): A dict of mapping labels to subplotters.
+                The keys (labels) are labels that will be prepended when directing a call
+                at a specific plotter.
         """
         super().__init__(DummyLoader())
         self.plotters = plotters
@@ -48,9 +53,12 @@ class CombinedPlotter(AbstractPlotter):
         aggregator: Optional[Reduction] = None,
         **kwargs,
     ) -> Chart:
-        """Creates a plot. Will execute plot function for first subplotter fpr which
-        the kind is valid. Subplotters can be targetted using the `kind` string
-        syntax: \"{subplotter_label}-{kind}\".
+        """Creates a plot.
+
+        This method creates a plot using one of the subplotters. Will execute plot
+            function for first subplotter for which the kind is valid. If this
+            behaviour is undesirable subplotters can be targetted using the `kind`
+            string via the syntax: "{subplotter_label}-{kind}".
 
         Args:
             kind (str): the kind of plot to produce
@@ -75,6 +83,9 @@ class CombinedPlotter(AbstractPlotter):
 
         Returns:
             Chart: a holoviz plot
+
+        Raises:
+            ValueError: If combination of subplotter and kind cannot be resolved successfully
         """
         if "-" in kind:
             plotter_label, plot_kind = kind.split("-")
@@ -111,7 +122,24 @@ class CombinedPlotter(AbstractPlotter):
         msg = "Plot kind is not valid in any subplotters"
         raise ValueError(msg)
 
-    def __getattr__(self: "CombinedPlotter", attr: str) -> Any: # noqa: ANN401
+    def __getattr__(self: "CombinedPlotter", attr: str) -> Any:  # noqa: ANN401
+        """Fallback method that retrieves attributes from subplotters.
+
+        Retrieves attributes from subplotters if they are not present in the
+            CombinedPlotter instance. Resolves attributes in the order they
+            appear in the provided `self.plotters`.
+
+        Args:
+            self (CombinedPlotter): The CombinedPlotter instance
+            attr (str): The attribute to be fetched
+
+        Returns:
+            Any: Returns the object at the attribute provided if resolvable
+
+        Raises:
+            AttributeError: If attribute is not found and unable to be successfully
+                resolved
+        """
         for obj in self.plotters.values():
             if hasattr(obj, attr):
                 return getattr(obj, attr)
@@ -119,10 +147,18 @@ class CombinedPlotter(AbstractPlotter):
 
 
 class Plotter(CombinedPlotter):
+    """A CombinedPlotter combining the `Plotter2D` and `Plotter3D` classes."""
+
     def __init__(self: "Plotter", loader: LoaderProtocol) -> None:
-        super().__init__(
-            {
-                "2d": Plotter2D(loader),
-                "3d": Plotter3D(loader),
-            }
-        )
+        """Initialises a `Plotter` object.
+
+        Args:
+            self (Plotter): The Plotter class instance
+            loader (LoaderProtocol): The loader providing the data to the plotter
+        """
+        plotters: Dict[str, PlotterProtocol] = {
+            "2d": guarded_plotter_protocol(Plotter2D(loader)),
+            "3d": guarded_plotter_protocol(Plotter3D(loader)),
+        }
+
+        super().__init__(plotters)

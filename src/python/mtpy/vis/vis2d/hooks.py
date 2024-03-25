@@ -2,7 +2,6 @@
 
 """Data visualisation components of the MTPy module."""
 
-
 from __future__ import annotations
 
 from typing import Callable

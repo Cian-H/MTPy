@@ -3,39 +3,56 @@
 """A module for handling L-PBF meltpool tomography data."""
 
 from pathlib import Path
-from typing import Any, ClassVar, Dict, Optional, Union
+from typing import Any, ClassVar, Dict, Optional, Type, Union
 
 from dask.distributed import Client
 from dask.distributed.deploy import Cluster
 from fsspec import AbstractFileSystem
 
-from .loaders.aconity import AconityLoader
-from .loaders.protocol import LoaderProtocol
-from .proc.processor import Processor
-from .vis.plotter import Plotter
+from mtpy.loaders.aconity import AconityLoader
+from mtpy.loaders.protocol import LoaderProtocol
+from mtpy.proc.processor import Processor
+from mtpy.vis.plotter import Plotter
 
 
 class MeltpoolTomography:
-    """a class for handling the data pipeline and visualisation of meltpool tomography data."""
+    """A class for handling the data pipeline and visualisation of meltpool tomography data.
 
-    _loaders: ClassVar[Dict[str, LoaderProtocol]] = {
+    Attributes:
+        _loaders: A dict mapping loader_type strings onto Loader objects
+        loader: The Loader instantiated for the current instance
+        processor: The Processor instantiated for the current instance
+        plotter: The Plotter instantiated for the current instance
+    """
+
+    _loaders: ClassVar[Dict[str, Type[LoaderProtocol]]] = {
         "aconity": AconityLoader,
     }
 
     def __init__(
         self: "MeltpoolTomography",
-        loader_type: Optional[str] = "aconity",  # Currently the only one implemented
+        loader_type: str = "aconity",  # Currently the only one implemented
         client: Optional[Client] = None,
         cluster: Optional[Cluster] = None,
         fs: Optional[AbstractFileSystem] = None,
-        data_cache: Optional[Union[Path, str]] = "cache",
+        data_cache: Union[Path, str] = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Initialises a MeltpoolTomography object.
 
         Args:
-            self (MeltpoolTomography): The MeltpoolTomography object.
-            **kwargs: keyword arguments to be passed to the parent class initialisers
+            self (MeltpoolTomography): The MeltpoolTomography instance
+            loader_type (str): The type of loader to use. Defaults to "aconity".
+            client (Optional[Client]): The dask client for managing computations.
+                Defaults to None.
+            cluster (Optional[Cluster]): The dask cluster on which to perform computations.
+                Defaults to None.
+            fs (Optional[AbstractFileSystem]): The fsspec filesystem on which to store the cache.
+                Defaults to `None`.
+            data_cache (Optional[Union[Path, str]]): The path to the directory in which to cache
+                data. Defaults to ".cache".
+            cluster_config (Optional[Dict[str, Any]]): The configuration for any dask clusters to
+                be initialised. Defaults to None.
         """
         if loader_type not in self._loaders:
             msg = f'No implementation for loader "{loader_type}" found.'
@@ -52,7 +69,26 @@ class MeltpoolTomography:
         self.processor = Processor(self.loader)
         self.plotter = Plotter(self.loader)
 
-    def __getattr__(self: "MeltpoolTomography", attr: str) -> Any: # noqa: ANN401
+    def __getattr__(self: "MeltpoolTomography", attr: str) -> Any:  # noqa: ANN401
+        """Fetches methods and attributes from components in this composite class.
+
+        This is a fallback that fetches methods and attributes from subcomponents comprising this
+        composite class. The resolution of methods and attributes follows the order:
+            MeltpoolTomography > self.loader > self.processor > self.plotter
+        If no matching attribute is found throws an AttributeError.
+
+        Args:
+            self (MeltpoolTomography): The MeltpoolTomography instance.
+            attr (str): The attribute/method to be fetched.
+
+        Returns:
+            Any: the object to which the attribute is resolved. Can be any type (obviously)
+                as there is no way to predict what types a subcomponent might have as an attr.
+
+        Raises:
+            AttributeError: If no valid attribute is found on the MeltpoolTomography instance or
+                any of its subcomponents.
+        """
         for obj in (self.loader, self.processor, self.plotter):
             if hasattr(obj, attr):
                 return getattr(obj, attr)

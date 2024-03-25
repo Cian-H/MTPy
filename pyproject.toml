@@ -36,6 +36,7 @@ odfpy = "*"
 fsspec = "*"
 pyarrow = "^15.0.0"
 selenium = "^4.18.1"
+ruff = "^0.3.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
@@ -53,6 +54,7 @@ lxml = "*"
 pandas-stubs = "^2.2.0.240218"
 types-tqdm = "^4.66.0.20240106"
 types-psutil = "^5.9.5.20240205"
+pylint = "^3.1.0"
 
 
 [tool.poetry.group.docs.dependencies]
@@ -100,7 +102,7 @@ exclude = ["docs/"]
 # Configure ruff to be *heavily* opinionated. We want to enforce a consistent style across all code.
 # Enable checks for pydocstyle (`D`), pycodestyle (`E`, `W`), Pyflakes (`F`), McCabe Complexity (C90)
 # isort (`I`), pep8 naming (`N`), flake8 (`A`, `ANN`, `B`, `C4`, `EM`, `FBT`, `ICN`, `INT`, `ISC`, `PT`,
-# `PTH`, `RET`, `SIM`, `TCH`, and `TID`), perflint (`PERF`), refurb (`FURB`), numpy rules (`NPY`), pandas
+# `PTH`, `RET`, `SIM`, `TCH`, and `TID`), perflint (`PERF`), numpy rules (`NPY`), pandas
 # rules (`PD`), pylint (`PL`), ruff rules (`RUF`).
 select = [
     "D",
@@ -126,7 +128,6 @@ select = [
     "TCH",
     "TID",
     "PERF",
-    "FURB",
     "NPY",
     "PD",
     "PL",
@@ -144,6 +145,7 @@ select = [
 # - TCH001: the `TYPE_CHECKING` blocks either don't work or i'm too stupid to get them to work.
 # - TCH002: same as above.
 # - TCH003: same as above.
+# - ISC001: Personally, i really like this rule but apparently it can cause issues with the ruff formatter.
 ignore = [
     "PD002",
     "ANN002",
@@ -154,6 +156,7 @@ ignore = [
     "TCH001",
     "TCH002",
     "TCH003",
+    "ISC001",
 ]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [

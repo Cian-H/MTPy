@@ -78,7 +78,12 @@ class Statistics(AbstractProcessor):
         # Fill a dask pipeline for efficient, optimised stat calculation
         ops = []
         if overall:
-            ops += [self.loader.data.min(), self.data.max(), self.data.mean(), self.data.std()]
+            ops += [
+                self.loader.data.min(),
+                self.loader.data.max(),
+                self.loader.data.mean(),
+                self.loader.data.std(),
+            ]
         if layers:
             group = self.loader.data.groupby("z")
             ops += [group.min(), group.max(), group.mean(), group.std()]

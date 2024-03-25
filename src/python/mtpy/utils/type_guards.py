@@ -7,7 +7,9 @@ from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeV
 
 from dask import dataframe as dd
 
-from .types import JSONData, JSONDict, JSONList, JSONValue, PathMetadataTree, SizedIterable
+from mtpy.loaders.protocol import LoaderProtocol
+from mtpy.types import JSONData, JSONDict, JSONList, JSONValue, PathMetadataTree, SizedIterable
+from mtpy.vis.protocol import PlotterProtocol
 
 T = TypeVar("T")
 TWO = 2
@@ -57,6 +59,8 @@ def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Ca
 
 is_int, guarded_int = create_type_guard(int)
 is_dask_dataframe, guarded_dask_dataframe = create_type_guard(dd.DataFrame)
+is_dask_series, guarded_dask_series = create_type_guard(dd.Series)
+is_dask_number, guarded_dask_number = create_type_guard(dd.dd.Number)
 is_bytes, guarded_bytes = create_type_guard(bytes)
 is_json_dict, guarded_json_dict = create_type_guard(JSONDict)
 is_json_list, guarded_json_list = create_type_guard(JSONList)
@@ -82,6 +86,9 @@ def guarded_str_key_dict(t: Any) -> Dict[str, Any]:
 
     Args:
         t (Any): the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
 
     Returns:
         Dict[str, T]: the object if it is a dictionary with string keys
@@ -127,6 +134,9 @@ def guarded_callable(t: Any) -> Callable:
 
     Args:
         t (Any): the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
 
     Returns:
         Callable: the object if it is callable
@@ -191,6 +201,9 @@ def guarded_json_data(t: Any) -> JSONData:
     Args:
         t (Any): the object to check
 
+    Raises:
+        TypeError: if the type fails the guard check
+
     Returns:
         JSONData: the object if it is JSON data
     """
@@ -218,10 +231,73 @@ def guarded_json_value(t: Any) -> JSONValue:
     Args:
         t (Any): the object to check
 
+    Raises:
+        TypeError: if the type fails the guard check
+
     Returns:
         JSONValues: the object if it is a JSON value
     """
     if not is_json_value(t):
         msg = "Expected a JSON value"
+        raise TypeError(msg)
+    return t
+
+
+def is_plotter_protocol(t: Any) -> TypeGuard[PlotterProtocol]:
+    """Type guard for plotter protocols.
+
+    Args:
+        t: the object to check
+
+    Returns:
+        TypeGuard[PlotterProtocol]: True if the object is a plotter protocol, False otherwise.
+    """
+    return isinstance(t, PlotterProtocol)
+
+
+def guarded_plotter_protocol(t: Any) -> PlotterProtocol:
+    """A function for type guarding plotter protocols.
+
+    Args:
+        t: the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        PlotterProtocol: the object if it is a plotter protocol
+    """
+    if not is_plotter_protocol(t):
+        msg = "Expected a PlotterProtocol"
+        raise TypeError(msg)
+    return t
+
+
+def is_loader_protocol(t: Any) -> TypeGuard[LoaderProtocol]:
+    """Type guard for loader protocols.
+
+    Args:
+        t: the object to check
+
+    Returns:
+        TypeGuard[LoaderProtocol]: True if the object is a loader protocol, False otherwise.
+    """
+    return isinstance(t, LoaderProtocol)
+
+
+def guarded_loader_protocol(t: Any) -> LoaderProtocol:
+    """A function for type guarding loader protocols.
+
+    Args:
+        t: the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        LoaderProtocol: the object if it is a loader protocol
+    """
+    if not is_loader_protocol(t):
+        msg = "Expected a loaderProtocol"
         raise TypeError(msg)
     return t

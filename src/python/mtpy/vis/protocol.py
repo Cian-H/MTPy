@@ -1,4 +1,6 @@
-from typing import Iterable, Optional, Protocol, Tuple, Union
+"""This module defines a protocol for a valid MTPy Plotter class."""
+
+from typing import Iterable, Optional, Protocol, Tuple, Union, runtime_checkable
 
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
@@ -6,7 +8,14 @@ from holoviews.element.chart import Chart
 from mtpy.loaders.protocol import LoaderProtocol
 
 
+@runtime_checkable
 class PlotterProtocol(Protocol):
+    """This protocol defines the structure of all valid MTPy Plotter classes.
+
+    Attributes:
+        loader (LoaderProtocol): The loader providing the data to the Plotter object
+    """
+
     loader: LoaderProtocol
 
     def plot(

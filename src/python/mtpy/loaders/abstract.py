@@ -56,6 +56,7 @@ class AbstractLoader(ABC):
         "_file_suffix",
         "client",
         "cluster",
+        "data",
         "fs",
         "temp_label",
         "temp_units",
@@ -109,7 +110,10 @@ class AbstractLoader(ABC):
         self._cache = (
             SimpleNamespace()
         )  # NOTE: DEPRECATED! Left it because i cant remember if its needed in the GUI application.
-        # If unneeded will delete later.
+        #     If unneeded will delete later.
+
+        # Let's set up an empty data field, mostly for static checking purposes
+        self.data = dd.DataFrame.from_dict({}, npartitions=1)
         # Set up file handling attributes
         self.fs = fs
         if isinstance(data_cache, str) and data_cache[-1] != "/":
@@ -182,8 +186,8 @@ class AbstractLoader(ABC):
         self: "AbstractLoader",
         data_path: str,
         calibration_curve: Optional[CalibrationFunction] = None,
-        temp_units: Optional[str] = "mV",
-        chunk_size: Optional[int] = 3276800,  # chunk size calculated to result in ~100MB chunks
+        temp_units: str = "mV",
+        chunk_size: int = 3276800,  # chunk size calculated to result in ~100MB chunks
     ) -> None:
         """Reads layers from target directory.
 
@@ -512,7 +516,7 @@ class AbstractLoader(ABC):
         tree_metadata: PathMetadataTree = guarded_pathmetadatatree(metadata["tree"])
         for k, v in tree_metadata.items():
             if v["is_dir"]:
-                k_path = k[len(self.fs.info(self._data_cache)["name"][:-5]) :]
+                k_path = k[len(self.fs.info(self._data_cache)["name"][:-5]):]
                 self.fs.mkdirs(k_path, exist_ok=True)
         self._extract_cache(end, filepath, blocksize, tree_metadata)
 
