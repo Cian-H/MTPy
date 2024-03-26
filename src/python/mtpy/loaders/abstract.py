@@ -5,14 +5,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-import asyncio
 from functools import partial
-from inspect import iscoroutinefunction
 from io import BytesIO
 from pathlib import Path
 import pickle
 import tarfile
-from types import SimpleNamespace
 from typing import Any, Dict, Optional, Tuple, Union, cast
 
 # TEMPORARY FIX FOR WARNINGS
@@ -106,11 +103,6 @@ class AbstractLoader(ABC):
         # Set default labels for t axis
         self.temp_label = "Pyrometer Response"
         self.temp_units = ""
-        # Cache info
-        self._cache = (
-            SimpleNamespace()
-        )  # NOTE: DEPRECATED! Left it because i cant remember if its needed in the GUI application.
-        #     If unneeded will delete later.
 
         # Let's set up an empty data field, mostly for static checking purposes
         self.data = dd.DataFrame.from_dict({}, npartitions=1)
@@ -123,26 +115,6 @@ class AbstractLoader(ABC):
         self._data_cache_fs = DirFileSystem(path=self._data_cache, fs=self.fs)
         # Misc configuration attributes
         self._file_suffix = "mtp"
-
-    def __del__(self: "AbstractLoader") -> None:
-        """Closes the dask client and cluster, then deletes the cache directory.
-
-        Args:
-            **kwargs: Additional keyword arguments to be passed to the parent class (`Base`).
-        """
-        # Close dask cluster and client
-        # TODO: bug here if user passes dask client and intends to continue using outside MTPy?
-        # Without this code though, dask clients could be left causing mem leaks.
-        # Need to find a solution
-        for obj in (self.client, self.client.cluster, self.cluster):
-            if (obj is not None) and (getattr(obj, "close", None) is not None):
-                if iscoroutinefunction(obj.close):
-                    asyncio.run(obj.close(timeout=1))
-                else:
-                    obj.close(timeout=1)
-        # Delete cache files if still present
-        self.fs.rm(self._data_cache, recursive=True)
-        # super().__del__(**kwargs) # Not needed currently, but will be if __del__ added to parent
 
     def get_memory_limit(self: "AbstractLoader") -> int:
         """Get the memory limit for the current cluster.
@@ -516,7 +488,7 @@ class AbstractLoader(ABC):
         tree_metadata: PathMetadataTree = guarded_pathmetadatatree(metadata["tree"])
         for k, v in tree_metadata.items():
             if v["is_dir"]:
-                k_path = k[len(self.fs.info(self._data_cache)["name"][:-5]):]
+                k_path = k[len(self.fs.info(self._data_cache)["name"][:-5]) :]
                 self.fs.mkdirs(k_path, exist_ok=True)
         self._extract_cache(end, filepath, blocksize, tree_metadata)
 

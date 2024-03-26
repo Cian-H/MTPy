@@ -12,7 +12,6 @@ from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
-from mtpy.utils.apply_defaults import apply_defaults
 from mtpy.vis.abstract import AbstractPlotter
 
 from .dispatchers import plot_dispatch
@@ -121,4 +120,6 @@ class Plotter(AbstractPlotter):
         Returns:
             Chart: a holoviz plot
         """
-        return self.plot(*args, **apply_defaults(kwargs, config["scatter3d"]))
+        plot_kwargs = config["scatter3d"].copy()
+        plot_kwargs.update(kwargs)
+        return self.plot(*args, **plot_kwargs)

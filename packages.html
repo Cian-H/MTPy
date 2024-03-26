@@ -1,0 +1,101 @@
+<html>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+      <div class="mermaid">
+    
+        classDiagram
+          class mtpy {
+          }
+          class base {
+          }
+          class protocol {
+          }
+          class meltpool_tomography {
+          }
+          class proc {
+          }
+          class abstract {
+          }
+          class processor {
+          }
+          class protocol {
+          }
+          class statistics {
+          }
+          class thresholder {
+          }
+          class utils {
+          }
+          class apply_defaults {
+          }
+          class large_hash {
+          }
+          class metadata_tagging {
+          }
+          class tar_handling {
+          }
+          class type_coercions {
+          }
+          class type_guards {
+          }
+          class types {
+          }
+          class vis {
+          }
+          class abstract {
+          }
+          class plotter {
+          }
+          class protocol {
+          }
+          class vis2d {
+          }
+          class dispatchers {
+          }
+          class hooks {
+          }
+          class plotter {
+          }
+          class vis3d {
+          }
+          class dispatchers {
+          }
+          class hooks {
+          }
+          class plotter {
+          }
+          mtpy --> meltpool_tomography
+          meltpool_tomography --> processor
+          meltpool_tomography --> plotter
+          abstract --> protocol
+          processor --> statistics
+          processor --> thresholder
+          statistics --> abstract
+          thresholder --> abstract
+          thresholder --> type_coercions
+          thresholder --> type_guards
+          metadata_tagging --> type_guards
+          metadata_tagging --> types
+          tar_handling --> types
+          type_coercions --> type_guards
+          type_coercions --> types
+          type_guards --> mtpy
+          type_guards --> protocol
+          plotter --> type_guards
+          plotter --> abstract
+          plotter --> protocol
+          plotter --> plotter
+          plotter --> plotter
+          dispatchers --> type_guards
+          plotter --> apply_defaults
+          plotter --> type_guards
+          plotter --> abstract
+          plotter --> dispatchers
+          dispatchers --> type_guards
+          plotter --> apply_defaults
+          plotter --> abstract
+          plotter --> dispatchers
+  
+       </div>
+  </body>
+</html>

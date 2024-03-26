@@ -8,7 +8,14 @@ from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeV
 from dask import dataframe as dd
 
 from mtpy.loaders.protocol import LoaderProtocol
-from mtpy.types import JSONData, JSONDict, JSONList, JSONValue, PathMetadataTree, SizedIterable
+from mtpy.utils.types import (
+    JSONData,
+    JSONDict,
+    JSONList,
+    JSONValue,
+    PathMetadataTree,
+    SizedIterable,
+)
 from mtpy.vis.protocol import PlotterProtocol
 
 T = TypeVar("T")

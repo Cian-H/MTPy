@@ -15,7 +15,6 @@ from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
-from mtpy.utils.apply_defaults import apply_defaults
 from mtpy.utils.type_guards import is_float_pair_tuple
 from mtpy.vis.abstract import AbstractPlotter
 
@@ -184,7 +183,9 @@ class Plotter(AbstractPlotter):
         Returns:
             Chart: a holoviz plot
         """
-        return self.plot(*args, **apply_defaults(kwargs, config["scatter2d"]))
+        plot_kwargs = config["scatter2d"].copy()
+        plot_kwargs.update(kwargs)
+        return self.plot(*args, **plot_kwargs)
 
     def distribution2d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 2d distribution plot.
@@ -192,4 +193,6 @@ class Plotter(AbstractPlotter):
         Returns:
             Chart: a holoviz plot
         """
-        return self.plot(*args, **apply_defaults(kwargs, config["distribution2d"]))
+        plot_kwargs = config["distribution2d"].copy()
+        plot_kwargs.update(kwargs)
+        return self.plot(*args, **plot_kwargs)

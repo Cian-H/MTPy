@@ -1,6 +1,5 @@
 import subprocess
 
-
 README_FILES = (
     ("Read Me", "docs/README.md"),
 )
