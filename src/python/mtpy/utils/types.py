@@ -50,7 +50,7 @@ class FileLike(Protocol):
         """
         ...
 
-    def read(self: "FileLike", n: int = ...) -> Union[bytes, str]:
+    def read(self: "FileLike", n: int = ...) -> bytes | str:
         """Reads a number of bytes from a file.
 
         Args:

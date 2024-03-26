@@ -3,7 +3,7 @@
 """Data visualisation components of the MTPy module."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Optional, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
 import holoviews as hv
@@ -48,11 +48,11 @@ class AbstractPlotter(ABC):
         filename: Optional[str] = None,
         *args,
         add_to_dashboard: bool = False,
-        samples: Optional[Union[int, Iterable[int]]] = None,
-        xrange: Tuple[Optional[float], Optional[float]] | None = None,
-        yrange: Tuple[Optional[float], Optional[float]] | None = None,
-        zrange: Tuple[Optional[float], Optional[float]] | None = None,
-        groupby: Optional[Union[str, Iterable[str]]] = None,
+        samples: Optional[int | Iterable[int]] = None,
+        xrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
+        yrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
+        zrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
+        groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
         **kwargs,
     ) -> Chart:
@@ -65,15 +65,15 @@ class AbstractPlotter(ABC):
             *args: additional arguments to be passed to the plotting function for the given kind
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            samples (Optional[Union[int, Iterable[int]]], optional): the samples to include on the
+            samples (Optional[int | Iterable[int]], optional): the samples to include on the
                 plot. Defaults to None.
-            xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                x values to plot. Defaults to None.
-            yrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                y values to plot. Defaults to None.
-            zrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                z values to plot. Defaults to None.
-            groupby (Optional[Union[str, Iterable[str]]], optional): the groupby to apply to the
+            xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of x values to plot. Defaults to None.
+            yrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of y values to plot. Defaults to None.
+            zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of z values to plot. Defaults to None.
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the
                 dataframe before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
@@ -87,19 +87,19 @@ class AbstractPlotter(ABC):
     def generate_view_id(
         self: "AbstractPlotter",
         kind: str,
-        samples: Optional[Union[int, Iterable[int]]] = None,
+        samples: Optional[int | Iterable[int]] = None,
         kwargs: Optional[dict] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         yrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
-        groupby: Optional[Union[str, Iterable[str]]] = None,
+        groupby: Optional[str | Iterable[str]] = None,
     ) -> str:
         """Generates a view id string for caching views.
 
         Args:
             self (PlotterBase): the PlotterBase object
             kind (str): the kind of plot to produce
-            samples (Optional[Union[int, Iterable[int]]], optional): The samples in the view.
+            samples (Optional[int | Iterable[int]], optional): The samples in the view.
                 Defaults to None.
             kwargs (Optional[dict], optional): The kwargs for the plotting function.
                 Defaults to None.
@@ -109,8 +109,8 @@ class AbstractPlotter(ABC):
                 of y values to be plotted. Defaults to None.
             zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): The range
                 of z values to be plotted. Defaults to None.
-            groupby (Optional[Union[str, Iterable[str]]], optional): _description_.
-                Defaults to None.
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the
+                dataframe before plotting. Defaults to None.
 
         Returns:
             str: The view ID.

@@ -8,7 +8,7 @@ MTPy framework
 """
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol, Union, runtime_checkable
+from typing import Any, Dict, Optional, Protocol, runtime_checkable
 
 import dask.dataframe as dd
 from dask.distributed import Client
@@ -38,7 +38,7 @@ class LoaderProtocol(Protocol):
         client: Optional[Client],
         cluster: Optional[Cluster],
         fs: Optional[AbstractFileSystem],
-        data_cache: Optional[Union[Path, str]],
+        data_cache: Optional[Path | str],
         cluster_config: Optional[Dict[str, Any]],
     ) -> None:
         """Initialisation of the data loader class.
@@ -50,7 +50,7 @@ class LoaderProtocol(Protocol):
                 Defaults to None.
             fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
                 loaded can be found. If None will default to LocalFileSystem().
-            data_cache (Optional[Union[Path, str]], optional): The directory in which working
+            data_cache (Optional[Path | str], optional): The directory in which working
                 data will be stored. Defaults to "cache".
             cluster_config (Dict[str, Any], optional): The configuration parameters for the dask
                 cluster. Defaults to {}.

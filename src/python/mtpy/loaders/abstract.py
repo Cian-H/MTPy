@@ -10,7 +10,7 @@ from io import BytesIO
 from pathlib import Path
 import pickle
 import tarfile
-from typing import Any, Dict, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, cast
 
 # TEMPORARY FIX FOR WARNINGS
 import dask
@@ -64,7 +64,7 @@ class AbstractLoader(ABC):
         client: Optional[Client] = None,
         cluster: Optional[Cluster] = None,
         fs: Optional[AbstractFileSystem] = None,
-        data_cache: Optional[Union[Path, str]] = "cache",
+        data_cache: Optional[Path | str] = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Initialisation of the data loader class.
@@ -76,7 +76,7 @@ class AbstractLoader(ABC):
                 Defaults to None.
             fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
                 loaded can be found. If None will default to LocalFileSystem().
-            data_cache (Optional[Union[Path, str]], optional): The directory in which working
+            data_cache (Optional[Path | str], optional): The directory in which working
                 data will be stored. Defaults to "cache".
             cluster_config (Dict[str, Any], optional): The configuration parameters for the dask
                 cluster. Defaults to {}.
@@ -492,11 +492,11 @@ class AbstractLoader(ABC):
                 self.fs.mkdirs(k_path, exist_ok=True)
         self._extract_cache(end, filepath, blocksize, tree_metadata)
 
-    def load(self: "AbstractLoader", filepath: Union[Path, str] = Path("data")) -> None:
+    def load(self: "AbstractLoader", filepath: Path | str = Path("data")) -> None:
         """Loads the saved MTPy session from the specified file.
 
         Args:
-            filepath (Union[Path, str], optional): Path to the target file.
+            filepath (Path | str, optional): Path to the target file.
                 Defaults to Path(f"data.{self._file_suffix}").
         """
         print("Loading data...")

@@ -67,15 +67,15 @@ class CombinedPlotter(AbstractPlotter):
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
             *args: additional positional arguments to be passed to the plotting function
-            samples (int | Iterable | None, optional): the samples to include on the plot.
+            samples (Optional[int | Iterable], optional): the samples to include on the plot.
                 Defaults to None.
-            xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                x values to plot. Defaults to None.
-            yrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                y values to plot. Defaults to None.
-            zrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                z values to plot. Defaults to None.
-            groupby (str | list[str] | None, optional): the groupby to apply to the dataframe
+            xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of x values to plot. Defaults to None.
+            yrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of y values to plot. Defaults to None.
+            zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of z values to plot. Defaults to None.
+            groupby (Optional[str | list[str]], optional): the groupby to apply to the dataframe
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.

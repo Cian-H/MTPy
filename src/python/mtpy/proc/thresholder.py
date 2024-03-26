@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from math import cos, pi, sin
 import operator as op
-from typing import Any, Callable, Dict, Iterable, Tuple, Union, cast
+from typing import Any, Callable, Dict, Iterable, Tuple, cast
 
 from dask import dataframe as dd
 import numpy as np
@@ -134,10 +134,8 @@ class Thresholder(AbstractProcessor):
 
     def threshold_all_layers(
         self: "Thresholder",
-        thresh_functions: Union[
-            Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]
-        ],
-        threshfunc_kwargs: Union[Dict[str, Any], Iterable[Dict[str, Any]]],
+        thresh_functions: Callable[[float, float], bool] | Iterable[Callable[[float, float], bool]],
+        threshfunc_kwargs: Dict[str, Any] | Iterable[Dict[str, Any]],
     ) -> None:
         """Thresholds all layers in a single pass.
 
@@ -145,9 +143,9 @@ class Thresholder(AbstractProcessor):
         listed params.
 
         Args:
-            thresh_functions (Union[Callable[[float, float], bool], Iterable[Callable[[float, float], bool]]]):
+            thresh_functions (Callable[[float, float], bool] | Iterable[Callable[[float, float], bool]]):
                 a list of functions to apply
-            threshfunc_kwargs (Union[Dict[str, Any], Iterable[Dict[str, Any]]]):
+            threshfunc_kwargs (Dict[str, Any] | Iterable[Dict[str, Any]]):
                 a list of kwargs for the functions to apply
         """  # noqa: E501
         # if conversion to dict is needed for single function, then convert

@@ -5,7 +5,7 @@
 from functools import singledispatchmethod
 from io import TextIOWrapper
 import math
-from typing import Any, Dict, Iterable, Optional, TypeVar, Union
+from typing import Any, Dict, Iterable, Optional, TypeVar
 
 import dask
 from fsspec.spec import AbstractBufferedFile
@@ -21,13 +21,13 @@ class Statistics(AbstractProcessor):
 
     def calculate_stats(
         self: "Statistics",
-        groupby: Optional[Union[str, Iterable[str]]] = None,
+        groupby: Optional[str | Iterable[str]] = None,
         confidence_interval: float = 0.95,
     ) -> Dict[str, Any]:
         """Calculates numerical statistics for the current dataframe.
 
         Args:
-            groupby (Optional[Union[str, Iterable[str]]], optional): a groupby string to be applied
+            groupby (Optional[str | Iterable[str]], optional): a groupby string to be applied
                 to the dataframe before calculation. Defaults to None.
             confidence_interval (float, optional): The confidence interval at which to perform
                 statistical calculations. Defaults to 0.95.
@@ -146,7 +146,7 @@ class Statistics(AbstractProcessor):
 
     def _get_writer(
         self: "Statistics", filepath: str
-    ) -> Union[pd.ExcelWriter, TextIOWrapper, AbstractBufferedFile]:
+    ) -> pd.ExcelWriter | TextIOWrapper | AbstractBufferedFile:
         file_extension = filepath.split(".")[-1]
         storage_options = getattr(self.loader.fs, "storage_options", None)
         if file_extension in {"xls", "xlsx", "xlsm", "xlsb"}:
@@ -157,7 +157,7 @@ class Statistics(AbstractProcessor):
 
     def _csv_writer(
         self: "Statistics", filepath: str, *args, **kwargs
-    ) -> Union[TextIOWrapper, AbstractBufferedFile]:
+    ) -> TextIOWrapper | AbstractBufferedFile:
         """A csv writer method that handles writing to a remote filesystem.
 
         Args:
@@ -195,12 +195,13 @@ class Statistics(AbstractProcessor):
     @staticmethod
     @_write.register
     def _write_csv(
-        w: Union[TextIOWrapper, AbstractBufferedFile], df: pd.DataFrame, sheet_name: str
+        w: TextIOWrapper | AbstractBufferedFile, df: pd.DataFrame, sheet_name: str
     ) -> None:
         """A method for handling writing to csv files.
 
         Args:
-            w (TextIOWrapper): the writer object to which a datasheet will be written.
+            w (TextIOWrapper | AbstractBufferedFile): the writer object to which a datasheet will
+                be written.
             df (pd.DataFrame): the dataframe to be written to the datasheet.
             sheet_name (str): the name of the heading under which the dataframe csv will be written.
         """

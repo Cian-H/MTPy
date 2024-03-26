@@ -3,7 +3,7 @@
 """A module for handling L-PBF meltpool tomography data."""
 
 from pathlib import Path
-from typing import Any, ClassVar, Dict, Optional, Type, Union
+from typing import Any, ClassVar, Dict, Optional, Type
 
 from dask.distributed import Client
 from dask.distributed.deploy import Cluster
@@ -35,7 +35,7 @@ class MeltpoolTomography:
         client: Optional[Client] = None,
         cluster: Optional[Cluster] = None,
         fs: Optional[AbstractFileSystem] = None,
-        data_cache: Union[Path, str] = "cache",
+        data_cache: Path | str = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Initialises a MeltpoolTomography object.
@@ -49,8 +49,8 @@ class MeltpoolTomography:
                 Defaults to None.
             fs (Optional[AbstractFileSystem]): The fsspec filesystem on which to store the cache.
                 Defaults to `None`.
-            data_cache (Optional[Union[Path, str]]): The path to the directory in which to cache
-                data. Defaults to ".cache".
+            data_cache (Path | str): The path to the directory in which to cache
+                data. Defaults to "cache".
             cluster_config (Optional[Dict[str, Any]]): The configuration for any dask clusters to
                 be initialised. Defaults to None.
         """

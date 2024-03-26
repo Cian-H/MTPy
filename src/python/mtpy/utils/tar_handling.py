@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import ClassVar, Dict, Tuple, Union
+from typing import ClassVar, Dict, Tuple
 
 from fsspec.spec import AbstractFileSystem
 
@@ -84,7 +84,7 @@ class FastSeek:
         self.cursor = cursor
         return self._seek(change, 1, *args, **kwargs)
 
-    def read(self: "FastSeek", read_length: int, *args, **kwargs) -> Union[str, bytes]:
+    def read(self: "FastSeek", read_length: int, *args, **kwargs) -> str | bytes:
         """A function for reading a number of bytes from a file.
 
         Args:
@@ -93,7 +93,7 @@ class FastSeek:
             **kwargs: additional keyword arguments to pass to the read method
 
         Returns:
-            any: the bytes read from the file
+            str | bytes: the data read from the file
         """
         self.cursor += read_length
         return self._read(read_length, *args, **kwargs)

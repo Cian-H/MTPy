@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
 import holoviews as hv
@@ -32,11 +32,11 @@ class Plotter(AbstractPlotter):
         filename: Optional[str] = None,
         *args,
         add_to_dashboard: bool = False,
-        samples: Optional[Union[int, Iterable[int]]] = None,
-        xrange: Tuple[Optional[float], Optional[float]] | None = None,
-        yrange: Tuple[Optional[float], Optional[float]] | None = None,
-        zrange: Tuple[Optional[float], Optional[float]] | None = None,
-        groupby: Optional[Union[str, Iterable[str]]] = None,
+        samples: Optional[int | Iterable[int]] = None,
+        xrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
+        yrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
+        zrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
+        groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
         **kwargs,
     ) -> Chart:
@@ -49,15 +49,15 @@ class Plotter(AbstractPlotter):
             *args: additional arguments to be passed to the plotting function for the given kind
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            samples (Optional[Union[int, Iterable[int]]], optional): the samples to include on the
+            samples (Optional[int | Iterable[int]], optional): the samples to include on the
                 plot. Defaults to None.
-            xrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                x values to plot. Defaults to None.
-            yrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                y values to plot. Defaults to None.
-            zrange (tuple[float  |  None, float  |  None] | Optional[float], optional): the range of
-                z values to plot. Defaults to None.
-            groupby (Optional[Union[str, Iterable[str]]], optional): the groupby to apply to the
+            xrange (tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of x values to plot. Defaults to None.
+            yrange (tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of y values to plot. Defaults to None.
+            zrange (tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of z values to plot. Defaults to None.
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the
                 dataframe before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
