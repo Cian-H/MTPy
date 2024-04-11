@@ -34,6 +34,7 @@ odfpy = "^1.4.1"
 fsspec = "^2024.3.1"
 pyarrow = "^15.0.0"
 ruff = "^0.3.4"
+loguru = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -52,6 +53,7 @@ lxml = "^5.1.0"
 pandas-stubs = "^2.2.1"
 types-tqdm = "^4.66.0"
 types-psutil = "^5.9.5"
+ruff = "^0.3.5"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"

@@ -15,7 +15,6 @@ from mtpy.utils.type_guards import (
 )
 import psutil
 from read_layers import read_selected_layers
-from tqdm.auto import tqdm
 
 from .abstract import AbstractLoader
 
@@ -84,7 +83,7 @@ class AconityLoader(AbstractLoader):
             read_arr_cache = "tmp_arr"
         local_fs.mkdirs(read_arr_cache, exist_ok=True)
         arr_cache_fs = DirFileSystem(path=read_arr_cache, fs=local_fs)
-        for i, file_list in enumerate(tqdm(batches, position=2)):
+        for i, file_list in enumerate(self.progressbar(batches, position=2)):
             # Read each batch in rust to dask dataframe, then add df to compressed parquet table
             npy_stack_subdir = str(i)
             arr_cache_fs.mkdirs(npy_stack_subdir, exist_ok=True)
@@ -119,7 +118,8 @@ class AconityLoader(AbstractLoader):
         darrays = [da.from_npy_stack(npy_stack) for npy_stack in local_fs.ls(read_arr_cache)]
 
         data = da.concatenate(darrays)
-        data = data.rechunk(balance=True)  # type: ignore # mypy is just wrong here.
+        # type: ignore # mypy is just wrong here.
+        data = data.rechunk(balance=True)
 
         self.fs.mkdirs(f"{self._data_cache}raw", exist_ok=True)
 

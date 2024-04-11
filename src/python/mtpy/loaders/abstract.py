@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from functools import partial
 from io import BytesIO
 from pathlib import Path
@@ -19,7 +19,9 @@ from dask.distributed.deploy import Cluster
 from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
+from mtpy.base.abstract import AbstractBase
 from mtpy.utils.large_hash import large_hash
+from mtpy.utils.log_intercept import LoguruPlugin
 from mtpy.utils.metadata_tagging import add_metadata, read_metadata
 from mtpy.utils.tar_handling import entry_size, parse_header, uncompressed_tarfile_size, unpack_file
 from mtpy.utils.type_guards import (
@@ -31,7 +33,6 @@ from mtpy.utils.type_guards import (
 )
 from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
 import psutil
-from tqdm.auto import tqdm
 
 # Conditional imports depending on whether a GPU is present
 # Lots of type: ignore comments here because mypy is not happy with these conditional imports
@@ -42,7 +43,7 @@ else:
     from dask import dataframe as dd
 
 
-class AbstractLoader(ABC):
+class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     """A class for loading and preprocessing data."""
 
     __slots__ = [
@@ -82,6 +83,10 @@ class AbstractLoader(ABC):
                 cluster. Defaults to {}.
             kwargs: Additional keyword arguments to be passed to the parent class (`Base`).
         """
+        super().__init__()
+
+        loguru_plugin = LoguruPlugin()
+
         if fs is None:
             fs = LocalFileSystem()
         if cluster_config is None:
@@ -90,7 +95,9 @@ class AbstractLoader(ABC):
             data_cache = Path().cwd()
         if (cluster is None) and (client is None):
             self.cluster: Cluster = LocalCluster(
-                n_workers=(psutil.cpu_count() - 1 * 2), threads_per_worker=1
+                n_workers=(psutil.cpu_count() - 1 * 2),
+                threads_per_worker=1,
+                plugins=(loguru_plugin,),
             )
             self.cluster.adapt(minimum=1, maximum=(psutil.cpu_count() - 1 * 2))
         else:
@@ -99,6 +106,7 @@ class AbstractLoader(ABC):
             self.client = Client(self.cluster)
         else:
             self.client = client
+        self.client.register_plugin(loguru_plugin)
         # Stores location from which to read data
         # Set default labels for t axis
         self.temp_label = "Pyrometer Response"
@@ -173,7 +181,7 @@ class AbstractLoader(ABC):
         """
         if data_path[-1] != "/":
             data_path += "/"
-        print(f"\nSearching for files at {data_path}")
+        self.logger.info(f"Searching for files at {data_path}")
         self.construct_cached_ddf(data_path, chunk_size)
 
         # If given a calibration curve, apply it
@@ -228,7 +236,7 @@ class AbstractLoader(ABC):
         # if a calibration curve is given
         if calibration_curve is not None:
             # Set temp_column to calibrated values
-            print("Applying calibration curve")
+            self.logger.info("Applying calibration curve")
             self.data[temp_column] = calibration_curve(
                 self.data["x"],
                 self.data["y"],
@@ -238,10 +246,10 @@ class AbstractLoader(ABC):
             self.commit()
             if units is not None:
                 self.temp_units = units
-            print("Calibrated!")
+            self.logger.info("Calibrated!")
         # otherwise, set to raw values from datafiles
         else:
-            print("No calibration curve given!")
+            self.logger.info("No calibration curve given!")
 
     def reload_raw(self: "AbstractLoader") -> None:
         """Reloads the raw data from the cache, replacing the current dataframe."""
@@ -261,7 +269,7 @@ class AbstractLoader(ABC):
                 )
             )
         elif unmodified:
-            print("working == raw, no changes have been applied")
+            self.logger.info("working == raw, no changes have been applied")
 
     def tree_metadata(
         self: "AbstractLoader",
@@ -295,7 +303,8 @@ class AbstractLoader(ABC):
                 is_dir=is_dir,
                 size=self.fs.size(f_as_str),
             )
-            meta_dict[rel_path] = path_metadata  # type: ignore # This is happening becuase python doesn't support recursive types
+            # type: ignore # This is happening becuase python doesn't support recursive types
+            meta_dict[rel_path] = path_metadata
             if is_dir:
                 meta_dict = self.tree_metadata(f"{f_as_str}/", meta_dict)
         return meta_dict
@@ -350,7 +359,7 @@ class AbstractLoader(ABC):
             filepath (Path | str, optional): _description_.
                 Defaults to Path(f"data.{self._file_suffix}").
         """
-        print("Saving data...")
+        self.logger.info("Saving data...")
         # First, commit any pending changes
         self.commit()
         # Process filename before saving
@@ -367,7 +376,7 @@ class AbstractLoader(ABC):
             p = f"{filepath[:-4]}({i}){filepath[-4:]}"
             i += 1
         if filepath != p:
-            print(f"{filepath} already exists! Saving as {p}...")
+            self.logger.info(f"{filepath} already exists! Saving as {p}...")
             filepath = p
         # Add pickled self.__dict__ (not including temporary attrs) to the data cache
         attrs = self.__dict__.copy()
@@ -379,7 +388,7 @@ class AbstractLoader(ABC):
         metadata = self.cache_metadata
         # Finally, compress the cache and its contents
         with tarfile.open(filepath, mode="w:gz") as tarball:
-            for f in tqdm(self.fs.get_mapper(str(self._data_cache))):
+            for f in self.progressbar(self.fs.get_mapper(str(self._data_cache))):
                 with self.fs.open(f"{self._data_cache}{f}", "rb") as cache_file:
                     # Type checker is wrong below. The attribute `f` DEFINITELY exists here
                     fileobj = BytesIO(cache_file.f.read())
@@ -388,7 +397,7 @@ class AbstractLoader(ABC):
                     tarball.addfile(tarinfo, fileobj=fileobj)
         # metadata will be used to accelerate unpacking
         add_metadata(self.fs, filepath, guarded_json_data(metadata))
-        print("Data saved!")
+        self.logger.info("Data saved!")
 
     def _extract_cache(
         self: "AbstractLoader",
@@ -406,7 +415,7 @@ class AbstractLoader(ABC):
             blocksize (int): The blocksize for streaming when unpacking the file.
             tree_metadata (PathMetadataTree): The metadata for the cache to be extracted.
         """
-        pbar = tqdm(total=end)
+        pbar = self.progressbar(total=end)
         seekpos = 0
         prev_null = False
         queue = []
@@ -481,7 +490,7 @@ class AbstractLoader(ABC):
         except Exception as no_metadata:
             raise no_metadata
         if metadata_tag == self.cache_metadata:
-            print("Savefile matches current cache. Skipping load...")
+            self.logger.info("Savefile matches current cache. Skipping load...")
             return
         metadata = guarded_json_dict(metadata_tag)
         end = guarded_int(metadata["archive_size"])
@@ -499,7 +508,7 @@ class AbstractLoader(ABC):
             filepath (Path | str, optional): Path to the target file.
                 Defaults to Path(f"data.{self._file_suffix}").
         """
-        print("Loading data...")
+        self.logger.info("Loading data...")
         # Process filename before saving
         if type(filepath) is Path:
             filepath = str(filepath)
@@ -523,4 +532,4 @@ class AbstractLoader(ABC):
                 parquet_file_extension=".parquet",
             )
         )
-        print("Data loaded!")
+        self.logger.info("Data loaded!")

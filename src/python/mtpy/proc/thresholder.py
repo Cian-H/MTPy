@@ -11,8 +11,8 @@ from typing import Any, Callable, Dict, Iterable, Tuple, cast
 from dask import dataframe as dd
 import numpy as np
 import pandas as pd
-from tqdm.auto import tqdm
 
+from mtpy.base.abstract import AbstractBase
 from mtpy.utils.type_coercions import ensure_sized_iterable
 from mtpy.utils.type_guards import (
     guarded_dask_number,
@@ -27,7 +27,7 @@ from .abstract import AbstractProcessor
 degrees_per_rad = 180 / pi
 
 
-class Thresholder(AbstractProcessor):
+class Thresholder(AbstractProcessor, AbstractBase):
     """A class that handles thresholding of data for the data pipeline."""
 
     def rotate_xy(self: "Thresholder", angle: float) -> None:
@@ -168,10 +168,10 @@ class Thresholder(AbstractProcessor):
             msg = "thresh_functions and threshfunc_kwargs must be the same length"
             raise ValueError(msg)
 
-        print("\nThresholding data")
+        self.logger.info("Thresholding data")
 
         # Prep progress bar iterator (assigned to variable for code clarity)
-        progbar_iterator = tqdm(
+        progbar_iterator = self.progressbar(
             zip(thresh_functions, threshfunc_kwargs, strict=False),
             total=len(thresh_functions),
             position=1,
@@ -186,20 +186,18 @@ class Thresholder(AbstractProcessor):
 
     # def detect_samples_kmeans(self, n_samples):
     #     "Uses a clustering algorithm to detect samples automatically"
-    #     print("\nDetecting contiguous samples\n")
+    #     self.logger.info("Detecting contiguous samples")
     #     # KMeans train to recognize clusters
-    #     self.kmeans_model = KMeans(
-    #         n_clusters=n_samples, features=["x", "y"], verbose=(not self.quiet)
-    #     )
+    #     self.kmeans_model = KMeans(n_clusters=n_samples, features=["x", "y"])
     #     # Loop repeats the kmeans training until desired num of samples found
     #     while True:
     #         self.kmeans_model.fit(self.loader.data)
     #         # Label samples
-    #         print("\nKmeans training complete!\nLabelling samples...")
+    #         self.logger.info("Kmeans training complete!\nLabelling samples...")
     #         data = self.kmeans_model.transform(self.loader.data)
     #         n_found = len(data["prediction_kmeans"].unique())
     #         if n_found < n_samples:
-    #             print(f"\nRepeating Kmeans training (samples found: {n_found})\n")
+    #             self.logger.info(f"Repeating Kmeans training (samples found: {n_found})")
     #         else:
     #             self.loader.data = data
     #             break
@@ -207,7 +205,7 @@ class Thresholder(AbstractProcessor):
     #     # Save centroids for positioning of labels
     #     self.sample_labels = np.asarray(self.kmeans_model.cluster_centers)
     #     self.loader.data.rename("prediction_kmeans", "sample")
-    #     print("\nSample detection complete!")
+    #     self.logger.info("Sample detection complete!")
 
     def mask_xyrectangles(
         self: "Thresholder", sample_map: Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]

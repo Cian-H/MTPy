@@ -2,13 +2,14 @@
 
 """Data visualisation components of the MTPy module."""
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Dict, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
+from mtpy.base.abstract import AbstractBase
 from mtpy.loaders.protocol import LoaderProtocol
 
 # import dash
@@ -18,7 +19,7 @@ from mtpy.loaders.protocol import LoaderProtocol
 hv.extension("plotly")
 
 
-class AbstractPlotter(ABC):
+class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
     """The base class for all plotter classes."""
 
     def __init__(
@@ -29,6 +30,7 @@ class AbstractPlotter(ABC):
         #  dash_kwargs: dict = {},
     ) -> None:
         """Initialize the AbstractPlotter."""
+        super().__init__()
         self.views: Dict[str, Chart] = {}
         self.view_tag = self.__class__.__name__
         self.loader = loader
@@ -44,9 +46,9 @@ class AbstractPlotter(ABC):
     @abstractmethod
     def plot(
         self: "AbstractPlotter",
-        kind: str,
         filename: Optional[str] = None,
         *args,
+        kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
         xrange: Optional[Tuple[Optional[float], Optional[float]]] = None,

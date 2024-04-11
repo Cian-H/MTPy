@@ -9,8 +9,6 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
 # TEMPORARY FIX FOR WARNINGS
-import warnings
-
 from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
@@ -19,9 +17,6 @@ from mtpy.utils.type_guards import is_float_pair_tuple
 from mtpy.vis.abstract import AbstractPlotter
 
 from .dispatchers import plot_dispatch
-
-warnings.filterwarnings("ignore")
-warnings.filterwarnings("ignore", module="bokeh")
 
 # NOTES: Matplotlib and plotly clearly arent up to the job alone here.
 #   Implement holoviews + datashading
@@ -80,9 +75,9 @@ class Plotter(AbstractPlotter):
 
     def plot(
         self: "Plotter",
-        kind: str,
         filename: Optional[str] = None,
         *args,
+        kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
@@ -166,9 +161,9 @@ class Plotter(AbstractPlotter):
 
         # If filename is given, save to that file
         if filename is not None:
-            print(f"Saving to {filename}...")
+            self.logger.info(f"Saving to {filename}...")
             hv.save(plot, filename)
-            print(f"{filename} saved!")
+            self.logger.info(f"{filename} saved!")
 
         # # If adding to dashboard, add this plot to the dashboard
         # if add_to_dashboard and self.dashboard:

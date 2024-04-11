@@ -41,9 +41,9 @@ class CombinedPlotter(AbstractPlotter):
 
     def plot(
         self: "CombinedPlotter",
-        kind: str,
         filename: Optional[str] = None,
         *args,
+        kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,

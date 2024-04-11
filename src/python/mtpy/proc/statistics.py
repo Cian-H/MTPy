@@ -126,7 +126,7 @@ class Statistics(AbstractProcessor):
 
         # Finally, export the datasheets based on the file extension given
         self.write_to_file(stats, filepath)
-        print(f"Datasheets generated at {filepath}!")
+        self.logger.info(f"Datasheets generated at {filepath}!")
 
     def write_to_file(self: "Statistics", stats: Dict[str, Any], filepath: str) -> None:
         """Writes a dictionary of statistics to a file.

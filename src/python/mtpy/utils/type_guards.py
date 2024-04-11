@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeV
 
 from dask import dataframe as dd
 
+from mtpy.base.feedback.protocol import ProgressBarProtocol
 from mtpy.loaders.protocol import LoaderProtocol
 from mtpy.utils.types import (
     JSONData,
@@ -305,6 +306,37 @@ def guarded_loader_protocol(t: Any) -> LoaderProtocol:
         LoaderProtocol: the object if it is a loader protocol
     """
     if not is_loader_protocol(t):
-        msg = "Expected a loaderProtocol"
+        msg = "Expected a LoaderProtocol"
+        raise TypeError(msg)
+    return t
+
+
+def is_progressbar_protocol(t: Any) -> TypeGuard[ProgressBarProtocol]:
+    """Type guard for progressbar protocols.
+
+    Args:
+        t: the object to check
+
+    Returns:
+        TypeGuard[ProgressBarProtocol]: True if the object is a progressbar protocol,
+        False otherwise.
+    """
+    return isinstance(t, ProgressBarProtocol)
+
+
+def guarded_progressbar_protocol(t: Any) -> ProgressBarProtocol:
+    """A function for type guarding progressbar protocols.
+
+    Args:
+        t: the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        ProgressBarProtocol: the object if it is a progressbar protocol
+    """
+    if not is_progressbar_protocol(t):
+        msg = "Expected a ProgressBarProtocol"
         raise TypeError(msg)
     return t

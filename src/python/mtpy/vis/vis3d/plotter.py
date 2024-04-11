@@ -28,9 +28,9 @@ class Plotter(AbstractPlotter):
 
     def plot(
         self: "Plotter",
-        kind: str,
         filename: Optional[str] = None,
         *args,
+        kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
         xrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
@@ -102,9 +102,9 @@ class Plotter(AbstractPlotter):
 
         # If filename is given, save to that file
         if filename is not None:
-            print(f"Saving to {filename}...")
+            self.logger.info(f"Saving to {filename}...")
             hv.save(plot, filename)
-            print(f"{filename} saved!")
+            self.logger.info(f"{filename} saved!")
 
         # The code below is currently part of a planned feature to add plots to a dashboard
         # # If adding to dashboard, add this plot to the dashboard

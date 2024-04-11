@@ -10,8 +10,13 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - Converted `Base` class to `BaseProtocol` protocol
 - Implemented `vis` protocol and ABC
 - Implemented rough `loaders` protocol and ABC
-- Problem w/ libstdc++ due to using nixos? preventinf import of dask.dataframe
+- Problem w/ libstdc++ due to using nixos? preventing import of dask.dataframe
 
+NOTE FOR RETURNING TO THIS:
+Currently, have implemented type guard to try and constrain the progressbar.
+However, this isn't working because it is constraining to an instance instead
+of a class. Need to figure out how to constrain to a class (not an instance)
+that implements a protocol.
 
 ## Todo
 
@@ -21,31 +26,34 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - [x] add automated UML generation
 - [ ] add tests using pytest and hypothesis
 - [x] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)
-- [ ] ~~add proper debug logging~~ <- This need is probably better addressed by [`snoop`](https://github.com/alexmojaki/snoop)
-- [ ] Refactor and implement patterns where appropriate
+- [x] add proper debug logging
+- [ ] add debug messages
+- [x] add proper user feedback mechanism
+- [x] Refactor and implement patterns where appropriate
 - [ ] use `__init__.py` to simplify API
-- [ ] clean up namespaces with config files?
+- [ ] ~~clean up namespaces with config files?~~ <- Unnecessary. Restructure made the API more sensible.
 - [x] add automated documentation via mkdocs (and remove sphinx docs)
 - [ ] implement a CLI for basic functions
 - [ ] rewrite experimental GUI using flet
 - [ ] implement Dask GPU support
 - [ ] Add a dashboard using dash
+- [ ] Add raster detection component as processor
 - [ ] fix 3d tomography visualizations (see in-progress project)
-- [ ] clean up project in general
-    - [ ] remove unused files
-    - [ ] remove old code
-    - [ ] Replace old constructs (e.g: `typing.Union`) with more modern versions
-    - [ ] Update dependencies
+- [x] clean up project in general
+    - [x] remove unused files
+    - [x] remove old code
+    - [x] Replace old constructs (e.g: `typing.Union`) with more modern versions
+    - [x] Update dependencies
 
 ## Subprojects
 
 ### Loosen class couplings
 
 - [x] Properly plan new UML
-- [ ] Create abstract classes/interfaces
-- [ ] Decouple main classes
-- [ ] Implement logger according to a protocol
-- [ ] Implement progress bars according to a protocol 
+- [x] Create abstract classes/interfaces
+- [x] Decouple main classes
+- [x] Implement logger according to a protocol
+- [x] Implement progress bars according to a protocol
 - [ ] Create dummy modules for each class
 
 ### Create proper testing regime
