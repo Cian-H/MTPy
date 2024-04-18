@@ -16,7 +16,7 @@ theme:
     - scheme: default
       accent: teal
       toggle:
-        icon: material/lightbulb 
+        icon: material/lightbulb
         name: Switch to dark mode
     # Palette toggle for dark mode
     - scheme: slate
@@ -27,7 +27,11 @@ theme:
 
 nav:
   - Home: index.md
-  - Documentation: documentation.md
+  - Documentation:
+    - Reference: reference/
+    - Structure:
+      - Classes: tmp/uml/classes.html
+      - Packages: tmp/uml/packages.html
   # - Getting Started:
   #   - Installation: installation.md
   #   - Usage: usage.md
@@ -54,7 +58,7 @@ extra:
   version:
     provider: mike
 
-# markdown_extensions: 
+# markdown_extensions:
 #   - mkdocs-typer
 
 plugins:
@@ -66,7 +70,17 @@ plugins:
   - search
   - gen-files:
       scripts:
-        - docs/docs.py
-  - mkdocstrings
+        - scripts/gen_ref_pages.py
+        - scripts/gen_uml_diagrams.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: "src/python/"
+          options:
+            preload_modules: ["mtpy", ]
+            show_inheritance_diagram: true
   - git-revision-date-localized:
       enable_creation_date: true

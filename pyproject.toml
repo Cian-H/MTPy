@@ -63,6 +63,8 @@ mkdocs-git-revision-date-localized-plugin = "^1.2.4"
 mkdocs-gen-files = "^0.5.0"
 mkdocstrings-python = "^1.8.0"
 pylint = "^3.1.0"                                    # <- not being used for linting, installed mostly for pyreverse
+mkdocs-literate-nav = "^0.6.1"
+mkdocs-section-index = "^0.3.8"
 
 [[tool.poetry.source]]
 name = "PyPI"

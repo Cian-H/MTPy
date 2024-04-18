@@ -10,11 +10,12 @@ import dask
 from dask import array as da
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
+import psutil
+from read_layers import read_selected_layers
+
 from mtpy.utils.type_guards import (
     guarded_dask_dataframe,
 )
-import psutil
-from read_layers import read_selected_layers
 
 from .abstract import AbstractLoader
 

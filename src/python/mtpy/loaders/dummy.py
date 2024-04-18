@@ -5,6 +5,7 @@ from typing import Optional
 
 import dask.dataframe as dd
 from fsspec.implementations.local import LocalFileSystem
+
 from mtpy.utils.types import CalibrationFunction
 
 

@@ -26,7 +26,6 @@ class AbstractBase(metaclass=ABCMeta):  # noqa B024
                 Defaults to `loguru.logger`
             progressbar (ProgressBarProtocol, optional):
                 A passthrough iterative wrapper that updates a progress bar. Defaults to `tqdm`.
-            **kwargs (Dict[str, Any]): Additional keyword arguments (unused).
         """
         self.logger = logger
         self.progressbar = progressbar

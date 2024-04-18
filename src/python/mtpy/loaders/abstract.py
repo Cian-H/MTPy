@@ -19,6 +19,8 @@ from dask.distributed.deploy import Cluster
 from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
+import psutil
+
 from mtpy.base.abstract import AbstractBase
 from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
@@ -32,7 +34,6 @@ from mtpy.utils.type_guards import (
     guarded_pathmetadatatree,
 )
 from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
-import psutil
 
 # Conditional imports depending on whether a GPU is present
 # Lots of type: ignore comments here because mypy is not happy with these conditional imports
