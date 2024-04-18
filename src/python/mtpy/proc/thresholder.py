@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A class that handles thresholding of data for the data pipeline."""
 
 from __future__ import annotations

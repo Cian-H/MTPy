@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A module containing functions for efficiently hashing large files and directories."""
 
 from __future__ import annotations

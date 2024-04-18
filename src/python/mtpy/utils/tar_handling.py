@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A module for handling tarfiles and their contents."""
 
 from __future__ import annotations

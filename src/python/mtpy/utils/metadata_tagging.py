@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A module for adding and reading metadata tags to and from files."""
 
 import json

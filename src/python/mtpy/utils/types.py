@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """This module contains type definitions for the mtpy package."""
 
 from typing import Callable, Dict, Iterable, List, Protocol, Sized, TypedDict, TypeVar, Union

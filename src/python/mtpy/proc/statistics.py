@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A module for handling data statistics for the data pipeline."""
 
 from functools import singledispatchmethod

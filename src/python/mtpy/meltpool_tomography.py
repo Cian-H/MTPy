@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 """A module for handling L-PBF meltpool tomography data."""
 
 from pathlib import Path

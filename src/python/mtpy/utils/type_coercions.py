@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A module containing functions for safely coercing types."""
 
 from typing import Any, TypeVar

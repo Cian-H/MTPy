@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A base class on which all other classes in this package are built."""
 
 from typing import Protocol

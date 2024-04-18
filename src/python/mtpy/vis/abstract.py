@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Data visualisation components of the MTPy module."""
 
 from abc import ABCMeta, abstractmethod

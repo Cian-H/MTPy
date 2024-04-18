@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """A module for dispatching 3d plotting functions."""
 
 from __future__ import annotations
