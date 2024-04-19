@@ -24,13 +24,6 @@ from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
 from mtpy.utils.metadata_tagging import add_metadata, read_metadata
 from mtpy.utils.tar_handling import entry_size, parse_header, uncompressed_tarfile_size, unpack_file
-from mtpy.utils.type_guards import (
-    guarded_dask_dataframe,
-    guarded_int,
-    guarded_json_data,
-    guarded_json_dict,
-    guarded_pathmetadatatree,
-)
 from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
 
 # Conditional imports depending on whether a GPU is present
@@ -208,6 +201,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         if self.fs.exists(working_path):
             self.fs.rm(working_path, recursive=True)
         self.fs.mv(commit_path, working_path, recursive=True)
+
+        from mtpy.utils.type_guards import guarded_dask_dataframe
+
         self.data = guarded_dask_dataframe(
             dd.read_parquet(
                 self.fs.unstrip_protocol(working_path),
@@ -260,6 +256,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             del self.data
             self.fs.rm(working_path, recursive=True)
             self.fs.cp(raw_path, working_path, recursive=True)
+
+            from mtpy.utils.type_guards import guarded_dask_dataframe
+
             self.data = guarded_dask_dataframe(
                 dd.read_parquet(
                     self.fs.unstrip_protocol(working_path),
@@ -394,6 +393,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                     tarinfo = tarfile.TarInfo(name=f"{f}")
                     tarinfo.size = fileobj.getbuffer().nbytes
                     tarball.addfile(tarinfo, fileobj=fileobj)
+
+        from mtpy.utils.type_guards import guarded_json_data
+
         # metadata will be used to accelerate unpacking
         add_metadata(self.fs, filepath, guarded_json_data(metadata))
         self.logger.info("Data saved!")
@@ -491,6 +493,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         if metadata_tag == self.cache_metadata:
             self.logger.info("Savefile matches current cache. Skipping load...")
             return
+
+        from mtpy.utils.type_guards import guarded_int, guarded_json_dict, guarded_pathmetadatatree
+
         metadata = guarded_json_dict(metadata_tag)
         end = guarded_int(metadata["archive_size"])
         tree_metadata: PathMetadataTree = guarded_pathmetadatatree(metadata["tree"])
@@ -524,6 +529,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                     self.__dict__[k] = v
 
         working_path = f"{self._data_cache}working"
+
+        from mtpy.utils.type_guards import guarded_dask_dataframe
+
         self.data = guarded_dask_dataframe(
             dd.read_parquet(
                 working_path,

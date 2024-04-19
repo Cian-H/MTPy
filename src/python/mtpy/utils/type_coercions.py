@@ -2,7 +2,6 @@
 
 from typing import Any, TypeVar
 
-from .type_guards import is_iterable, is_sized_iterable
 from .types import SizedIterable
 
 T = TypeVar("T")
@@ -17,6 +16,8 @@ def ensure_sized_iterable(obj: Any) -> SizedIterable[T]:  # noqa: ANN401
     Returns:
         Iterable[T]: the object as an iterable
     """
+    from .type_guards import is_iterable, is_sized_iterable
+
     if is_sized_iterable(obj):
         return obj
     if is_iterable(obj):

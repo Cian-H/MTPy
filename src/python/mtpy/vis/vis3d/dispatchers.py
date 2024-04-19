@@ -10,8 +10,6 @@ from datashader.reductions import Reduction
 import holoviews as hv
 import holoviews.operation.datashader as hd
 
-from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
-
 from . import hooks
 
 # This module might be mostly copy/pasted from the 2d version, was busy implementing the 3d version
@@ -64,6 +62,8 @@ def scatter(
     kdims = [kwargs["x"], kwargs["y"]]
     w_col = kwargs.get("w", None)
 
+    from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
+
     f_list = [
         guarded_callable(hv.Points),
         guarded_callable(hd.rasterize),
@@ -106,6 +106,8 @@ def distribution(
         Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
         for generating a holoviz plot
     """
+    from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
+
     f_list = [guarded_callable(hv.Distribution)]
     kwargs_list = [guarded_str_key_dict({})]
     opts = guarded_str_key_dict({})

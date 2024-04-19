@@ -8,7 +8,6 @@ from holoviews.element.chart import Chart
 
 from mtpy.loaders.dummy import DummyLoader
 from mtpy.loaders.protocol import LoaderProtocol
-from mtpy.utils.type_guards import guarded_plotter_protocol
 from mtpy.vis.abstract import AbstractPlotter
 from mtpy.vis.protocol import PlotterProtocol
 from mtpy.vis.vis2d.plotter import Plotter as Plotter2D
@@ -154,6 +153,8 @@ class Plotter(CombinedPlotter):
             self (Plotter): The Plotter class instance
             loader (LoaderProtocol): The loader providing the data to the plotter
         """
+        from mtpy.utils.type_guards import guarded_plotter_protocol
+
         plotters: Dict[str, PlotterProtocol] = {
             "2d": guarded_plotter_protocol(Plotter2D(loader)),
             "3d": guarded_plotter_protocol(Plotter3D(loader)),

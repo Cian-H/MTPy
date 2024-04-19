@@ -12,13 +12,6 @@ import pandas as pd
 
 from mtpy.base.abstract import AbstractBase
 from mtpy.utils.type_coercions import ensure_sized_iterable
-from mtpy.utils.type_guards import (
-    guarded_dask_number,
-    guarded_dask_series,
-    is_callable,
-    is_sized_iterable,
-    is_str_key_dict,
-)
 
 from .abstract import AbstractProcessor
 
@@ -35,7 +28,9 @@ class Thresholder(AbstractProcessor, AbstractBase):
             angle (float): the angle by which to rotate the coordinates.
         """
         # For this entire next section: dask's type hinting sucks.
-        # The best fix I could find involves this tyeguarded mess.
+        # The best fix I could find involves this typeguarded mess.
+        from mtpy.utils.type_guards import guarded_dask_number, guarded_dask_series
+
         sin_theta = guarded_dask_number(sin(angle / degrees_per_rad))
         cos_theta = guarded_dask_number(cos(angle / degrees_per_rad))
         x = guarded_dask_series(self.loader.data["x"])
@@ -151,6 +146,8 @@ class Thresholder(AbstractProcessor, AbstractBase):
         #     thresh_functions = (thresh_functions,)
         # if is_str_key_dict(threshfunc_kwargs):
         #     threshfunc_kwargs = (threshfunc_kwargs,)
+        from mtpy.utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
+
         if not (is_sized_iterable(thresh_functions) or is_callable(thresh_functions)):
             msg = "thresh_functions must be a sized iterable or a callable"
             raise ValueError(msg)

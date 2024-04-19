@@ -10,8 +10,6 @@ from datashader.reductions import Reduction
 import holoviews as hv
 import holoviews.operation.datashader as hd
 
-from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
-
 from . import hooks
 
 
@@ -63,6 +61,8 @@ def scatter(
     kdims = [kwargs["x"], kwargs["y"]]
     w_col = kwargs.get("w", None)
 
+    from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
+
     f_list = [
         guarded_callable(hv.Points),
         guarded_callable(hd.rasterize),
@@ -106,6 +106,8 @@ def distribution(
         for generating a holoviz plot
     """
     kdims = [kwargs["x"]]
+
+    from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
     f_list = [guarded_callable(hv.Distribution)]
     kwargs_list = [guarded_str_key_dict({"kdims": kdims, "label": f"Distribution {kdims[0]}"})]

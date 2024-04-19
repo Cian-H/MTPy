@@ -11,11 +11,6 @@ from fsspec.implementations.local import LocalFileSystem
 import psutil
 from read_layers import read_selected_layers
 
-from mtpy.utils.type_guards import (
-    guarded_dask_array,
-    guarded_dask_dataframe,
-)
-
 from .abstract import AbstractLoader
 
 # Conditional imports depending on whether a GPU is present
@@ -117,6 +112,8 @@ class AconityLoader(AbstractLoader):
 
         darrays = [da.from_npy_stack(npy_stack) for npy_stack in local_fs.ls(read_arr_cache)]
 
+        from mtpy.utils.type_guards import guarded_dask_array
+
         data = guarded_dask_array(da.concatenate(darrays))
         data = data.rechunk(balance=True)
 
@@ -143,6 +140,8 @@ class AconityLoader(AbstractLoader):
 
         # if keeping raw data, copy raw files before modifying
         self.fs.cp(f"{self._data_cache}raw", f"{self._data_cache}working", recursive=True)
+
+        from mtpy.utils.type_guards import guarded_dask_dataframe
 
         self.data = guarded_dask_dataframe(
             dd.read_parquet(

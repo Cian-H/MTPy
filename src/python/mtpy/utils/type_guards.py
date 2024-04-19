@@ -1,6 +1,12 @@
 # ruff: noqa: ANN401 # Disable ANN401 since the module is a collection of type guards
 
-"""A module containing type guards for enforcing type safety."""
+"""A module containing type guards for enforcing type safety.
+
+Developer note: because they are prevalent throughout the program when using these type
+guarding functions it is advisable to defer their imports. This helps avoid accidental
+circular imports since these will be imported at many different points during class
+composition.
+"""
 
 from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeVar
 

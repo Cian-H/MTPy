@@ -11,7 +11,6 @@ from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
-from mtpy.utils.type_guards import is_float_pair_tuple
 from mtpy.vis.abstract import AbstractPlotter
 
 from .dispatchers import plot_dispatch
@@ -126,6 +125,8 @@ class Plotter(AbstractPlotter):
             (xrange, yrange, zrange),
             strict=False,
         ):
+            from mtpy.utils.type_guards import is_float_pair_tuple
+
             if axis_range is None:
                 continue
             if isinstance(axis_range, float):
