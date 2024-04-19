@@ -16,7 +16,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - [x] add debug messages
 - [x] add proper user feedback mechanism
 - [x] Refactor and implement patterns where appropriate
-- [ ] use `__init__.py` to simplify API
+- [x] use `__init__.py` to simplify API
 - [ ] ~~clean up namespaces with config files?~~ <- Unnecessary. Restructure made the API more sensible.
 - [x] add automated documentation via mkdocs (and remove sphinx docs)
 - [ ] implement a CLI for basic functions
@@ -31,6 +31,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
     - [x] Replace old constructs (e.g: `typing.Union`) with more modern versions
     - [x] Update dependencies
 - [ ] Profile import time (takes long time to import library)
+- [ ] Split library into groups, e.g: core, vis, statistics, etc so they dont all need to be installed every time.
 
 ## Subprojects
 
