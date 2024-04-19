@@ -4,6 +4,7 @@
 
 from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeVar
 
+from dask import array as da
 from dask import dataframe as dd
 
 from mtpy.base.feedback.protocol import ProgressBarProtocol
@@ -66,6 +67,7 @@ def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Ca
 
 is_int, guarded_int = create_type_guard(int)
 is_dask_dataframe, guarded_dask_dataframe = create_type_guard(dd.DataFrame)
+is_dask_array, guarded_dask_array = create_type_guard(da.Array)
 is_dask_series, guarded_dask_series = create_type_guard(dd.Series)
 is_dask_number, guarded_dask_number = create_type_guard(dd.dd.Number)
 is_bytes, guarded_bytes = create_type_guard(bytes)

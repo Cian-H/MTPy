@@ -12,6 +12,7 @@ import psutil
 from read_layers import read_selected_layers
 
 from mtpy.utils.type_guards import (
+    guarded_dask_array,
     guarded_dask_dataframe,
 )
 
@@ -93,17 +94,17 @@ class AconityLoader(AbstractLoader):
             data_fs.get(
                 file_list, local_file_list
             )  # maybe making this async would speed up process?
-            data = read_selected_layers([Path(f) for f in local_file_list])
+            layer_data = read_selected_layers([Path(f) for f in local_file_list])
             darr = da.from_array(
-                data,
+                layer_data,
                 chunks=cast(  # Necessary because the type annotation on this arg is incorrect
                     str,
                     (
                         (
-                            *tuple(repeat(chunk_size, data.shape[0] // chunk_size)),
-                            data.shape[0] % chunk_size,
+                            *tuple(repeat(chunk_size, layer_data.shape[0] // chunk_size)),
+                            layer_data.shape[0] % chunk_size,
                         ),
-                        *((x,) for x in data.shape[1:]),
+                        *((x,) for x in layer_data.shape[1:]),
                     ),
                 ),
             )
@@ -116,8 +117,7 @@ class AconityLoader(AbstractLoader):
 
         darrays = [da.from_npy_stack(npy_stack) for npy_stack in local_fs.ls(read_arr_cache)]
 
-        data = da.concatenate(darrays)
-        # type: ignore # mypy is just wrong here.
+        data = guarded_dask_array(da.concatenate(darrays))
         data = data.rechunk(balance=True)
 
         self.fs.mkdirs(f"{self._data_cache}raw", exist_ok=True)
