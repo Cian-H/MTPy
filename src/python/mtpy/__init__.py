@@ -17,6 +17,3 @@ from . import base, loaders, meltpool_tomography, proc, utils, vis
 __all__ = ["base", "loaders", "proc", "utils", "vis", "meltpool_tomography"]
 
 from .meltpool_tomography import MeltpoolTomography  # noqa
-from loguru import logger
-
-logger.disable("mtpy")

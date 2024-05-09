@@ -18,12 +18,6 @@ repos:
         types: [python]
         exclude: docs/
 
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
-    hooks:
-    - id: fmt
-    - id: cargo-check
-
   - repo: https://github.com/python-poetry/poetry
     rev: "1.8.0"
     hooks:

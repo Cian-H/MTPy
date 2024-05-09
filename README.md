@@ -4,6 +4,26 @@
 
 A python based tool for Meltpool Tomography. Currently very much a work in progress. In the process of being refactored, reorganized, and redesigned a little to turn it from a draft tool into a more polished and useful library ready to be rolled out to the broader community.
 
+## Daily Notes
+
+- Pulled read_layers out of module to more simplify project
+    - Need to remove remnants from this project and reorganise it
+    - Should probably remove julia remnants while im at it
+- Test still failing
+    - Giving error:
+    ```
+    FAILED tests/loaders/aconity_test.py::test_read_layers
+    ValueError: Unable to coerce to DataFrame,
+    shape must be (0, 4): given (128, 4)
+    ```
+- Error is surprisingly informative but not sure where its occuring
+- Is `ValueError` so likely originates from python
+- Huge logs returned by dask as it spins up many clients:
+    - Might make sense to suppress dask logs
+    - But error might be in `dask`?
+    - Maybe just suppress `dask.distributed`
+- Either way: need to clean up logs and go through in detail
+
 ## Todo
 
 - [x] reorganize project folder structure (proper /src directory, etc)
@@ -31,7 +51,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
     - [x] Replace old constructs (e.g: `typing.Union`) with more modern versions
     - [x] Update dependencies
 - [ ] Profile import time (takes long time to import library)
-- [ ] Split library into groups, e.g: core, vis, statistics, etc so they dont all need to be installed every time.
+- [x] Split library into groups, e.g: core, vis, statistics, etc so they dont all need to be installed every time.
 
 ## Subprojects
 
@@ -42,14 +62,19 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - [x] Decouple main classes
 - [x] Implement logger according to a protocol
 - [x] Implement progress bars according to a protocol
-- [ ] Create dummy modules for each class
+- [x] Create dummy modules for each class
 
 ### Create proper testing regime
 
-- [ ] Create testing modules conforming to protocols
+- [x] Create testing modules conforming to protocols
     - Might make sense for testing modules to be wrappers around hypothesis generators?
 - Implement tests using:
-    - [ ] Traditional scripted testing (e.g: pytest)
-    - [ ] Property based testing (hypothesis)
+    - [x] Traditional scripted testing (e.g: pytest)
+    - [x] Property based testing (hypothesis)
+- Testing Strategy:
+    - [x] Loaders
+        - [x] `read_layers`
+        - [x] `apply_calibration_curve`
+        - [x] `commit`
 
 Note: This project is an absolute mess right now, i need to remember to make sure i branch each subsection of this work in git to manage it properly.
