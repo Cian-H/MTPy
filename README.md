@@ -6,23 +6,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 
 ## Daily Notes
 
-- Pulled read_layers out of module to more simplify project
-    - Need to remove remnants from this project and reorganise it
-    - Should probably remove julia remnants while im at it
-- Test still failing
-    - Giving error:
-    ```
-    FAILED tests/loaders/aconity_test.py::test_read_layers
-    ValueError: Unable to coerce to DataFrame,
-    shape must be (0, 4): given (128, 4)
-    ```
-- Error is surprisingly informative but not sure where its occuring
-- Is `ValueError` so likely originates from python
-- Huge logs returned by dask as it spins up many clients:
-    - Might make sense to suppress dask logs
-    - But error might be in `dask`?
-    - Maybe just suppress `dask.distributed`
-- Either way: need to clean up logs and go through in detail
+- Pretty happy with the current state of this one. No notes ATM.
 
 ## Todo
 
@@ -50,7 +34,8 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
     - [x] remove old code
     - [x] Replace old constructs (e.g: `typing.Union`) with more modern versions
     - [x] Update dependencies
-- [ ] Profile import time (takes long time to import library)
+- [x] Profile import time (takes long time to import library)
+    - NOTE: Looked into this, it will take some work to solve. Leaving it for now.
 - [x] Split library into groups, e.g: core, vis, statistics, etc so they dont all need to be installed every time.
 
 ## Subprojects

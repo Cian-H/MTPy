@@ -24,6 +24,11 @@ theme:
       toggle:
         icon: material/lightbulb-outline
         name: Switch to light mode
+  plugins:
+    - optimize
+    - privacy
+    - projects
+    - typeset
 
 nav:
   - Home: index.md
@@ -32,41 +37,26 @@ nav:
     - Structure:
       - Classes: tmp/uml/classes.html
       - Packages: tmp/uml/packages.html
-  # - Getting Started:
-  #   - Installation: installation.md
-  #   - Usage: usage.md
-  # - CLI Usage:
-  #   - Commands: commands.md
-  #   - Configuration: configuration.md
-  #   - Deployment: deployment.md
-  # - Developer:
-  #   - autoignition: src/autoignition.md
-  #   - cli: src/cli.md
-  #   - config: src/config.md
-  #   - create_img: src/create_img.md
-  #   - create_disk: src/create_disk.md
-  #   - debug: src/debug.md
-  #   - ip_interface: src/ip_interface.md
-  #   - utils: src/utils.md
-  # - Reference:
-  #   - FAQ: faq.md
-  #   - Troubleshooting: troubleshooting.md
-  #   - Changelog: changelog.md
-  #   - License: license.md
+  # - FAQ: faq.md
+  # - Troubleshooting: troubleshooting.md
+  # - Changelog: changelog.md
+  # - License: license.md
 
 extra:
   version:
     provider: mike
 
-# markdown_extensions:
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 #   - mkdocs-typer
 
 plugins:
-  #TODO: Add plugins, they seem to be broken at the moment
-  # - material/optimize
-  # - material/privacy
-  # - material/projects
-  # - material/typeset
   - search
   - gen-files:
       scripts:
@@ -78,7 +68,6 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-        # paths: "mtpy/"
           options:
             preload_modules: ["mtpy", ]
             show_inheritance_diagram: true
