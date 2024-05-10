@@ -6,11 +6,10 @@ urls = { github = "https://github.com/Cian-H/I-Form_Server_Node_Deployer" }
 authors = ["Cian Hughes <cian.hughes@dcu.ie>"]
 readme = "README.md"
 license = "MIT"
-packages = [{ include = "mtpy", from = "src/python" }]
+packages = [{ include = "mtpy", from = "." }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-# julia = "^0.5.7"
 numpy = "^1.26.4"
 matplotlib = "^3.8.3"
 plotly = "^5.20.0"
@@ -54,6 +53,7 @@ types-tqdm = "^4.66.0"
 types-psutil = "^5.9.5"
 ruff = "^0.3.5"
 hypothesis = { extras = ["numpy"], version = "^6.100.1" }
+importtime-output-wrapper = "^1.1.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"
@@ -72,7 +72,7 @@ priority = "primary"
 
 [build-system]
 requires = ["poetry-core"]
-build-backend = "maturin"  # "poetry.core.masonry.api"
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 100
@@ -259,23 +259,6 @@ check_untyped_defs = true
 ignore_missing_imports = true
 exclude = ["docs/", "tests/"]
 
-[[tool.mypy.overrides]]
-module = ["flet.*", "flet_core.*", "fsspec.*"]
-ignore_missing_imports = true
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".venv/bin/python"]
-
-[tool.maturin]
-# Bindings type
-bindings = "pyo3"
-# Don't check for manylinux compliance
-skip-auditwheel = false
-# Python source directory
-# python-source = "src/mtpy"
-# Strip the library for minimum file size
-strip = true
-# Source distribution generator,
-# supports cargo (default) and git.
-sdist-generator = "cargo"

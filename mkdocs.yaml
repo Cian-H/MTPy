@@ -78,7 +78,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: "src/python/"
+        # paths: "mtpy/"
           options:
             preload_modules: ["mtpy", ]
             show_inheritance_diagram: true

@@ -30,7 +30,7 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - [x] implement mypy type annotations to enforce types and prevent errors
 - [x] add missing docstrings, conforming to a standard (currently using google convention)
 - [x] add automated UML generation
-- [ ] add tests using pytest and hypothesis
+- [x] add tests using pytest and hypothesis
 - [x] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)
 - [x] add proper debug logging
 - [x] add debug messages

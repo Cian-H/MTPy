@@ -9,6 +9,6 @@ uml_dir = root / "docs/tmp/uml/"
 uml_dir.mkdir(parents=True, exist_ok=True)
 
 subprocess.run(
-    ["pyreverse", root / "src/python/mtpy", "-o", "html", "-d", uml_dir],
+    ["pyreverse", root / "mtpy", "-o", "html", "-d", uml_dir],
     check=True,
 )
