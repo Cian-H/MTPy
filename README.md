@@ -4,11 +4,7 @@
 
 A python based tool for Meltpool Tomography. Currently very much a work in progress. In the process of being refactored, reorganized, and redesigned a little to turn it from a draft tool into a more polished and useful library ready to be rolled out to the broader community.
 
-## Daily Notes
-
-- Pretty happy with the current state of this one. No notes ATM.
-
-## Todo
+## ToDo
 
 - [x] reorganize project folder structure (proper /src directory, etc)
 - [x] implement mypy type annotations to enforce types and prevent errors
@@ -21,7 +17,6 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - [x] add proper user feedback mechanism
 - [x] Refactor and implement patterns where appropriate
 - [x] use `__init__.py` to simplify API
-- [ ] ~~clean up namespaces with config files?~~ <- Unnecessary. Restructure made the API more sensible.
 - [x] add automated documentation via mkdocs (and remove sphinx docs)
 - [ ] implement a CLI for basic functions
 - [ ] rewrite experimental GUI using flet
@@ -37,29 +32,4 @@ A python based tool for Meltpool Tomography. Currently very much a work in progr
 - [x] Profile import time (takes long time to import library)
     - NOTE: Looked into this, it will take some work to solve. Leaving it for now.
 - [x] Split library into groups, e.g: core, vis, statistics, etc so they dont all need to be installed every time.
-
-## Subprojects
-
-### Loosen class couplings
-
-- [x] Properly plan new UML
-- [x] Create abstract classes/interfaces
-- [x] Decouple main classes
-- [x] Implement logger according to a protocol
-- [x] Implement progress bars according to a protocol
-- [x] Create dummy modules for each class
-
-### Create proper testing regime
-
-- [x] Create testing modules conforming to protocols
-    - Might make sense for testing modules to be wrappers around hypothesis generators?
-- Implement tests using:
-    - [x] Traditional scripted testing (e.g: pytest)
-    - [x] Property based testing (hypothesis)
-- Testing Strategy:
-    - [x] Loaders
-        - [x] `read_layers`
-        - [x] `apply_calibration_curve`
-        - [x] `commit`
-
-Note: This project is an absolute mess right now, i need to remember to make sure i branch each subsection of this work in git to manage it properly.
+- [ ] Carve out save/load functionality into a separate module
