@@ -2,34 +2,33 @@
 
 ## Overview
 
-A python based tool for Meltpool Tomography. Currently very much a work in progress. In the process of being refactored, reorganized, and redesigned a little to turn it from a draft tool into a more polished and useful library ready to be rolled out to the broader community.
+A modular, extensible, and modifiable python based tool for Meltpool Tomography. The aim of this tool is to create a core library of PBF tools that can be applied in the many areas of our research on the topic. Features of the current implementation include:
+- Streaming of larger-than-RAM datasets from HDD for:
+    - analysis
+    - plotting
+    - Data mining
+-  No need for binning or other data reduction methods
+-  Distributed computing, allowing for analysis to take place on compute clusters and larger distributed systems
+-  Extensive type hinting and structurally subtyped composition. This design ensures that:
+    - New modules can easily be added
+    - Documentation can be automatically generated
+    - Users will get LSP tooltips to help them develop quickly
+    - Static analysis can be used to catch errors quickly
+    - Modules can easily and seamlessly be implemented in more performant, statically typed languages (e.g: the [`read_aconity_layers`](https://github.com/Cian-H/read_aconity_layers) submodule here, written in rust)
+- Detailed, togglable user feedback and debug logs, allowing for quick diagnosis of problems when they occur
+- Test coverage for core, IO interfaces (as they are most likely parts to error) with plans to expand coverage in the future
+Planned features for the future include:
+- A CLI to avoid the need for scripting when doing common analyses
+- A new GUI to allow non-programming researchers to use the tool (previous GUI [`Melter`](https://github.com/Cian-H/Melter) was a good demonstrator but isn't really fit for our current purposes)
+- Reimplementation of the previouslt removed interactive 3d plot feature
+- GPU support to further accelerate analysis of extremely large datasets
+- Better sample detection via mathematically driven raster detection
 
 ## ToDo
 
-- [x] reorganize project folder structure (proper /src directory, etc)
-- [x] implement mypy type annotations to enforce types and prevent errors
-- [x] add missing docstrings, conforming to a standard (currently using google convention)
-- [x] add automated UML generation
-- [x] add tests using pytest and hypothesis
-- [x] add git hooks (e.g: format every commit with black/ruff  and check with mypy before pushing)
-- [x] add proper debug logging
-- [x] add debug messages
-- [x] add proper user feedback mechanism
-- [x] Refactor and implement patterns where appropriate
-- [x] use `__init__.py` to simplify API
-- [x] add automated documentation via mkdocs (and remove sphinx docs)
 - [ ] implement a CLI for basic functions
 - [ ] rewrite experimental GUI using flet
 - [ ] implement Dask GPU support
-- [ ] Add a dashboard using dash
 - [ ] Add raster detection component as processor
-- [ ] fix 3d tomography visualizations (see in-progress project)
-- [x] clean up project in general
-    - [x] remove unused files
-    - [x] remove old code
-    - [x] Replace old constructs (e.g: `typing.Union`) with more modern versions
-    - [x] Update dependencies
-- [x] Profile import time (takes long time to import library)
-    - NOTE: Looked into this, it will take some work to solve. Leaving it for now.
-- [x] Split library into groups, e.g: core, vis, statistics, etc so they dont all need to be installed every time.
+- [ ] fix interactive 3d tomography visualizations (in-progress project)
 - [ ] Carve out save/load functionality into a separate module
