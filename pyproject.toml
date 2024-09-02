@@ -30,7 +30,7 @@ dash = "^2.16.1"
 openpyxl = "^3.1.2"
 odfpy = "^1.4.1"
 fsspec = "^2024.3.1"
-pyarrow = "^15.0.0"
+pyarrow = ">15.0.0"
 loguru = "^0.7.2"
 read-aconity-layers = { git = "https://github.com/Cian-H/read_aconity_layers" }
 
