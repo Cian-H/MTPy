@@ -169,4 +169,4 @@ Cargo.lock
 docs/tmp/
 
 # Ignore nix devenv related files
-flake.*
+.direnv
