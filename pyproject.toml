@@ -262,3 +262,6 @@ exclude = ["docs/", "tests/"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".venv/bin/python"]
+
+[tool.poetry.scripts]
+build-flatbuffer-schemas = "scripts.build_flatbuffer_schemas:main"

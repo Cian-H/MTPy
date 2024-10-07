@@ -1,0 +1,19 @@
+namespace tree_metadata;
+
+struct Sha1 {
+    bytearray:[ubyte:20];
+}
+
+table TreeFile {
+    filepath: string;
+    hash: Sha1;
+    is_dir: bool;
+    size: ulong;
+}
+
+table Metadata {
+    size: ulong;
+    tree: [TreeFile];
+}
+
+root_type Metadata;
