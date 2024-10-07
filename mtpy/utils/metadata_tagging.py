@@ -1,47 +1,33 @@
 """A module for adding and reading metadata tags to and from files."""
 
-import json
-from typing import cast
-
 from fsspec.spec import AbstractFileSystem
+import h5py
 
-from mtpy.utils.type_guards import guarded_bytes
-from mtpy.utils.types import JSONData
-
-
-def add_metadata(fs: AbstractFileSystem, file: str, meta: JSONData) -> None:
-    """A function for adding a metadata tag to a file.
-
-    Args:
-        fs (AbstractFileSystem): an fsspec filesystem
-        file (str): the file to add the metadata tag to
-        meta (JSONDict): the metadata tag to add
-    """
-    serialized_meta = json.dumps(meta).encode("utf-8")
-    with fs.open(file, "ab+") as f:
-        f.write(serialized_meta)
-        f.write(
-            # this being bytes instead of str is fine because `mode` is "ab+"
-            cast(str, len(serialized_meta).to_bytes(8, "big"))
-        )
+from mtpy.utils.hdf5_operations import read_bytes_from_hdf_dataset
+from mtpy.utils.tree_metadata import Metadata
+from mtpy.utils.types import PathMetadataTree
 
 
-def read_metadata(fs: AbstractFileSystem, file: str) -> JSONData:
-    """A function for reading a metadata tag from a file.
+def read_tree_metadata(fs: AbstractFileSystem, filepath: str) -> PathMetadataTree:
+    """Reads cache tree metadata from HDF5 file.
 
     Args:
         fs (AbstractFileSystem): an fsspec filesystem
-        file (str): the file to read the metadata tag from
+        filepath: The path to the HDF5 file to read from.
 
     Returns:
-        JSONDict: the metadata tag read from the file
+        PathMetadataTree: A typed dict containing tree metadata for the cache path.
     """
-    with fs.open(file, "rb") as f:
-        f.seek(-8, 2)
-        json_size = int.from_bytes(
-            guarded_bytes(f.read()),  # this will be bytes because `mode` is "rb"
-            "big",
-        )
-        f.seek(-8 - json_size, 2)
-        data = f.read(json_size)
-    return json.loads(data)
+    with h5py.File(fs.open(filepath), "r", swmr=True) as f:
+        meta = read_bytes_from_hdf_dataset(f["cache"]["metadata"])
+    mbuffer = Metadata.Metadata.GetRootAs(meta, 0)
+    meta_dict = {"size": mbuffer.Size(), "tree": (tree_meta := {})}
+    if not mbuffer.TreeIsNone():
+        for i in range(mbuffer.TreeLength()):
+            tree_entry = mbuffer.Tree(i)
+            tree_meta[tree_entry.Filepath().decode()] = {
+                "is_dir": tree_entry.IsDir(),
+                "size": tree_entry.Size(),
+                "hash": int.from_bytes(tree_entry.Hash().Bytearray()),
+            }
+    return meta_dict
