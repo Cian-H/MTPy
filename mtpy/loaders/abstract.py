@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
+import flatbuffers
 from functools import partial
+import h5py
 from io import BytesIO
 from pathlib import Path
 import pickle
@@ -21,8 +23,10 @@ import psutil
 from mtpy.base.abstract import AbstractBase
 from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
-from mtpy.utils.metadata_tagging import add_metadata, read_metadata
+from mtpy.utils.metadata_tagging import read_metadata
+from mtpy.utils.tree_metadata import Metadata, TreeFile, Sha1
 from mtpy.utils.tar_handling import entry_size, parse_header, uncompressed_tarfile_size, unpack_file
+from mtpy.utils.hdf5_operations import read_bytes_from_hdf_dataset, write_bytes_to_hdf_dataset
 from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
 
 # Conditional imports depending on whether a GPU is present
@@ -113,7 +117,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         self.fs.mkdirs(self._data_cache, exist_ok=True)
         self._data_cache_fs = DirFileSystem(path=self._data_cache, fs=self.fs)
         # Misc configuration attributes
-        self._file_suffix = "mtp"
+        self._file_suffix = "hdf5"
 
     def get_memory_limit(self: "AbstractLoader") -> int:
         """Get the memory limit for the current cluster.
@@ -293,7 +297,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 raise TypeError(msg)
             else:
                 f_as_str = f
-            rel_path = f_as_str.replace(str(self._data_cache), "")
+            rel_path = self.filepath_relative_to_cache(f_as_str)
             is_dir = self.fs.stat(f_as_str)["type"] == "directory"
             path_metadata = PathMetadata(
                 hash=large_hash(self.fs, f_as_str),
@@ -321,7 +325,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         meta_dict = {}
         meta_dict["size"] = sum(self.fs.sizes(self.fs.find(path)))
         meta_dict["tree"] = self.tree_metadata(path)
-        meta_dict["archive_size"] = uncompressed_tarfile_size(meta_dict["tree"])
         return meta_dict
 
     # return metadata for the cache.
@@ -366,37 +369,36 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             if filepath[-1] != ".":
                 filepath += "."
             filepath += self._file_suffix
+        filepath_obj = Path(filepath)
         # Check if file exists, if does save with lowest available number added
         p = filepath
         i = 1
         while self.fs.exists(p):
-            p = f"{filepath[:-4]}({i}){filepath[-4:]}"
+            p = str(filepath_obj.parent / f"{filepath_obj.stem}({i}){filepath_obj.suffix}")
             i += 1
         if filepath != p:
             self.logger.info(f"{filepath} already exists! Saving as {p}...")
             filepath = p
-        # Add pickled self.__dict__ (not including temporary attrs) to the data cache
-        attrs = self.__dict__.copy()
-        for k in ("cluster", "client", "cache", "views"):
-            if k in attrs:
-                del attrs[k]
-        pickle.dump(attrs, self.fs.open(f"{self._data_cache}attrs.pickle", "wb+"))
-        # Get cache metadata, and store to tag onto tail of savefile
+        # metadata will be used to accelerate unpacking
         metadata = self.cache_metadata
         # Finally, compress the cache and its contents
-        with tarfile.open(filepath, mode="w:gz") as tarball:
-            for f in self.progressbar(self.fs.get_mapper(str(self._data_cache))):
-                with self.fs.open(f"{self._data_cache}{f}", "rb") as cache_file:
-                    # Type checker is wrong below. The attribute `f` DEFINITELY exists here
-                    fileobj = BytesIO(cache_file.f.read())
-                    tarinfo = tarfile.TarInfo(name=f"{f}")
-                    tarinfo.size = fileobj.getbuffer().nbytes
-                    tarball.addfile(tarinfo, fileobj=fileobj)
-
-        from mtpy.utils.type_guards import guarded_json_data
-
-        # metadata will be used to accelerate unpacking
-        add_metadata(self.fs, filepath, guarded_json_data(metadata))
+        self.fs.touch(filepath)
+        # To do this, add metadata
+        with h5py.File(self.fs.open(filepath, mode="wb"), mode="w") as hdf:
+            cache_group = hdf.create_group("cache")
+            write_bytes_to_hdf_dataset(
+                cache_group, "metadata", self.create_metadata_buffer(metadata)
+            )
+        # Then add working data
+        self.data.to_hdf(self.fs.open(filepath), "cache/data/working")
+        # Lastly, add raw data
+        storage_options = getattr(self.fs, "storage_options", None)
+        raw_path = f"{self._data_cache}raw"
+        dd.read_parquet(
+            self.fs.unstrip_protocol(raw_path),
+            storage_options=storage_options,
+            parquet_file_extension=".parquet",
+        ).to_hdf(self.fs.open(filepath), "cache/data/raw")
         self.logger.info("Data saved!")
 
     def _extract_cache(
@@ -493,16 +495,81 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             self.logger.info("Savefile matches current cache. Skipping load...")
             return
 
-        from mtpy.utils.type_guards import guarded_int, guarded_json_dict, guarded_pathmetadatatree
+        from mtpy.utils.type_guards import guarded_json_dict, guarded_pathmetadatatree
 
         metadata = guarded_json_dict(metadata_tag)
-        end = guarded_int(metadata["archive_size"])
         tree_metadata: PathMetadataTree = guarded_pathmetadatatree(metadata["tree"])
         for k, v in tree_metadata.items():
             if v["is_dir"]:
                 k_path = k[len(self.fs.info(self._data_cache)["name"][:-5]) :]
                 self.fs.mkdirs(k_path, exist_ok=True)
-        self._extract_cache(end, filepath, blocksize, tree_metadata)
+        self._extract_cache(filepath, blocksize, tree_metadata)
+
+    @staticmethod
+    def _unpack_file(
+        fs: AbstractFileSystem, save_filepath: str, unpack_filepath: str, size: int
+    ) -> int:
+        with h5py.File(fs.open(save_filepath), "r") as hdf, open(unpack_filepath, "w") as f:
+            f.write(read_bytes_from_hdf_dataset(hdf["cache"]["tree"][unpack_filepath]))
+        return size
+
+    def _extract_cache(
+        self: "AbstractLoader",
+        filepath: str,
+        blocksize: int,
+        tree_metadata: PathMetadataTree,
+    ) -> None:
+        """Extracts the cache from the specified file.
+
+        Args:
+            self (DataLoader): The current DataLoader object.
+            end (int): The end of the file to extract.
+            filepath (str): The path to the target file.
+            blocksize (int): The blocksize for streaming when unpacking the file.
+            tree_metadata (PathMetadataTree): The metadata for the cache to be extracted.
+        """
+        pbar = self.progressbar(total=sum(v["size"] for k, v in tree_metadata.items()))
+        queue = [
+            (filepath, metadata["size"])
+            for save_filepath, metadata in tree_metadata.items()
+            if metadata["hash"] != self.cache_metadata["tree"]["hash"]
+        ]
+        unpack_archive_entry = partial(self._unpack_file, self.fs, filepath, self._data_cache_fs)
+        futures = self.client.map(unpack_archive_entry, *zip(*queue, strict=False), retries=None)
+        for _, readsize in as_completed(futures, with_results=True):
+            pbar.update(readsize)
+
+    def filepath_relative_to_cache(self: "AbstractLoader", f: str) -> str:
+        return str(Path(f).relative_to(Path(self._data_cache).resolve()))
+
+    @staticmethod
+    def create_tree_file(
+        builder: flatbuffers.Builder, path: str, file_meta: dict
+    ) -> TreeFile.TreeFile:
+        pathbuf = builder.CreateString(path)
+        TreeFile.Start(builder)
+        TreeFile.AddFilepath(builder, pathbuf)
+        TreeFile.AddHash(
+            builder, Sha1.CreateSha1(builder, file_meta["hash"].to_bytes(length=20))
+        )  # sha1 always produces a 20 byte int
+        TreeFile.AddIsDir(builder, file_meta["is_dir"])
+        TreeFile.AddSize(builder, file_meta["size"])
+        return TreeFile.End(builder)
+
+    def create_metadata_buffer(self: "AbstractLoader", metadata: PathMetadataTree) -> bytearray:
+        builder = flatbuffers.Builder()
+        tree = [self.create_tree_file(builder, k, v) for k, v in metadata["tree"].items()]
+        Metadata.StartTreeVector(builder, len(tree))
+        for file in reversed(tree):
+            builder.PrependUOffsetTRelative(file)
+        treebuff = builder.EndVector()
+
+        Metadata.Start(builder)
+        Metadata.AddSize(builder, metadata["size"])
+        Metadata.AddTree(builder, treebuff)
+        m = Metadata.End(builder)
+        builder.Finish(m)
+        return builder.Output()
 
     def load(self: "AbstractLoader", filepath: Path | str = Path("data")) -> None:
         """Loads the saved MTPy session from the specified file.
@@ -517,24 +584,34 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             filepath = str(filepath)
         self.fs.mkdirs(self._data_cache, exist_ok=True)
 
-        self._unpack_savefile(str(filepath))
-
-        # Finally, if present, load attributes from the saved instance
-        attr_path = Path(f"{self._data_cache}attrs.pickle")
-        if attr_path.exists():
-            attrs = pickle.load(attr_path.open("rb"))
-            for k, v in attrs.items():
-                if k in self.__dict__ and k != "cache":
-                    self.__dict__[k] = v
-
-        working_path = f"{self._data_cache}working"
-
         from mtpy.utils.type_guards import guarded_dask_dataframe
+
+        storage_options = getattr(self.fs, "storage_options", None)
+        working_path = f"{self._data_cache}working"
+        raw_path = f"{self._data_cache}raw"
+
+        # Unpack working and raw into the cache in parallel
+        dask.compute(
+            dd.read_hdf(self.fs.open(filepath), "cache/data/working").to_parquet(
+                self.fs.unstrip_protocol(working_path),
+                storage_options=storage_options,
+                compression="lz4",
+                write_metadata_file=True,
+                compute=False,
+            ),
+            dd.read_hdf(self.fs.open(filepath), "cache/data/raw").to_parquet(
+                self.fs.unstrip_protocol(raw_path),
+                storage_options=storage_options,
+                compression="lz4",
+                write_metadata_file=True,
+                compute=False,
+            ),
+        )
 
         self.data = guarded_dask_dataframe(
             dd.read_parquet(
-                working_path,
-                storage_options=getattr(self.fs, "storage_options", None),
+                self.fs.unstrip_protocol(working_path),
+                storage_options=storage_options,
                 parquet_file_extension=".parquet",
             )
         )
