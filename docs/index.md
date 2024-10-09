@@ -11,7 +11,7 @@ to be rolled out to the broader community.
 
 ### Basic Usage
 
-To use the most basic functions of MTPy the user can simply import the `mtpy.MeltpoolTomography`
+To use the most basic functions of MTPy the user can simply import the [`MeltpoolTomography`][mtpy.MeltpoolTomography]
 class and initialise it. Once initialised, this object can read the layer data from a given
 directory and create an interactive html scatterplot using the `read_layers` and `scatter2d`
 methods respectively.

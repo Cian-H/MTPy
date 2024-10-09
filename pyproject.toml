@@ -68,6 +68,9 @@ pylint = "^3.1.0"                                    # <- not being used for lin
 mkdocs-literate-nav = "^0.6.1"
 mkdocs-section-index = "^0.3.8"
 griffe = "<1.0.0"
+mkdocs-autorefs = "^1.2.0"
+mkdocs-mermaid2-plugin = "^1.1.1"
+mkdocs-panzoom-plugin = "^0.1.1"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -266,7 +269,7 @@ mypy-init-return = true
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
-exclude = ["docs/", "tests/"]
+exclude = ["docs/", "tests/", "scripts/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

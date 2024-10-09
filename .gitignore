@@ -166,7 +166,7 @@ Cargo.lock
 *.vsix
 
 # Local temporary documentation files
-docs/uml/
+docs/uml*
 
 # Ignore nix devenv related files
 .direnv
