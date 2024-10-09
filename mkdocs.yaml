@@ -38,10 +38,9 @@ nav:
   - Home: index.md
   - Documentation:
     - Reference: reference/
+  - Status:
     - UML: uml.md
-    # - Structure:
-    #   - Classes: uml/classes.html
-    #   - Packages: uml/packages.html
+    - Type Reports: type_reports/
   # - FAQ: faq.md
   # - Troubleshooting: troubleshooting.md
   # - Changelog: changelog.md
@@ -74,6 +73,7 @@ plugins:
       scripts:
         - scripts/gen_ref_pages.py
         - scripts/gen_uml_diagrams.py
+        - scripts/gen_type_reports.py
   - literate-nav:
       nav_file: SUMMARY.md
   - section-index
