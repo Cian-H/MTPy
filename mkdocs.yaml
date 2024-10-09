@@ -35,8 +35,8 @@ nav:
   - Documentation:
     - Reference: reference/
     - Structure:
-      - Classes: tmp/uml/classes.html
-      - Packages: tmp/uml/packages.html
+      - Classes: uml/classes.html
+      - Packages: uml/packages.html
   # - FAQ: faq.md
   # - Troubleshooting: troubleshooting.md
   # - Changelog: changelog.md
