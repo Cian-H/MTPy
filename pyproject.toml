@@ -67,6 +67,7 @@ mkdocstrings-python = "^1.8.0"
 pylint = "^3.1.0"                                    # <- not being used for linting, installed mostly for pyreverse
 mkdocs-literate-nav = "^0.6.1"
 mkdocs-section-index = "^0.3.8"
+griffe = "<1.0.0"
 
 [[tool.poetry.source]]
 name = "PyPI"
