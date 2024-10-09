@@ -20,6 +20,7 @@ from mtpy.utils.types import (
     JSONDict,
     JSONList,
     JSONValue,
+    PathMetadata,
     PathMetadataTree,
     SizedIterable,
 )
@@ -79,6 +80,7 @@ is_dask_number, guarded_dask_number = create_type_guard(dd.dd.Number)
 is_bytes, guarded_bytes = create_type_guard(bytes)
 is_json_dict, guarded_json_dict = create_type_guard(JSONDict)
 is_json_list, guarded_json_list = create_type_guard(JSONList)
+is_pathmetadata, guarded_pathmetadata = create_type_guard(PathMetadata)
 is_pathmetadatatree, guarded_pathmetadatatree = create_type_guard(PathMetadataTree)
 
 
@@ -127,9 +129,7 @@ def is_float_pair_tuple(t: Any) -> TypeGuard[Tuple[float, float]]:
         return False
     if len(t) != TWO:
         return False
-    if not all(isinstance(x, float) for x in t):
-        return False
-    return True
+    return all(isinstance(x, float) for x in t)
 
 
 def is_callable(t: Any) -> TypeGuard[Callable]:

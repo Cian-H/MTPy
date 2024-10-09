@@ -3,31 +3,27 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-import flatbuffers
 from functools import partial
-import h5py
-from io import BytesIO
 from pathlib import Path
-import pickle
-import tarfile
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Dict, Optional, Tuple
 
 import dask
 from dask.distributed import Client, LocalCluster, as_completed
 from dask.distributed.deploy import Cluster
+import flatbuffers
 from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
+import h5py
 import psutil
 
 from mtpy.base.abstract import AbstractBase
+from mtpy.utils.hdf5_operations import read_bytes_from_hdf_dataset, write_bytes_to_hdf_dataset
 from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
-from mtpy.utils.metadata_tagging import read_metadata
-from mtpy.utils.tree_metadata import Metadata, TreeFile, Sha1
-from mtpy.utils.tar_handling import entry_size, parse_header, uncompressed_tarfile_size, unpack_file
-from mtpy.utils.hdf5_operations import read_bytes_from_hdf_dataset, write_bytes_to_hdf_dataset
-from mtpy.utils.types import CalibrationFunction, JSONData, PathMetadata, PathMetadataTree
+from mtpy.utils.metadata_tagging import read_tree_metadata
+from mtpy.utils.tree_metadata import Metadata, Sha1, TreeFile
+from mtpy.utils.types import CalibrationFunction, PathMetadata, PathMetadataTree
 
 # Conditional imports depending on whether a GPU is present
 # Lots of type: ignore comments here because mypy is not happy with these conditional imports
@@ -401,76 +397,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         ).to_hdf(self.fs.open(filepath), "cache/data/raw")
         self.logger.info("Data saved!")
 
-    def _extract_cache(
-        self: "AbstractLoader",
-        end: int,
-        filepath: str,
-        blocksize: int,
-        tree_metadata: PathMetadataTree,
-    ) -> None:
-        """Extracts the cache from the specified file.
-
-        Args:
-            self (DataLoader): The current DataLoader object.
-            end (int): The end of the file to extract.
-            filepath (str): The path to the target file.
-            blocksize (int): The blocksize for streaming when unpacking the file.
-            tree_metadata (PathMetadataTree): The metadata for the cache to be extracted.
-        """
-        pbar = self.progressbar(total=end)
-        seekpos = 0
-        prev_null = False
-        queue = []
-        with self.fs.open(filepath, mode="rb", compression="gzip") as t:
-            # cast here because since mode="rb" we know this will be bytes
-            while header := cast(bytes, t.read(blocksize)):
-                seekpos += blocksize
-                for byte in header:
-                    if byte != 0:
-                        break
-                else:  # I hate the for-else syntax but it makes sense to use here :/
-                    if prev_null:
-                        break
-                    prev_null = True
-                    continue
-                prev_null = False
-                entry_name = parse_header(header)["name"]
-                unpack_target = f"{entry_name}"
-                size = tree_metadata[f"{self.fs.info(self._data_cache)['name'][:-5]}{entry_name}"][
-                    "size"
-                ]
-                size = entry_size(size, blocksize)
-                if self._data_cache_fs.exists(unpack_target):
-                    if self._data_cache_fs.isfile(unpack_target):
-                        chk = tree_metadata.get(
-                            unpack_target,
-                            PathMetadata(hash=0, is_dir=False, size=0),
-                        )["hash"]
-                        if chk != large_hash(self._data_cache_fs, unpack_target):
-                            self._data_cache_fs.rm(unpack_target)
-                            queue.append(
-                                (
-                                    unpack_target,
-                                    seekpos,
-                                    size,
-                                )
-                            )
-                else:
-                    queue.append(
-                        (
-                            unpack_target,
-                            seekpos,
-                            size,
-                        )
-                    )
-                seekpos += size
-                pbar.update(blocksize)
-                t.seek(seekpos, 0)
-        unpack_archive_entry = partial(unpack_file, self.fs, filepath, self._data_cache_fs)
-        futures = self.client.map(unpack_archive_entry, *zip(*queue, strict=False), retries=None)
-        for _, readsize in as_completed(futures, with_results=True):
-            pbar.update(readsize)
-
     def _unpack_savefile(self: "AbstractLoader", filepath: str, blocksize: int = 512) -> None:
         """Unpacks the specified savefile into the current cache.
 
@@ -485,10 +411,10 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         Raises:
             no_metadata: no metadata is found in the target file
         """
-        metadata_tag: Optional[JSONData] = None
+        metadata_tag: Optional[PathMetadataTree] = None
         try:
             # Check for hash metadata tagged onto file
-            metadata_tag = read_metadata(self.fs, filepath)
+            metadata_tag = read_tree_metadata(self.fs, filepath)
         except Exception as no_metadata:
             raise no_metadata
         if metadata_tag == self.cache_metadata:
@@ -509,7 +435,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     def _unpack_file(
         fs: AbstractFileSystem, save_filepath: str, unpack_filepath: str, size: int
     ) -> int:
-        with h5py.File(fs.open(save_filepath), "r") as hdf, open(unpack_filepath, "w") as f:
+        with h5py.File(fs.open(save_filepath), "r") as hdf, Path(unpack_filepath).open("wb") as f:
             f.write(read_bytes_from_hdf_dataset(hdf["cache"]["tree"][unpack_filepath]))
         return size
 
@@ -539,13 +465,30 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         for _, readsize in as_completed(futures, with_results=True):
             pbar.update(readsize)
 
-    def filepath_relative_to_cache(self: "AbstractLoader", f: str) -> str:
-        return str(Path(f).relative_to(Path(self._data_cache).resolve()))
+    def filepath_relative_to_cache(self: "AbstractLoader", filepath: str) -> str:
+        """Converts a filepath to be relative to the current cache.
+
+        Args:
+            self (DataLoader): The current DataLoader object.
+            filepath (str): The filepath to be converted.
+
+        Returns:
+            str: The filepath relative to the current cache folder.
+        """
+        return str(Path(filepath).relative_to(Path(self._data_cache).resolve()))
 
     @staticmethod
-    def create_tree_file(
-        builder: flatbuffers.Builder, path: str, file_meta: dict
-    ) -> TreeFile.TreeFile:
+    def create_tree_file(builder: flatbuffers.Builder, path: str, file_meta: PathMetadata) -> int:
+        """Creates a TreeFile buffer according to the tree_metadata flatbuffer schema.
+
+        Args:
+            builder (flatbuffers.Builder): The flatbuffer builder object.
+            path (str): The filepath for the file.
+            file_meta (dict): The metadata for the file.
+
+        Returns:
+            int: The id of the TreeFile buffer for the given file.
+        """
         pathbuf = builder.CreateString(path)
         TreeFile.Start(builder)
         TreeFile.AddFilepath(builder, pathbuf)
@@ -557,15 +500,29 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         return TreeFile.End(builder)
 
     def create_metadata_buffer(self: "AbstractLoader", metadata: PathMetadataTree) -> bytearray:
+        """Creates a bytearray flatbuffer from cache tree metadata.
+
+        Args:
+            self (DataLoader): The current DataLoader object.
+            metadata (PathMetadataTree): The cache tree metadata.
+
+        Returns:
+            bytearray: A flatbuffer bytearray containing the metadata given.
+        """
         builder = flatbuffers.Builder()
-        tree = [self.create_tree_file(builder, k, v) for k, v in metadata["tree"].items()]
+        from mtpy.utils.type_guards import guarded_int, guarded_pathmetadata
+
+        tree = [
+            self.create_tree_file(builder, k, guarded_pathmetadata(v))
+            for k, v in metadata["tree"].items()
+        ]
         Metadata.StartTreeVector(builder, len(tree))
         for file in reversed(tree):
             builder.PrependUOffsetTRelative(file)
         treebuff = builder.EndVector()
 
         Metadata.Start(builder)
-        Metadata.AddSize(builder, metadata["size"])
+        Metadata.AddSize(builder, guarded_int(metadata["size"]))
         Metadata.AddTree(builder, treebuff)
         m = Metadata.End(builder)
         builder.Finish(m)

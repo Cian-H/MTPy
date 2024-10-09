@@ -25,9 +25,21 @@ def read_tree_metadata(fs: AbstractFileSystem, filepath: str) -> PathMetadataTre
     if not mbuffer.TreeIsNone():
         for i in range(mbuffer.TreeLength()):
             tree_entry = mbuffer.Tree(i)
-            tree_meta[tree_entry.Filepath().decode()] = {
+            if tree_entry is None:
+                continue
+            path = tree_entry.Filepath()
+            if path is None:
+                continue
+            if isinstance(path, bytes):
+                path = path.decode()
+            entry_hash = tree_entry.Hash()
+            entry_hash_bytes = bytes() if entry_hash is None else entry_hash.Bytearray()
+            tree_meta[path] = {
                 "is_dir": tree_entry.IsDir(),
                 "size": tree_entry.Size(),
-                "hash": int.from_bytes(tree_entry.Hash().Bytearray()),
+                "hash": int.from_bytes(entry_hash_bytes),
             }
-    return meta_dict
+
+    from mtpy.utils.type_guards import guarded_pathmetadatatree
+
+    return guarded_pathmetadatatree(meta_dict)

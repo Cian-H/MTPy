@@ -2,19 +2,34 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict
 
 from dask.dataframe import DataFrame
 import datashader as ds
 from datashader.reductions import Reduction
 import holoviews as hv
 import holoviews.operation.datashader as hd
+from typing_extensions import Unpack
 
 from . import hooks
 
 
+class DispatchParams(TypedDict):
+    """Typed parameters for function dispatchers.
+
+    Attributes:
+        x (str): The key of the x axis values
+        y (str): The key of the x axis values
+        w (str): The key of the x axis values
+    """
+
+    x: str
+    y: str
+    w: str
+
+
 def plot_dispatch(
-    kind: str, chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
+    kind: str, chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
 ) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
     """A dispatcher for 2d plotting functions.
 
@@ -41,7 +56,7 @@ def plot_dispatch(
 
 
 def scatter(
-    chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
+    chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
 ) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a scatter plot.
 
@@ -58,8 +73,8 @@ def scatter(
     if aggregator is None:
         aggregator = ds.reductions.mean(kwargs["w"])
 
-    kdims = [kwargs["x"], kwargs["y"]]
-    w_col = kwargs.get("w", None)
+    kdims = [kwargs.get("x", "x"), kwargs.get("y", "y")]
+    w_col = kwargs.get("w", "t")
 
     from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
@@ -92,7 +107,7 @@ def scatter(
 
 
 def distribution(
-    chunk: DataFrame, aggregator: Optional[Reduction], **kwargs
+    chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
 ) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a distribution plot.
 
