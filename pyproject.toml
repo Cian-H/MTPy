@@ -35,6 +35,7 @@ loguru = "^0.7.2"
 read-aconity-layers = { git = "https://github.com/Cian-H/read_aconity_layers" }
 flatbuffers = "^24.3.25"
 h5py = "^3.12.1"
+typer = "^0.12.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
