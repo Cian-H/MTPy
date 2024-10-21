@@ -4,10 +4,12 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+
 np = import_numpy()
 
+
 class TreeFile(object):
-    __slots__ = ['_tab']
+    __slots__ = ["_tab"]
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
@@ -20,6 +22,7 @@ class TreeFile(object):
     def GetRootAsTreeFile(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     # TreeFile
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -37,6 +40,7 @@ class TreeFile(object):
         if o != 0:
             x = o + self._tab.Pos
             from tree_metadata.Sha1 import Sha1
+
             obj = Sha1()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -56,38 +60,52 @@ class TreeFile(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
+
 def TreeFileStart(builder):
     builder.StartObject(4)
+
 
 def Start(builder):
     TreeFileStart(builder)
 
+
 def TreeFileAddFilepath(builder, filepath):
-    builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(filepath), 0)
+    builder.PrependUOffsetTRelativeSlot(
+        0, flatbuffers.number_types.UOffsetTFlags.py_type(filepath), 0
+    )
+
 
 def AddFilepath(builder, filepath):
     TreeFileAddFilepath(builder, filepath)
 
+
 def TreeFileAddHash(builder, hash):
     builder.PrependStructSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(hash), 0)
+
 
 def AddHash(builder, hash):
     TreeFileAddHash(builder, hash)
 
+
 def TreeFileAddIsDir(builder, isDir):
     builder.PrependBoolSlot(2, isDir, 0)
+
 
 def AddIsDir(builder, isDir):
     TreeFileAddIsDir(builder, isDir)
 
+
 def TreeFileAddSize(builder, size):
     builder.PrependUint64Slot(3, size, 0)
+
 
 def AddSize(builder, size):
     TreeFileAddSize(builder, size)
 
+
 def TreeFileEnd(builder):
     return builder.EndObject()
+
 
 def End(builder):
     return TreeFileEnd(builder)

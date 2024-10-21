@@ -16,7 +16,7 @@ repos:
     hooks:
       - id: mypy
         types: [python]
-        exclude: docs/ scripts/ tests/
+        exclude: docs|scripts|tests
 
   - repo: https://github.com/python-poetry/poetry
     rev: "1.8.0"

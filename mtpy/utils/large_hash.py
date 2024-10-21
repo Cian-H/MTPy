@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from _hashlib import HASH
 from hashlib import sha1 as default_hash
 from typing import Optional
 
+from _hashlib import HASH
 from fsspec import AbstractFileSystem
 
 
