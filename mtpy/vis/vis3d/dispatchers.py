@@ -40,14 +40,15 @@ def plot_dispatch(
         kind (str): the kind of plot
         chunk (DataFrame): the chunk of data to plot
         aggregator (Optional[Reduction]): the aggregator function to use
-        **kwargs: keyword arguments to be passed to the plotting function for the given kind
+        **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the plotting function
+            for the given kind
 
     Raises:
         ValueError: an unknown kind of 2d plot was given
 
     Returns:
-        Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
-        for generating a holoviz plot
+        Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]: a tuple of
+            (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     # if no aggregator is given, default to aggregated mean of w
     if aggregator is None:
@@ -68,11 +69,11 @@ def scatter(
     Args:
         chunk (DataFrame): the chunk of data to be plotted
         aggregator (Optional[Reduction]): the aggregator function to use
-        **kwargs: keyword arguments to be passed to the scatter plot
+        **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the scatter plot
 
     Returns:
-        Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
-        for generating a holoviz plot
+        Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]: a tuple of
+            (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     kdims = [kwargs.get("x", "x"), kwargs.get("y", "y")]
     w_col = kwargs.get("w", "t")
@@ -115,11 +116,11 @@ def distribution(
     Args:
         chunk (DataFrame): the chunk of data to be plotted
         aggregator (Optional[Reduction]): the aggregator function to use
-        **kwargs: keyword arguments to be passed to the distribution plot
+        **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the distribution plot
 
     Returns:
-        Tuple[List[Callable], List[Dict], Dict[str, Any]]: a tuple of (f_list, kwargs_list, opts)
-        for generating a holoviz plot
+        Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]: a tuple of
+            (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 

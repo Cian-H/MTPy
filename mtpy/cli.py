@@ -14,8 +14,8 @@ def run() -> None:
         """Creates a 2d scatter plot.
 
         Args:
-            target_dir: Directory of the layer data to be plotted
-            out_path: Filepath to write scatter plot data to
+            target_dir (str): Directory of the layer data to be plotted
+            out_path (str): Filepath to write scatter plot data to
         """
         mt = MeltpoolTomography()
         mt.read_layers(target_dir)

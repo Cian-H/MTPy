@@ -41,19 +41,19 @@ class Plotter(AbstractPlotter):
         """Creates a 3d plot.
 
         Args:
-            kind (str): the kind of plot to produce
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
             *args: additional arguments to be passed to the plotting function for the given kind
+            kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
             samples (Optional[int | Iterable[int]], optional): the samples to include on the
                 plot. Defaults to None.
-            xrange (tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+            xrange (Optional[Tuple[Optional[float], Optional[float]]], optional): the range
                 of x values to plot. Defaults to None.
-            yrange (tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+            yrange (Optional[Tuple[Optional[float], Optional[float]]], optional): the range
                 of y values to plot. Defaults to None.
-            zrange (tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+            zrange (Optional[Tuple[Optional[float], Optional[float]]], optional): the range
                 of z values to plot. Defaults to None.
             groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the
                 dataframe before plotting. Defaults to None.
@@ -114,6 +114,11 @@ class Plotter(AbstractPlotter):
 
     def scatter3d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 3d scatter plot.
+
+        Args:
+            *args: The arguments to be passed to the plotting library's 3d scatter function.
+            **kwargs: The keyword arguments to be passed to the plotting library's 3d scatter
+                function.
 
         Returns:
             Chart: a holoviz plot

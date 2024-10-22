@@ -18,7 +18,11 @@ hv.extension("plotly")
 
 
 class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
-    """The base class for all plotter classes."""
+    """The base class for all plotter classes.
+
+    Args:
+        loader (LoaderProtocol): The data loader associated with this plotter.
+    """
 
     def __init__(
         self: "AbstractPlotter",
@@ -27,7 +31,6 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
         #  dash_args: list = [],
         #  dash_kwargs: dict = {},
     ) -> None:
-        """Initialize the AbstractPlotter."""
         super().__init__()
         self.views: Dict[str, Chart] = {}
         self.view_tag = self.__class__.__name__
@@ -59,19 +62,19 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
         """Creates a plot.
 
         Args:
-            kind (str): the kind of plot to produce
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
             *args: additional arguments to be passed to the plotting function for the given kind
+            kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
             samples (Optional[int | Iterable[int]], optional): the samples to include on the
                 plot. Defaults to None.
-            xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+            xrange (Optional[Tuple[Optional[float], Optional[float]]]): the range
                 of x values to plot. Defaults to None.
-            yrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+            yrange (Optional[Tuple[Optional[float], Optional[float]]]): the range
                 of y values to plot. Defaults to None.
-            zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+            zrange (Optional[Tuple[Optional[float], Optional[float]]]): the range
                 of z values to plot. Defaults to None.
             groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the
                 dataframe before plotting. Defaults to None.
@@ -97,7 +100,6 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
         """Generates a view id string for caching views.
 
         Args:
-            self (PlotterBase): the PlotterBase object
             kind (str): the kind of plot to produce
             samples (Optional[int | Iterable[int]], optional): The samples in the view.
                 Defaults to None.

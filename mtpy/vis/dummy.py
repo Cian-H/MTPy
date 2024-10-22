@@ -9,14 +9,9 @@ from mtpy.loaders.dummy import DummyLoader
 
 
 class DummyPlotter:
-    """A dummy loader for tests and composing classes that do not plot anything.
-
-    Attributes:
-        loader (DummyLoader): The loader providing the data to the Plotter object
-    """
+    """A dummy loader for tests and composing classes that do not plot anything."""
 
     def __init__(self: "DummyPlotter") -> None:
-        """Initialises a dummy plotter object."""
         self.loader = DummyLoader()
 
     def plot(
@@ -36,21 +31,21 @@ class DummyPlotter:
         """Creates a plot.
 
         Args:
-            kind (str): the kind of plot to produce
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
+            *args: additional positional arguments to be passed to the plotting function
+            kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            *args: additional positional arguments to be passed to the plotting function
             samples (Optional[int | Iterable[int]], optional): the samples to include on the plot.
                 Defaults to None.
-            xrange (Tuple[Optional[float], Optional[float]] | Optional[float]): the range of
-                x values to plot. Defaults to None.
-            yrange (Tuple[Optional[float], Optional[float]] | Optional[float]): the range of
-                y values to plot. Defaults to None.
-            zrange (Tuple[Optional[float], Optional[float]] | Optional[float]): the range of
-                z values to plot. Defaults to None.
-            groupby (Optional[str | list[str]], optional): the groupby to apply to the dataframe
+            xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of x values to plot. Defaults to None.
+            yrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of y values to plot. Defaults to None.
+            zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
+                of z values to plot. Defaults to None.
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the dataframe
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.

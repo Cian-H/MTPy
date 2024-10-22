@@ -19,20 +19,13 @@ hv.extension("plotly")
 class CombinedPlotter(AbstractPlotter):
     """This class is a factory that combines multiple plotters in a single class.
 
-    Attributes:
+    Args:
         plotters (Dict[str, PlotterProtocol]): A dict of mapping labels to subplotters.
             The keys (labels) are labels that will be prepended when directing a call
             at a specific plotter.
     """
 
     def __init__(self: "CombinedPlotter", plotters: Dict[str, PlotterProtocol]) -> None:
-        """Initialises CombinedPlotter object.
-
-        Args:
-            plotters (Dict[str, PlotterProtocol]): A dict of mapping labels to subplotters.
-                The keys (labels) are labels that will be prepended when directing a call
-                at a specific plotter.
-        """
         super().__init__(DummyLoader())
         self.plotters = plotters
 
@@ -58,13 +51,13 @@ class CombinedPlotter(AbstractPlotter):
             string via the syntax: "{subplotter_label}-{kind}".
 
         Args:
-            kind (str): the kind of plot to produce
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
+            *args: additional positional arguments to be passed to the plotting function
+            kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            *args: additional positional arguments to be passed to the plotting function
-            samples (Optional[int | Iterable], optional): the samples to include on the plot.
+            samples (Optional[int | Iterable[int]], optional): the samples to include on the plot.
                 Defaults to None.
             xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
                 of x values to plot. Defaults to None.
@@ -72,7 +65,7 @@ class CombinedPlotter(AbstractPlotter):
                 of y values to plot. Defaults to None.
             zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
                 of z values to plot. Defaults to None.
-            groupby (Optional[str | list[str]], optional): the groupby to apply to the dataframe
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the dataframe
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
@@ -127,7 +120,6 @@ class CombinedPlotter(AbstractPlotter):
             appear in the provided `self.plotters`.
 
         Args:
-            self (CombinedPlotter): The CombinedPlotter instance
             attr (str): The attribute to be fetched
 
         Returns:
@@ -140,19 +132,18 @@ class CombinedPlotter(AbstractPlotter):
         for obj in self.plotters.values():
             if hasattr(obj, attr):
                 return getattr(obj, attr)
-        return AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+        msg = f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+        raise AttributeError(msg)
 
 
 class Plotter(CombinedPlotter):
-    """A CombinedPlotter combining the `Plotter2D` and `Plotter3D` classes."""
+    """A CombinedPlotter combining the `Plotter2D` and `Plotter3D` classes.
+
+    Args:
+        loader (LoaderProtocol): The loader providing the data to the plotter
+    """
 
     def __init__(self: "Plotter", loader: LoaderProtocol) -> None:
-        """Initialises a `Plotter` object.
-
-        Args:
-            self (Plotter): The Plotter class instance
-            loader (LoaderProtocol): The loader providing the data to the plotter
-        """
         from mtpy.utils.type_guards import guarded_plotter_protocol
 
         plotters: Dict[str, PlotterProtocol] = {

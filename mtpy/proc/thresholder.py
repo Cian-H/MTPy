@@ -130,21 +130,24 @@ class Thresholder(AbstractProcessor, AbstractBase):
         thresh_functions: Callable[[float, float], bool] | Iterable[Callable[[float, float], bool]],
         threshfunc_kwargs: Dict[str, Any] | Iterable[Dict[str, Any]],
     ) -> None:
-        """Thresholds all layers in a single pass.
+        (
+            """Thresholds all layers in a single pass.
 
         Thresholds all layers by applying listed functions to the current dataframe with
         listed params.
 
         Args:
-            thresh_functions (Callable[[float, float], bool] | Iterable[Callable[[float, float], bool]]):
-                a list of functions to apply
-            threshfunc_kwargs (Dict[str, Any] | Iterable[Dict[str, Any]]):
-                a list of kwargs for the functions to apply
+            thresh_functions """
+            """(Callable[[float, float], bool] | Iterable[Callable[[float, float], bool]]): a list
+                of functions to apply
+            threshfunc_kwargs (Dict[str, Any] | Iterable[Dict[str, Any]]): a list of kwargs for
+                the functions to apply
 
         Raises:
             ValueError: If provided `thresh_function` is invalid or if `threshfunc_kwargs` do not
                 match `thresh_func` kwargs.
         """
+        )
         from mtpy.utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
 
         if not (is_sized_iterable(thresh_functions) or is_callable(thresh_functions)):

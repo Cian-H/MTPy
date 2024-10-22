@@ -35,12 +35,12 @@ class PlotterProtocol(Protocol):
         """Creates a plot.
 
         Args:
-            kind (str): the kind of plot to produce
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
+            *args: additional positional arguments to be passed to the plotting function
+            kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            *args: additional positional arguments to be passed to the plotting function
             samples (Optional[int | Iterable[int]], optional): the samples to include on the plot.
                 Defaults to None.
             xrange (Tuple[Optional[float], Optional[float]] | Optional[float]): the range of
@@ -49,7 +49,7 @@ class PlotterProtocol(Protocol):
                 y values to plot. Defaults to None.
             zrange (Tuple[Optional[float], Optional[float]] | Optional[float]): the range of
                 z values to plot. Defaults to None.
-            groupby (Optional[str | list[str]], optional): the groupby to apply to the dataframe
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the dataframe
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.

@@ -34,7 +34,7 @@ def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Ca
     """Create type guards (`is_<type>` and `guarded_<type>`) for a given type.
 
     Args:
-        _type (T): the type to create guards for
+        _type (type[T]): the type to create guards for
 
     Returns:
         Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]: the type guards
@@ -108,7 +108,7 @@ def guarded_str_key_dict(t: Any) -> Dict[str, Any]:
         TypeError: if the type fails the guard check
 
     Returns:
-        Dict[str, T]: the object if it is a dictionary with string keys
+        Dict[str, Any]: the object if it is a dictionary with string keys
     """
     if not is_str_key_dict(t):
         msg = "Expected a dictionary with string keys"
@@ -235,7 +235,7 @@ def is_json_value(t: Any) -> TypeGuard[JSONValue]:
         t (Any): the object to check
 
     Returns:
-        TypeGuard[JSONValues]: True if the object is a JSON value, False otherwise
+        TypeGuard[JSONValue]: True if the object is a JSON value, False otherwise
     """
     return isinstance(t, (str, int, float, bool, dict, list))
 
@@ -250,7 +250,7 @@ def guarded_json_value(t: Any) -> JSONValue:
         TypeError: if the type fails the guard check
 
     Returns:
-        JSONValues: the object if it is a JSON value
+        JSONValue: the object if it is a JSON value
     """
     if not is_json_value(t):
         msg = "Expected a JSON value"
@@ -262,7 +262,7 @@ def is_plotter_protocol(t: Any) -> TypeGuard[PlotterProtocol]:
     """Type guard for plotter protocols.
 
     Args:
-        t: the object to check
+        t (Any): the object to check
 
     Returns:
         TypeGuard[PlotterProtocol]: True if the object is a plotter protocol, False otherwise.
@@ -274,7 +274,7 @@ def guarded_plotter_protocol(t: Any) -> PlotterProtocol:
     """A function for type guarding plotter protocols.
 
     Args:
-        t: the object to check
+        t (Any): the object to check
 
     Raises:
         TypeError: if the type fails the guard check
@@ -292,7 +292,7 @@ def is_loader_protocol(t: Any) -> TypeGuard[LoaderProtocol]:
     """Type guard for loader protocols.
 
     Args:
-        t: the object to check
+        t (Any): the object to check
 
     Returns:
         TypeGuard[LoaderProtocol]: True if the object is a loader protocol, False otherwise.
@@ -304,7 +304,7 @@ def guarded_loader_protocol(t: Any) -> LoaderProtocol:
     """A function for type guarding loader protocols.
 
     Args:
-        t: the object to check
+        t (Any): the object to check
 
     Raises:
         TypeError: if the type fails the guard check
@@ -322,7 +322,7 @@ def is_progressbar_protocol(t: Any) -> TypeGuard[ProgressBarProtocol]:
     """Type guard for progressbar protocols.
 
     Args:
-        t: the object to check
+        t (Any): the object to check
 
     Returns:
         TypeGuard[ProgressBarProtocol]: True if the object is a progressbar protocol,
@@ -335,7 +335,7 @@ def guarded_progressbar_protocol(t: Any) -> ProgressBarProtocol:
     """A function for type guarding progressbar protocols.
 
     Args:
-        t: the object to check
+        t (Any): the object to check
 
     Raises:
         TypeError: if the type fails the guard check

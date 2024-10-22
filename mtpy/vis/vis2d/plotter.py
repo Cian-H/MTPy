@@ -87,13 +87,13 @@ class Plotter(AbstractPlotter):
         """Creates a 2d plot.
 
         Args:
-            kind (str): the kind of plot to produce
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
+            *args: additional positional arguments to be passed to the plotting function
+            kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            *args: additional positional arguments to be passed to the plotting function
-            samples (Optional[int | Iterable], optional): the samples to include on the plot.
+            samples (Optional[int | Iterable[int]] , optional): the samples to include on the plot.
                 Defaults to None.
             xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
                 of x values to plot. Defaults to None.
@@ -101,7 +101,7 @@ class Plotter(AbstractPlotter):
                 of y values to plot. Defaults to None.
             zrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
                 of z values to plot. Defaults to None.
-            groupby (Optional[str | list[str]], optional): the groupby to apply to the dataframe
+            groupby (Optional[str | Iterable[str]], optional): the groupby to apply to the dataframe
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
@@ -109,6 +109,9 @@ class Plotter(AbstractPlotter):
 
         Returns:
             Chart: a holoviz plot
+
+        Raises:
+            ValueError: If given `axis_range` is invalid for `axis`
         """
         chunk = self.loader.data
 
@@ -174,6 +177,11 @@ class Plotter(AbstractPlotter):
     def scatter2d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 2d scatter plot.
 
+        Args:
+            *args: The arguments to be passed to the plotting library's 2d scatter function.
+            **kwargs: The keyword arguments to be passed to the plotting library's 2d scatter
+                function.
+
         Returns:
             Chart: a holoviz plot
         """
@@ -183,6 +191,11 @@ class Plotter(AbstractPlotter):
 
     def distribution2d(self: "Plotter", *args, **kwargs) -> Chart:
         """Creates a 2d distribution plot.
+
+        Args:
+            *args: The arguments to be passed to the plotting library's 2d distribution function.
+            **kwargs: The keyword arguments to be passed to the plotting library's 2d distribution
+                function.
 
         Returns:
             Chart: a holoviz plot
