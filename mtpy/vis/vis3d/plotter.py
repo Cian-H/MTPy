@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
 import holoviews as hv
@@ -27,7 +27,7 @@ class Plotter(AbstractPlotter):
     def plot(
         self: "Plotter",
         filename: Optional[str] = None,
-        *args,
+        *args: Any,
         kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
@@ -36,14 +36,15 @@ class Plotter(AbstractPlotter):
         zrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
         groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Chart:
         """Creates a 3d plot.
 
         Args:
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
-            *args: additional arguments to be passed to the plotting function for the given kind
+            *args (Any): additional arguments to be passed to the plotting function for the given
+                kind
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
@@ -59,7 +60,8 @@ class Plotter(AbstractPlotter):
                 dataframe before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
-            **kwargs: additional keyword arguments to be passed to the plotting function for the
+            **kwargs (Any): additional keyword arguments to be passed to the plotting function for
+                the given kind
 
         Returns:
             Chart: a holoviz plot
@@ -112,12 +114,12 @@ class Plotter(AbstractPlotter):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter3d(self: "Plotter", *args, **kwargs) -> Chart:
+    def scatter3d(self: "Plotter", *args: Any, **kwargs: Any) -> Chart:
         """Creates a 3d scatter plot.
 
         Args:
-            *args: The arguments to be passed to the plotting library's 3d scatter function.
-            **kwargs: The keyword arguments to be passed to the plotting library's 3d scatter
+            *args (Any): The arguments to be passed to the plotting library's 3d scatter function.
+            **kwargs (Any): The keyword arguments to be passed to the plotting library's 3d scatter
                 function.
 
         Returns:

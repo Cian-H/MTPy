@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple
 
 # TEMPORARY FIX FOR WARNINGS
 from datashader.reductions import Reduction
@@ -73,7 +73,7 @@ class Plotter(AbstractPlotter):
     def plot(
         self: "Plotter",
         filename: Optional[str] = None,
-        *args,
+        *args: Any,
         kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
@@ -82,14 +82,14 @@ class Plotter(AbstractPlotter):
         zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Chart:
         """Creates a 2d plot.
 
         Args:
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
-            *args: additional positional arguments to be passed to the plotting function
+            *args (Any): additional positional arguments to be passed to the plotting function
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
@@ -105,7 +105,7 @@ class Plotter(AbstractPlotter):
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
-            **kwargs: additional keyword arguments to be passed to the plotting function
+            **kwargs (Any): additional keyword arguments to be passed to the plotting function
 
         Returns:
             Chart: a holoviz plot
@@ -174,12 +174,12 @@ class Plotter(AbstractPlotter):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter2d(self: "Plotter", *args, **kwargs) -> Chart:
+    def scatter2d(self: "Plotter", *args: Any, **kwargs: Any) -> Chart:
         """Creates a 2d scatter plot.
 
         Args:
-            *args: The arguments to be passed to the plotting library's 2d scatter function.
-            **kwargs: The keyword arguments to be passed to the plotting library's 2d scatter
+            *args (Any): The arguments to be passed to the plotting library's 2d scatter function.
+            **kwargs (Any): The keyword arguments to be passed to the plotting library's 2d scatter
                 function.
 
         Returns:
@@ -189,13 +189,14 @@ class Plotter(AbstractPlotter):
         plot_kwargs.update(kwargs)
         return self.plot(*args, **plot_kwargs)
 
-    def distribution2d(self: "Plotter", *args, **kwargs) -> Chart:
+    def distribution2d(self: "Plotter", *args: Any, **kwargs: Any) -> Chart:
         """Creates a 2d distribution plot.
 
         Args:
-            *args: The arguments to be passed to the plotting library's 2d distribution function.
-            **kwargs: The keyword arguments to be passed to the plotting library's 2d distribution
+            *args (Any): The arguments to be passed to the plotting library's 2d distribution
                 function.
+            **kwargs (Any): The keyword arguments to be passed to the plotting library's 2d
+                distribution function.
 
         Returns:
             Chart: a holoviz plot

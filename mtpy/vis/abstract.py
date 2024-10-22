@@ -1,7 +1,7 @@
 """Data visualisation components of the MTPy module."""
 
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
 import holoviews as hv
@@ -48,7 +48,7 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
     def plot(
         self: "AbstractPlotter",
         filename: Optional[str] = None,
-        *args,
+        *args: Any,
         kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
@@ -57,14 +57,15 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
         zrange: Optional[Tuple[Optional[float], Optional[float]]] = None,
         groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Chart:
         """Creates a plot.
 
         Args:
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
-            *args: additional arguments to be passed to the plotting function for the given kind
+            *args (Any): additional arguments to be passed to the plotting function for the given
+                kind
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
@@ -80,7 +81,8 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
                 dataframe before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
-            **kwargs: additional keyword arguments to be passed to the plotting function for the
+            **kwargs (Any): additional keyword arguments to be passed to the plotting function for
+                the given kind
 
         Returns:
             Chart: a holoviz plot

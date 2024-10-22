@@ -154,14 +154,14 @@ class Statistics(AbstractProcessor):
         return self._csv_writer(filepath)
 
     def _csv_writer(
-        self: "Statistics", filepath: str, *args, **kwargs
+        self: "Statistics", filepath: str, *args: Any, **kwargs: Any
     ) -> TextIOWrapper | AbstractBufferedFile:
         """A csv writer method that handles writing to a remote filesystem.
 
         Args:
             filepath (str): the path to which a datasheet will be written.
-            *args: additional arguments to be passed to the writer.
-            **kwargs: additional keyword arguments to be passed to the writer.
+            *args (Any): additional arguments to be passed to the writer.
+            **kwargs (Any): additional keyword arguments to be passed to the writer.
 
         Returns:
             TextIOWrapper | AbstractBufferedFile: A buffer to which a csv can be written.

@@ -264,6 +264,7 @@ max-complexity = 10
 
 [tool.ruff.lint.flake8-annotations]
 mypy-init-return = true
+allow-star-arg-any = true
 
 [tool.ruff.lint.per-file-ignores]
 "mtpy/utils/tree_metadata/Metadata.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]

@@ -1,6 +1,6 @@
 """This module defines a protocol for a valid MTPy Plotter class."""
 
-from typing import Iterable, Optional, Protocol, Tuple, runtime_checkable
+from typing import Any, Iterable, Optional, Protocol, Tuple, runtime_checkable
 
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
@@ -21,7 +21,7 @@ class PlotterProtocol(Protocol):
     def plot(
         self: "PlotterProtocol",
         filename: Optional[str] = None,
-        *args,
+        *args: Any,
         kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
@@ -30,14 +30,14 @@ class PlotterProtocol(Protocol):
         zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Chart:
         """Creates a plot.
 
         Args:
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
-            *args: additional positional arguments to be passed to the plotting function
+            *args (Any): additional positional arguments to be passed to the plotting function
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
@@ -53,7 +53,7 @@ class PlotterProtocol(Protocol):
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
-            **kwargs: additional keyword arguments to be passed to the plotting function
+            **kwargs (Any): additional keyword arguments to be passed to the plotting function
 
         Returns:
             Chart: a holoviz plot

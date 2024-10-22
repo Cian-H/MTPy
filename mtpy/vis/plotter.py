@@ -32,7 +32,7 @@ class CombinedPlotter(AbstractPlotter):
     def plot(
         self: "CombinedPlotter",
         filename: Optional[str] = None,
-        *args,
+        *args: Any,
         kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
@@ -41,7 +41,7 @@ class CombinedPlotter(AbstractPlotter):
         zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         groupby: Optional[str | Iterable[str]] = None,
         aggregator: Optional[Reduction] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Chart:
         """Creates a plot.
 
@@ -53,7 +53,7 @@ class CombinedPlotter(AbstractPlotter):
         Args:
             filename (Optional[str], optional): file path to save plot to, if desired.
                 Defaults to None.
-            *args: additional positional arguments to be passed to the plotting function
+            *args (Any): additional positional arguments to be passed to the plotting function
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
@@ -69,7 +69,7 @@ class CombinedPlotter(AbstractPlotter):
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
-            **kwargs: additional keyword arguments to be passed to the plotting function
+            **kwargs (Any): additional keyword arguments to be passed to the plotting function
 
         Returns:
             Chart: a holoviz plot

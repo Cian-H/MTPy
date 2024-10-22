@@ -1,6 +1,16 @@
 """A protocol defining feedback classes accepted by MTPy classes."""
 
-from typing import IO, Generic, Iterable, Iterator, Mapping, Protocol, TypeVar, runtime_checkable
+from typing import (
+    IO,
+    Any,
+    Generic,
+    Iterable,
+    Iterator,
+    Mapping,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -12,53 +22,53 @@ class LoggerProtocol(Protocol):
     the standard outlined by the python standard library's `logging` library.
     """
 
-    def debug(self: "LoggerProtocol", message: str, *args, **kwargs) -> None:
+    def debug(self: "LoggerProtocol", message: str, *args: Any, **kwargs: Any) -> None:
         """Emits a debug level log message.
 
         Args:
             message (str): The message to be emitted
-            *args: The extra args to be passed to the emitter
-            **kwargs: The extra kwargs to be passed to the emitter
+            *args (Any): The extra args to be passed to the emitter
+            **kwargs (Any): The extra kwargs to be passed to the emitter
         """
         ...
 
-    def info(self: "LoggerProtocol", message: str, *args, **kwargs) -> None:
+    def info(self: "LoggerProtocol", message: str, *args: Any, **kwargs: Any) -> None:
         """Emits an info level log message.
 
         Args:
             message (str): The message to be emitted
-            *args: The extra args to be passed to the emitter
-            **kwargs: The extra kwargs to be passed to the emitter
+            *args (Any): The extra args to be passed to the emitter
+            **kwargs (Any): The extra kwargs to be passed to the emitter
         """
         ...
 
-    def warning(self: "LoggerProtocol", message: str, *args, **kwargs) -> None:
+    def warning(self: "LoggerProtocol", message: str, *args: Any, **kwargs: Any) -> None:
         """Emits a warning level log message.
 
         Args:
             message (str): The message to be emitted
-            *args: The extra args to be passed to the emitter
-            **kwargs: The extra kwargs to be passed to the emitter
+            *args (Any): The extra args to be passed to the emitter
+            **kwargs (Any): The extra kwargs to be passed to the emitter
         """
         ...
 
-    def error(self: "LoggerProtocol", message: str, *args, **kwargs) -> None:
+    def error(self: "LoggerProtocol", message: str, *args: Any, **kwargs: Any) -> None:
         """Emits an error level log message.
 
         Args:
             message (str): The message to be emitted
-            *args: The extra args to be passed to the emitter
-            **kwargs: The extra kwargs to be passed to the emitter
+            *args (Any): The extra args to be passed to the emitter
+            **kwargs (Any): The extra kwargs to be passed to the emitter
         """
         ...
 
-    def critical(self: "LoggerProtocol", message: str, *args, **kwargs) -> None:
+    def critical(self: "LoggerProtocol", message: str, *args: Any, **kwargs: Any) -> None:
         """Emits a critical level log message.
 
         Args:
             message (str): The message to be emitted
-            *args: The extra args to be passed to the emitter
-            **kwargs: The extra kwargs to be passed to the emitter
+            *args (Any): The extra args to be passed to the emitter
+            **kwargs (Any): The extra kwargs to be passed to the emitter
         """
         ...
 
@@ -78,7 +88,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
     Args:
         iterable (Iterable[T_co] | None): Iterable to decorate with a progressbar.
             Leave blank to manually manage the updates.
-        *args: Additional args to be accepted depending on implementation
+        *args (Any): Additional args to be accepted depending on implementation
         desc (str | None): Prefix for the progressbar.
         total (float | None): The number of expected iterations. If unspecified,
             len(iterable) is used if possible. If float("inf") or as a last
@@ -159,7 +169,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
         gui (bool): WARNING: internal parameter - do not use.
             Use tqdm.gui.tqdm(...) instead. If set, will attempt to use
             matplotlib animations for a graphical output [default: False].
-        **kwargs: Additional kwargs to be passed based on implementation.
+        **kwargs (Any): Additional kwargs to be passed based on implementation.
     """
 
     # NOTE: Ignoring some of the warnings here as this is not a protocol i
@@ -168,7 +178,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
     def __init__(
         self: "ProgressBarProtocol",
         iterable: Iterable[T_co] | None = None,
-        *args,
+        *args: Any,
         desc: str | None = None,
         total: float | None = None,
         leave: bool | None = None,
@@ -194,7 +204,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
         colour: str | None = None,
         delay: float | None = None,
         gui: bool = False,  # FBT001
-        **kwargs,
+        **kwargs: Any,
     ) -> None: ...
 
     def __iter__(self: "ProgressBarProtocol") -> Iterator[T_co]:
