@@ -4,10 +4,12 @@
 
 import flatbuffers
 from flatbuffers.compat import import_numpy
+
 np = import_numpy()
 
+
 class Metadata(object):
-    __slots__ = ['_tab']
+    __slots__ = ["_tab"]
 
     @classmethod
     def GetRootAs(cls, buf, offset=0):
@@ -20,6 +22,7 @@ class Metadata(object):
     def GetRootAsMetadata(cls, buf, offset=0):
         """This method is deprecated. Please switch to GetRootAs."""
         return cls.GetRootAs(buf, offset)
+
     # Metadata
     def Init(self, buf, pos):
         self._tab = flatbuffers.table.Table(buf, pos)
@@ -39,6 +42,7 @@ class Metadata(object):
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
             from tree_metadata.TreeFile import TreeFile
+
             obj = TreeFile()
             obj.Init(self._tab.Bytes, x)
             return obj
@@ -56,32 +60,42 @@ class Metadata(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         return o == 0
 
+
 def MetadataStart(builder):
     builder.StartObject(2)
+
 
 def Start(builder):
     MetadataStart(builder)
 
+
 def MetadataAddSize(builder, size):
     builder.PrependUint64Slot(0, size, 0)
+
 
 def AddSize(builder, size):
     MetadataAddSize(builder, size)
 
+
 def MetadataAddTree(builder, tree):
     builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(tree), 0)
+
 
 def AddTree(builder, tree):
     MetadataAddTree(builder, tree)
 
+
 def MetadataStartTreeVector(builder, numElems):
     return builder.StartVector(4, numElems, 4)
+
 
 def StartTreeVector(builder, numElems):
     return MetadataStartTreeVector(builder, numElems)
 
+
 def MetadataEnd(builder):
     return builder.EndObject()
+
 
 def End(builder):
     return MetadataEnd(builder)
