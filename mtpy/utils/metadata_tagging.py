@@ -13,7 +13,7 @@ def read_tree_metadata(fs: AbstractFileSystem, filepath: str) -> PathMetadataTre
 
     Args:
         fs (AbstractFileSystem): an fsspec filesystem
-        filepath: The path to the HDF5 file to read from.
+        filepath (str): The path to the HDF5 file to read from.
 
     Returns:
         PathMetadataTree: A typed dict containing tree metadata for the cache path.

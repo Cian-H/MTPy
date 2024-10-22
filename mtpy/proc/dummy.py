@@ -4,12 +4,7 @@ from mtpy.loaders.dummy import DummyLoader
 
 
 class DummyProcessor:
-    """A dummy processor placeholding for a functional processor.
-
-    Attributes:
-        loader (DummyLoader): The loader containing the data being handled
-    """
+    """A dummy processor placeholding for a functional processor."""
 
     def __init__(self: "DummyProcessor") -> None:
-        """Initializes a dummy placeholder object."""
         self.loader = DummyLoader()

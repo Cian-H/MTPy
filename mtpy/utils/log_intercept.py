@@ -21,7 +21,6 @@ class InterceptHandler(logging.Handler):
         """Converts std.logging emits to loguru emits.
 
         Args:
-            self (InterceptHandler): The interceptor instance.
             record (logging.LogRecord): The record being intercepted.
         """
         # Get corresponding Loguru level if it exists.
@@ -56,7 +55,6 @@ class LoguruPlugin(dask.distributed.WorkerPlugin):
         """Sets up the appropriate interceptor for redirecting logging to loguru.
 
         Args:
-            self (LoguruPlugin): The plugin instance to set up
             worker (dask.distributed.Worker): The dask worker to apply the plugin to
         """
         redirect_logging_to_loguru()

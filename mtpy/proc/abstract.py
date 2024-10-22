@@ -21,16 +21,10 @@ class AbstractProcessor(AbstractBase, metaclass=ABCMeta):
     An abstract base class in which shared functionality for all Processor classes in MTPy
     is defined.
 
-    Attributes:
+    Args:
         loader (LoaderProtocol): The Loader to be attached to the AbstractProcessor
     """
 
     def __init__(self: "AbstractProcessor", loader: LoaderProtocol) -> None:
-        """Initialises the AbstractProcessor object.
-
-        Args:
-            self (AbstractProcessor): The AbstractProcessor object instance
-            loader (LoaderProtocol): The Loader to be attached to the AbstractProcessor
-        """
         super().__init__()
         self.loader = loader

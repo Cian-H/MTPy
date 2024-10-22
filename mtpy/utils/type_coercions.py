@@ -14,7 +14,7 @@ def ensure_sized_iterable(obj: Any) -> SizedIterable[T]:  # noqa: ANN401
         obj (Any): the object to ensure is an iterable
 
     Returns:
-        Iterable[T]: the object as an iterable
+        SizedIterable[T]: the object as an iterable
     """
     from .type_guards import is_iterable, is_sized_iterable
 

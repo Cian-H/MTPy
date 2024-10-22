@@ -18,11 +18,21 @@ from mtpy.vis.plotter import Plotter
 class MeltpoolTomography:
     """A class for handling the data pipeline and visualisation of meltpool tomography data.
 
-    Attributes:
-        _loaders: A dict mapping loader_type strings onto Loader objects
-        loader: The Loader instantiated for the current instance
-        processor: The Processor instantiated for the current instance
-        plotter: The Plotter instantiated for the current instance
+    Args:
+        loader_type (str): The type of loader to use. Defaults to "aconity".
+        client (Optional[Client]): The dask client for managing computations.
+            Defaults to None.
+        cluster (Optional[Cluster]): The dask cluster on which to perform computations.
+            Defaults to None.
+        fs (Optional[AbstractFileSystem]): The fsspec filesystem on which to store the cache.
+            Defaults to `None`.
+        data_cache (Path | str): The path to the directory in which to cache
+            data. Defaults to "cache".
+        cluster_config (Optional[Dict[str, Any]]): The configuration for any dask clusters to
+            be initialised. Defaults to None.
+
+    Raises:
+        ValueError: If no implementation is found matching `loader` argument.
     """
 
     _loaders: ClassVar[Dict[str, Type[LoaderProtocol]]] = {
@@ -38,22 +48,6 @@ class MeltpoolTomography:
         data_cache: Path | str = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Initialises a MeltpoolTomography object.
-
-        Args:
-            self (MeltpoolTomography): The MeltpoolTomography instance
-            loader_type (str): The type of loader to use. Defaults to "aconity".
-            client (Optional[Client]): The dask client for managing computations.
-                Defaults to None.
-            cluster (Optional[Cluster]): The dask cluster on which to perform computations.
-                Defaults to None.
-            fs (Optional[AbstractFileSystem]): The fsspec filesystem on which to store the cache.
-                Defaults to `None`.
-            data_cache (Path | str): The path to the directory in which to cache
-                data. Defaults to "cache".
-            cluster_config (Optional[Dict[str, Any]]): The configuration for any dask clusters to
-                be initialised. Defaults to None.
-        """
         if loader_type not in self._loaders:
             msg = f'No implementation for loader "{loader_type}" found.'
             raise ValueError(msg)
@@ -78,7 +72,6 @@ class MeltpoolTomography:
         If no matching attribute is found throws an AttributeError.
 
         Args:
-            self (MeltpoolTomography): The MeltpoolTomography instance.
             attr (str): The attribute/method to be fetched.
 
         Returns:
@@ -92,4 +85,5 @@ class MeltpoolTomography:
         for obj in (self.loader, self.processor, self.plotter):
             if hasattr(obj, attr):
                 return getattr(obj, attr)
-        return AttributeError(f"{self.__class__.__name__!r} object has no attribute {attr!r}")
+        msg = f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+        raise AttributeError(msg)

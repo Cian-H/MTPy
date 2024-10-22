@@ -71,6 +71,7 @@ griffe = "<1.0.0"
 mkdocs-autorefs = "^1.2.0"
 mkdocs-mermaid2-plugin = "^1.1.1"
 mkdocs-panzoom-plugin = "^0.1.1"
+pydoclint = "^0.5.9"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -153,6 +154,7 @@ select = [
 # - TCH002: same as above.
 # - TCH003: same as above.
 # - ISC001: Personally, i really like this rule but apparently it can cause issues with the ruff formatter.
+# - D107: Should already be covered by DOC301 in pydoclint
 ignore = [
     "PD002",
     "ANN002",
@@ -164,6 +166,7 @@ ignore = [
     "TCH002",
     "TCH003",
     "ISC001",
+    "D107",
 ]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [

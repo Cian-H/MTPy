@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from _hashlib import HASH
 from hashlib import sha1 as default_hash
 from typing import Optional
 
-from _hashlib import HASH
 from fsspec import AbstractFileSystem
 
 
@@ -14,11 +14,11 @@ def hash_update_from_file(fs: AbstractFileSystem, filepath: str, _hash: HASH) ->
 
     Args:
         fs (AbstractFileSystem): an fsspec filesystem
-        filepath (str): a path to hte file or directory to hash
-        hash (Hash): the hashlib hash object to update
+        filepath (str): a path to the file or directory to hash
+        _hash (HASH): the hashlib hash object to update
 
     Returns:
-        Hash: a hashlib hash object
+        HASH: a hashlib hash object
     """
     _hash.update(fs.info(filepath)["name"].split("/")[1].encode())
     chk = fs.checksum(filepath)
@@ -33,7 +33,7 @@ def large_hash(fs: AbstractFileSystem, filepath: str, _hash: Optional[HASH] = No
     Args:
         fs (AbstractFileSystem): an fsspec filesystem
         filepath (str): a path to the file or directory to hash
-        hash (Optional[Hash], optional): the hashlib hash object to apply.
+        _hash (Optional[HASH], optional): the hashlib hash object to apply.
             Defaults to None.
 
     Returns:

@@ -31,13 +31,9 @@ class AconityLoader(AbstractLoader):
         """Constructs a cached dask dataframe from the data at the specified path.
 
         Args:
-            self (DataLoader): The current DataLoader object.
             data_path (str): The path to the target directory.
             chunk_size (int, optional): The chunk size for data storage once data is read. Defaults
                 to 3276800 (~100MB chunks).
-
-        Raises:
-            TypeError: If the glob pattern is not a string.
         """
         # Calculate read batches
         batches: List[List[str]] = [[]]

@@ -22,11 +22,23 @@ from mtpy.utils.types import CalibrationFunction
 class LoaderProtocol(Protocol):
     """The protocol for a valid Loader class.
 
+    Args:
+        client (Optional[Client], optional): A dask client to use for processing.
+            Defaults to None.
+        cluster (Optional[Cluster], optional): A dask cluster to use for processing.
+            Defaults to None.
+        fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
+            loaded can be found. If None will default to LocalFileSystem().
+        data_cache (Optional[Path | str], optional): The directory in which working
+            data will be stored. Defaults to "cache".
+        cluster_config (Optional[Dict[str, Any]], optional): The configuration parameters for the
+            dask cluster. Defaults to {}.
+
     Attributes:
         fs (AbstractFileSystem): The fsspec FileSystem to load from
-        data: The dask DataFrame containing the loaded data
-        temp_label: The label for the temperature data column
-        temp_units: The units to be applied to the temperature data column
+        data (dd.DataFrame): The dask DataFrame containing the loaded data
+        temp_label (str): The label for the temperature data column
+        temp_units (str): The units to be applied to the temperature data column
     """
 
     fs: AbstractFileSystem
@@ -41,23 +53,7 @@ class LoaderProtocol(Protocol):
         fs: Optional[AbstractFileSystem],
         data_cache: Optional[Path | str],
         cluster_config: Optional[Dict[str, Any]],
-    ) -> None:
-        """Initialisation of the data loader class.
-
-        Args:
-            client (Optional[Client], optional): A dask client to use for processing.
-                Defaults to None.
-            cluster (Optional[SpecCluster], optional): A dask cluster to use for processing.
-                Defaults to None.
-            fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
-                loaded can be found. If None will default to LocalFileSystem().
-            data_cache (Optional[Path | str], optional): The directory in which working
-                data will be stored. Defaults to "cache".
-            cluster_config (Dict[str, Any], optional): The configuration parameters for the dask
-                cluster. Defaults to {}.
-            kwargs: Additional keyword arguments to be passed to the parent class (`Base`).
-        """
-        ...
+    ) -> None: ...
 
     def read_layers(
         self: "LoaderProtocol",
@@ -69,7 +65,6 @@ class LoaderProtocol(Protocol):
         """Reads layers from designated path on provided filesystem.
 
         Args:
-            self (LoaderProtocol): The LoaderProtocol instance
             data_path (str): The path to the data to be loaded
             calibration_curve (Optional[CalibrationFunction]): The calibration curve to apply to
                 that data
@@ -79,11 +74,7 @@ class LoaderProtocol(Protocol):
         ...
 
     def commit(self: "LoaderProtocol") -> None:
-        """Commits changes to the self.data DataFrame file cache.
-
-        Args:
-            self (LoaderProtocol): The LoaderProtocol instance
-        """
+        """Commits changes to the self.data DataFrame file cache."""
         ...
 
     def apply_calibration_curve(
@@ -95,11 +86,10 @@ class LoaderProtocol(Protocol):
         """Applies a calibration function to the self.data DataFrame columns.
 
         Args:
-            self (LoaderProtocol): The LoaderProtocol instance.
             calibration_curve (Optional[CalibrationFunction]): The calibration curve to apply to
                 that data
-            temp_column: The self.data DataFrame column that contains the temperature data
-            units: The units to be applied to the temperature column
+            temp_column (str): The self.data DataFrame column that contains the temperature data
+            units (Optional[str]): The units to be applied to the temperature column
         """
         ...
 
@@ -107,7 +97,6 @@ class LoaderProtocol(Protocol):
         """Save the current analysis session to a save file.
 
         Args:
-            self (LoaderProtocol): The LoaderProtocol instance
             filepath (Path | str): The filepath to save to
         """
         ...
@@ -116,7 +105,6 @@ class LoaderProtocol(Protocol):
         """Load an analysis session from a save file.
 
         Args:
-            self (LoaderProtocol): The LoaderProtocol instance
             filepath (Path | str): The filepath to load to
         """
         ...

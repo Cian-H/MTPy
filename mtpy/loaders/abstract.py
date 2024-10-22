@@ -35,7 +35,20 @@ else:
 
 
 class AbstractLoader(AbstractBase, metaclass=ABCMeta):
-    """A class for loading and preprocessing data."""
+    """A class for loading and preprocessing data.
+
+    Args:
+        client (Optional[Client], optional): A dask client to use for processing.
+            Defaults to None.
+        cluster (Optional[Cluster], optional): A dask cluster to use for processing.
+            Defaults to None.
+        fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
+            loaded can be found. If None will default to LocalFileSystem().
+        data_cache (Optional[Path | str], optional): The directory in which working
+            data will be stored. Defaults to "cache".
+        cluster_config (Optional[Dict[str, Any]], optional): The configuration parameters for the
+            dask cluster. Defaults to {}.
+    """
 
     __slots__ = [
         "_cache",
@@ -59,21 +72,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         data_cache: Optional[Path | str] = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """Initialisation of the data loader class.
-
-        Args:
-            client (Optional[Client], optional): A dask client to use for processing.
-                Defaults to None.
-            cluster (Optional[SpecCluster], optional): A dask cluster to use for processing.
-                Defaults to None.
-            fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
-                loaded can be found. If None will default to LocalFileSystem().
-            data_cache (Optional[Path | str], optional): The directory in which working
-                data will be stored. Defaults to "cache".
-            cluster_config (Dict[str, Any], optional): The configuration parameters for the dask
-                cluster. Defaults to {}.
-            kwargs: Additional keyword arguments to be passed to the parent class (`Base`).
-        """
         super().__init__()
 
         loguru_plugin = LoguruPlugin()
@@ -118,9 +116,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     def get_memory_limit(self: "AbstractLoader") -> int:
         """Get the memory limit for the current cluster.
 
-        Args:
-            self (DataLoader): The current DataLoader object.
-
         Returns:
             int: The memory limit for the current cluster in bytes.
         """
@@ -143,7 +138,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         """Constructs a cached dask dataframe from the data at the specified path.
 
         Args:
-            self (DataLoader): The current DataLoader object.
             data_path (str): The path to the target directory.
             chunk_size (int, optional): The chunk size for data storage once data is read. Defaults
                 to 3276800 (~100MB chunks).
@@ -222,9 +216,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         Args:
             calibration_curve (Optional[CalibrationFunction], optional):
                 A calibration function to apply to a column. Defaults to None.
-            temp_column (str, optional): The target column for the calibration_curve to be applied
-                to. Defaults to "t".
-            units (optional[str], optional): The units of the resulting column. Will stay the same
+            temp_column (Optional[str], optional): The target column for the calibration_curve to be
+                applied to. Defaults to "t".
+            units (Optional[str], optional): The units of the resulting column. Will stay the same
                 if given None. Defaults to None.
         """
         # if a calibration curve is given
@@ -277,11 +271,14 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
 
         Args:
             path (Optional[str], optional): The path to generate metadata for. Defaults to None.
-            meta_dict (Optional[Dict[str, str]], optional): An existing metadata dict to add the
+            meta_dict (Optional[PathMetadataTree], optional): An existing metadata dict to add the
                 data to. Defaults to None.
 
         Returns:
-            dict: An amended dict of metadata for the specified path.
+            PathMetadataTree: An amended dict of metadata for the specified path.
+
+        Raises:
+            TypeError: If a path search results in an invalid file during iteration.
         """
         if meta_dict is None:
             meta_dict = {}
@@ -314,7 +311,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 If None, generates for entire cache. Defaults to None.
 
         Returns:
-            JSONDict: A metadata dict for the specified cache path.
+            PathMetadataTree: A metadata dict for the specified cache path.
         """
         if path is None:
             path = str(self._data_cache)
@@ -448,8 +445,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         """Extracts the cache from the specified file.
 
         Args:
-            self (DataLoader): The current DataLoader object.
-            end (int): The end of the file to extract.
             filepath (str): The path to the target file.
             blocksize (int): The blocksize for streaming when unpacking the file.
             tree_metadata (PathMetadataTree): The metadata for the cache to be extracted.
@@ -469,7 +464,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         """Converts a filepath to be relative to the current cache.
 
         Args:
-            self (DataLoader): The current DataLoader object.
             filepath (str): The filepath to be converted.
 
         Returns:
@@ -484,7 +478,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         Args:
             builder (flatbuffers.Builder): The flatbuffer builder object.
             path (str): The filepath for the file.
-            file_meta (dict): The metadata for the file.
+            file_meta (PathMetadata): The metadata for the file.
 
         Returns:
             int: The id of the TreeFile buffer for the given file.
@@ -503,7 +497,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         """Creates a bytearray flatbuffer from cache tree metadata.
 
         Args:
-            self (DataLoader): The current DataLoader object.
             metadata (PathMetadataTree): The cache tree metadata.
 
         Returns:

@@ -34,7 +34,7 @@ def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Ca
     """Create type guards (`is_<type>` and `guarded_<type>`) for a given type.
 
     Args:
-        type (T): the type to create guards for
+        _type (T): the type to create guards for
 
     Returns:
         Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]: the type guards
@@ -92,7 +92,7 @@ def is_str_key_dict(t: Any) -> TypeGuard[Dict[str, Any]]:
         t (Any): the object to check
 
     Returns:
-        TypeGuard[Dict[str, T]]: True if the object is a dictionary with string keys,
+        TypeGuard[Dict[str, Any]]: True if the object is a dictionary with string keys,
             False otherwise
     """
     return isinstance(t, dict) and all(isinstance(k, str) for k in t)

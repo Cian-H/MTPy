@@ -162,18 +162,24 @@ class Statistics(AbstractProcessor):
             filepath (str): the path to which a datasheet will be written.
             *args: additional arguments to be passed to the writer.
             **kwargs: additional keyword arguments to be passed to the writer.
+
+        Returns:
+            TextIOWrapper | AbstractBufferedFile: A buffer to which a csv can be written.
         """
         return self.loader.fs.open(filepath, "w+")
 
     @singledispatchmethod
     @staticmethod
     def _write(w: T, df: pd.DataFrame, sheet_name: str) -> None:
-        """A method for handling writing to files.
+        """A fallthrough method for attempts to write to unsupported file types.
 
         Args:
             w (T): the writer object to which a datasheet will be written.
             df (pd.DataFrame): the dataframe to be written to the datasheet.
             sheet_name (str): the name of the sheet to be written.
+
+        Raises:
+            NotImplementedError: Indicates this file type is not yet supported.
         """
         msg = f"Writing to {type(w)} is not supported"
         raise NotImplementedError(msg)

@@ -50,7 +50,7 @@ class Thresholder(AbstractProcessor, AbstractBase):
 
         Args:
             threshold_percent (float, optional): the percentage of the max speed above which points
-            will be removed. Defaults to 1.
+                will be removed. Defaults to 1.
             avgof (int, optional): the number of points to average over. Defaults to 1.
         """
         threshold_percent /= 100.0  # convert threshold percent to decimal
@@ -88,7 +88,7 @@ class Thresholder(AbstractProcessor, AbstractBase):
                 Defaults to 1.
             column (str, optional): the column to threshold by. Defaults to "w1".
             comparison_func (Callable[[float, float], bool], optional): The comparison function by
-            which to threshold. Defaults to f(x, y): x > y.
+                which to threshold. Defaults to f(x, y): x > y.
         """
         threshold_percent /= 100.0  # convert threshold percent to decimal
         threshold = threshold_percent * cast(dd.Series, self.loader.data[column]).mean()
@@ -140,12 +140,11 @@ class Thresholder(AbstractProcessor, AbstractBase):
                 a list of functions to apply
             threshfunc_kwargs (Dict[str, Any] | Iterable[Dict[str, Any]]):
                 a list of kwargs for the functions to apply
-        """  # noqa: E501
-        # if conversion to dict is needed for single function, then convert
-        # if isinstance(thresh_functions, Callable):
-        #     thresh_functions = (thresh_functions,)
-        # if is_str_key_dict(threshfunc_kwargs):
-        #     threshfunc_kwargs = (threshfunc_kwargs,)
+
+        Raises:
+            ValueError: If provided `thresh_function` is invalid or if `threshfunc_kwargs` do not
+                match `thresh_func` kwargs.
+        """
         from mtpy.utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
 
         if not (is_sized_iterable(thresh_functions) or is_callable(thresh_functions)):
