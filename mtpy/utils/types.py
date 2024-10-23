@@ -1,6 +1,16 @@
 """This module contains type definitions for the mtpy package."""
 
-from typing import Callable, Dict, Iterable, List, Protocol, Sized, TypedDict, TypeVar, Union
+from typing import (
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Protocol,
+    Sized,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
 from dask import dataframe as dd
 
@@ -11,6 +21,19 @@ JSONValue = Union[None, str, int, float, bool, "JSONDict", "JSONList"]
 JSONDict = Dict[str, JSONValue]
 JSONList = List[JSONValue]
 JSONData = Union[JSONDict, JSONList]
+
+
+class StatsDict(TypedDict):
+    """A TypedDict for returning statistics from a dask table."""
+
+    min: float
+    max: float
+    mean: float
+    std: float
+    stderr: float
+    ci_error: float
+    ci_min: float
+    ci_max: float
 
 
 class PathMetadata(TypedDict):

@@ -23,6 +23,7 @@ from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
 from mtpy.utils.metadata_tagging import read_tree_metadata
 from mtpy.utils.tree_metadata import Metadata, Sha1, TreeFile
+from mtpy.utils.type_guards import guarded_bytearray
 from mtpy.utils.types import CalibrationFunction, PathMetadata, PathMetadataTree
 
 # Conditional imports depending on whether a GPU is present
@@ -82,17 +83,16 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             cluster_config = {}
         if data_cache is None:
             data_cache = Path().cwd()
-        if (cluster is None) and (client is None):
-            self.cluster: Cluster = LocalCluster(
-                n_workers=(psutil.cpu_count() - 1 * 2),
-                threads_per_worker=1,
-                plugins=(loguru_plugin,),
-            )
-            self.cluster.adapt(minimum=1, maximum=(psutil.cpu_count() - 1 * 2))
-        else:
-            self.cluster = cluster
         if client is None:
-            self.client = Client(self.cluster)
+            if cluster is None:
+                cluster = LocalCluster(
+                    n_workers=(psutil.cpu_count() - 1 * 2),
+                    threads_per_worker=1,
+                    plugins=(loguru_plugin,),
+                )
+                cluster.adapt(minimum=1, maximum=(psutil.cpu_count() - 1 * 2))
+            self.cluster: Cluster = cluster
+            self.client: Client = Client(self.cluster)
         else:
             self.client = client
         self.client.register_plugin(loguru_plugin)
@@ -297,7 +297,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 is_dir=is_dir,
                 size=self.fs.size(f_as_str),
             )
-            # type: ignore # This is happening becuase python doesn't support recursive types
             meta_dict[rel_path] = path_metadata
             if is_dir:
                 meta_dict = self.tree_metadata(f"{f_as_str}/", meta_dict)
@@ -519,7 +518,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         Metadata.AddTree(builder, treebuff)
         m = Metadata.End(builder)
         builder.Finish(m)
-        return builder.Output()
+        return guarded_bytearray(builder.Output())
 
     def load(self: "AbstractLoader", filepath: Path | str = Path("data")) -> None:
         """Loads the saved MTPy session from the specified file.

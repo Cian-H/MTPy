@@ -1,6 +1,7 @@
 """An abstract base class defining core shared functionality fo MTPy classes."""
 
 from abc import ABCMeta
+from typing import Any, Type
 
 import loguru
 from tqdm.auto import tqdm
@@ -14,14 +15,14 @@ class AbstractBase(metaclass=ABCMeta):  # noqa B024
     Args:
         logger (LoggerProtocol, optional): The logger to use for logging.
             Defaults to `loguru.logger`
-        progressbar (type[ProgressBarProtocol], optional):
+        progressbar (Type[ProgressBarProtocol[Any]], optional):
             A passthrough iterative wrapper that updates a progress bar. Defaults to `tqdm`.
     """
 
     def __init__(
         self: "AbstractBase",
         logger: LoggerProtocol = loguru.logger,
-        progressbar: type[ProgressBarProtocol] = tqdm,
+        progressbar: Type[ProgressBarProtocol[Any]] = tqdm,
     ) -> None:
         self.logger = logger
         self.progressbar = progressbar

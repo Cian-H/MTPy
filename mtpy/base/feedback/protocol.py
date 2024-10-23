@@ -176,7 +176,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
     #     I've defined myself. It's not getting fixed here unless TQDM fixes
     #     it or we change protocol.
     def __init__(
-        self: "ProgressBarProtocol",
+        self: "ProgressBarProtocol[T_co]",
         iterable: Iterable[T_co] | None = None,
         *args: Any,
         desc: str | None = None,
@@ -207,7 +207,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
         **kwargs: Any,
     ) -> None: ...
 
-    def __iter__(self: "ProgressBarProtocol") -> Iterator[T_co]:
+    def __iter__(self: "ProgressBarProtocol[T_co]") -> Iterator[T_co]:
         """Backward-compatibility to use: for x in tqdm(iterable).
 
         Returns:
@@ -215,7 +215,7 @@ class ProgressBarProtocol(Protocol, Generic[T_co]):
         """
         ...
 
-    def update(self: "ProgressBarProtocol", n: int | float = 1) -> bool | None:
+    def update(self: "ProgressBarProtocol[T_co]", n: int | float = 1) -> bool | None:
         """Manually update the progress bar, useful for streams such as reading files.
 
         E.g.:

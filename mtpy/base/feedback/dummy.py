@@ -165,7 +165,7 @@ class DummyProgressBar(Generic[T_co]):
     #     I've defined myself. It's not getting fixed here unless TQDM fixes
     #     it or we change protocol.
     def __init__(
-        self: "DummyProgressBar",
+        self: "DummyProgressBar[T_co]",
         iterable: Iterable[T_co] | None = None,
         *args: Any,
         desc: str | None = None,
@@ -197,7 +197,7 @@ class DummyProgressBar(Generic[T_co]):
     ) -> None:
         self.iterable = iterable
 
-    def __iter__(self: "DummyProgressBar") -> Iterator[T_co]:
+    def __iter__(self: "DummyProgressBar[T_co]") -> Iterator[T_co]:
         """Backward-compatibility to use: for x in tqdm(iterable).
 
         Returns:
@@ -205,7 +205,7 @@ class DummyProgressBar(Generic[T_co]):
         """
         return self.iterable.__iter__() if self.iterable is not None else ().__iter__()
 
-    def update(self: "DummyProgressBar", n: int | float = 1) -> bool | None:
+    def update(self: "DummyProgressBar[T_co]", n: int | float = 1) -> bool | None:
         """Manually update the progress bar, useful for streams such as reading files.
 
         E.g.:

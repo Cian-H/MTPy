@@ -3,11 +3,14 @@
 from functools import singledispatchmethod
 from io import TextIOWrapper
 import math
-from typing import Any, Dict, Iterable, Optional, TypeVar
+from typing import Any, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import dask
+import dask.dataframe as dd
 from fsspec.spec import AbstractBufferedFile
 import pandas as pd
+
+from mtpy.utils.types import JSONDict, StatsDict
 
 from .abstract import AbstractProcessor
 
@@ -21,8 +24,8 @@ class Statistics(AbstractProcessor):
         self: "Statistics",
         groupby: Optional[str | Iterable[str]] = None,
         confidence_interval: float = 0.95,
-    ) -> Dict[str, Any]:
-        """Calculates numerical statistics for the current dataframe.
+    ) -> StatsDict:
+        """Calculates numerical statistics for the current data.
 
         Args:
             groupby (Optional[str | Iterable[str]], optional): a groupby string to be applied
@@ -31,22 +34,31 @@ class Statistics(AbstractProcessor):
                 statistical calculations. Defaults to 0.95.
 
         Returns:
-            Dict[str, Any]: A dict containing the calculated statistics.
+            StatsDict: A dict containing the calculated statistics.
         """
-        group = self.loader.data.groupby(groupby)
-        ops = [group.min(), group.max(), group.mean(), group.std()]
-        results = dask.compute(*ops)
-        stats = {
-            "min": results[0],
-            "max": results[1],
-            "mean": results[2],
-            "std": results[3],
-        }
-        stats["stderr"] = stats["std"] / math.sqrt(len(stats))
-        stats["ci_error"] = confidence_interval * stats["stderr"]
-        stats["ci_min"] = stats["mean"] - stats["ci_error"]
-        stats["ci_max"] = stats["mean"] + stats["ci_error"]
-        return stats
+        group: dd.dd.dask_expr._groupby.GroupBy = self.loader.data.groupby(groupby)
+        ops: List[dd.dd.dask_expr._collection.Series] = [
+            group.min(),
+            group.max(),
+            group.mean(),
+            group.std(),
+        ]
+        results: Tuple[float, float, float, float] = dask.compute(*ops)
+        _min, _max, mean, std = results
+        stderr: float = std / math.sqrt(len(self.loader.data))
+        ci_error: float = confidence_interval * stderr
+        ci_min: float = mean - ci_error
+        ci_max: float = mean + ci_error
+        return StatsDict(
+            min=_min,
+            max=_max,
+            mean=mean,
+            std=std,
+            stderr=stderr,
+            ci_error=ci_error,
+            ci_min=ci_min,
+            ci_max=ci_max,
+        )
 
     def export_datasheet(
         self: "Statistics",
@@ -74,7 +86,7 @@ class Statistics(AbstractProcessor):
                 statistical calculations. Defaults to 0.95.
         """
         # Fill a dask pipeline for efficient, optimised stat calculation
-        ops = []
+        ops: List[dd.dd.dask_expr._collection.Series] = []
         if overall:
             ops += [
                 self.loader.data.min(),
@@ -82,6 +94,7 @@ class Statistics(AbstractProcessor):
                 self.loader.data.mean(),
                 self.loader.data.std(),
             ]
+        group: dd.dd.dask_expr._groupby.GroupBy
         if layers:
             group = self.loader.data.groupby("z")
             ops += [group.min(), group.max(), group.mean(), group.std()]
@@ -93,10 +106,10 @@ class Statistics(AbstractProcessor):
             ops += [group.min(), group.max(), group.mean(), group.std()]
 
         # Compute results
-        combined_stats = dask.compute(*ops)
+        combined_stats: List[dd.dd.dask_expr._collection.Scalar] = dask.compute(*ops)
 
         # Unpack results
-        stats = {}
+        stats: Dict[str, Dict[str, dd.dd.dask_expr._collection.DataFrame]] = {}
         if overall:
             d = {}
             d["min"], d["max"], d["mean"], d["std"], *combined_stats = combined_stats
@@ -115,7 +128,7 @@ class Statistics(AbstractProcessor):
             stats["sample_layers"] = d
 
         # Next, compute derived statistics
-        sqrt_len = math.sqrt(len(d))
+        sqrt_len: float = math.sqrt(len(d))
         for d in stats.values():
             d["stderr"] = d["std"] / sqrt_len
             d["ci_error"] = confidence_interval * d["stderr"]
@@ -126,19 +139,24 @@ class Statistics(AbstractProcessor):
         self.write_to_file(stats, filepath)
         self.logger.info(f"Datasheets generated at {filepath}!")
 
-    def write_to_file(self: "Statistics", stats: Dict[str, Any], filepath: str) -> None:
+    def write_to_file(
+        self: "Statistics",
+        stats: Dict[str, Dict[str, dd.dd.dask_expr._collection.DataFrame]],
+        filepath: str,
+    ) -> None:
         """Writes a dictionary of statistics to a file.
 
         Args:
-            stats (Dict[str, Any]): the statistics to be written to file.
+            stats (Dict[str, Dict[str, dd.dd.dask_expr._collection.DataFrame]]): the statistics to
+                be written to file.
             filepath (str): the path to which a datasheet will be written.
         """
         with self._get_writer(filepath) as w:
             for grouping, data in stats.items():
                 # combine dataframes into a single sheet
                 combined_df = pd.DataFrame()
-                for statistic, dd in data.items():
-                    combined_df[[f"{x}_{statistic}".strip("0_") for x in dd]] = dd
+                for statistic, ddf in data.items():
+                    combined_df[[f"{x}_{statistic}".strip("0_") for x in ddf]] = ddf
                 # Then, write a sheet to the file for each grouping present
                 self._write(w, combined_df, sheet_name=grouping)
 
@@ -146,7 +164,7 @@ class Statistics(AbstractProcessor):
         self: "Statistics", filepath: str
     ) -> pd.ExcelWriter | TextIOWrapper | AbstractBufferedFile:
         file_extension = filepath.split(".")[-1]
-        storage_options = getattr(self.loader.fs, "storage_options", None)
+        storage_options: JSONDict | None = getattr(self.loader.fs, "storage_options", None)
         if file_extension in {"xls", "xlsx", "xlsm", "xlsb"}:
             return pd.ExcelWriter(filepath, engine="openpyxl", storage_options=storage_options)
         if filepath.split(".")[-1] in {"odf", "ods", "odt"}:
