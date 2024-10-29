@@ -1,25 +1,39 @@
 """A module containing functions for safely coercing types."""
 
-from typing import Any, TypeVar
+from typing import Any, Type, TypeVar
 
-from .types import SizedIterable
+from .types import TypedSizedIterable
 
 T = TypeVar("T")
 
 
-def ensure_sized_iterable(obj: Any) -> SizedIterable[T]:  # noqa: ANN401
+def ensure_typedsizediterable(obj: Any, _type: Type[T]) -> TypedSizedIterable[T]:  # noqa: ANN401
     """Ensures that an object is an iterable.
 
     Args:
         obj (Any): the object to ensure is an iterable
+        _type (Type[T]): the type of the elements inside the TypedSizedIterable
 
     Returns:
-        SizedIterable[T]: the object as an iterable
-    """
-    from .type_guards import is_iterable, is_sized_iterable
+        TypedSizedIterable[T]: the object as a TypedSizedIterable
 
-    if is_sized_iterable(obj):
+    Raises:
+        TypeError: the object cannot be coerced into a valid TypedSizedIterable[T]
+    """
+    from .type_guards import (
+        guarded_typedsizediterable,
+        is_iterable,
+        is_sizediterable,
+        is_typedsizediterable,
+    )
+
+    if is_typedsizediterable(obj, _type):
         return obj
+    if is_sizediterable(obj):
+        return guarded_typedsizediterable(obj, _type)
     if is_iterable(obj):
-        return list(obj)
-    return [obj]
+        return guarded_typedsizediterable(list(obj), _type)
+    if isinstance(obj, _type):
+        return guarded_typedsizediterable([obj], _type)
+    msg = f"Expected `TypedSizedIterable[{_type}]` or `{_type}`"
+    raise TypeError(msg)

@@ -53,3 +53,9 @@ class SizedIterable(Iterable[T_co], Sized, Protocol):
     """A Protocol for an Iterable that also has a size."""
 
     pass
+
+
+class TypedSizedIterable(Iterable[T_co], Sized, Protocol):
+    """A Protocol for an Iterable that also has a type and a size."""
+
+    pass

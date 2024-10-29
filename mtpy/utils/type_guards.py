@@ -8,7 +8,19 @@ circular imports since these will be imported at many different points during cl
 composition.
 """
 
-from typing import Any, Callable, Dict, Iterable, Sized, Tuple, TypeGuard, TypeVar
+from itertools import repeat
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Sized,
+    Tuple,
+    Type,
+    TypeGuard,
+    TypeVar,
+)
 
 from dask import array as da
 from dask import dataframe as dd
@@ -23,6 +35,7 @@ from mtpy.utils.types import (
     PathMetadata,
     PathMetadataTree,
     SizedIterable,
+    TypedSizedIterable,
 )
 from mtpy.vis.protocol import PlotterProtocol
 
@@ -30,11 +43,11 @@ T = TypeVar("T")
 TWO = 2
 
 
-def create_type_guard(_type: type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]:
+def create_type_guard(_type: Type[T]) -> Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]:
     """Create type guards (`is_<type>` and `guarded_<type>`) for a given type.
 
     Args:
-        _type (type[T]): the type to create guards for
+        _type (Type[T]): the type to create guards for
 
     Returns:
         Tuple[Callable[[Any], TypeGuard[T]], Callable[[Any], T]]: the type guards
@@ -187,7 +200,7 @@ def is_sized(t: Any) -> TypeGuard[Sized]:
     return isinstance(t, Sized)
 
 
-def is_sized_iterable(t: Any) -> TypeGuard[SizedIterable[T]]:
+def is_sizediterable(t: Any) -> TypeGuard[SizedIterable[T]]:
     """Type guard for a sized iterable.
 
     Args:
@@ -197,6 +210,42 @@ def is_sized_iterable(t: Any) -> TypeGuard[SizedIterable[T]]:
         TypeGuard[SizedIterable[T]]: True if the object is a sized iterable, False otherwise
     """
     return is_iterable(t) and is_sized(t)
+
+
+def is_typedsizediterable(t: Any, _type: Type[T]) -> TypeGuard[TypedSizedIterable[T]]:
+    """Type guard for a sized iterable.
+
+    Args:
+        t (Any): the object to check
+        _type (Type[T]): the type of the elements inside the SizedIterable
+
+    Returns:
+        TypeGuard[TypedSizedIterable[T]]: True if the object is a sized iterable, False otherwise
+    """
+    if not is_sizediterable(t):
+        return False
+    if TYPE_CHECKING:
+        return all(map(isinstance, t, repeat(_type)))
+    return True
+
+
+def guarded_typedsizediterable(t: Any, _type: Type[T]) -> TypedSizedIterable[T]:
+    """A function for type guarding a TypedSizedIterable.
+
+    Args:
+        t (Any): the object to check
+        _type (Type[T]): the type of the elements inside the SizedIterable
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        TypedSizedIterable[T]: the object if it is callable
+    """
+    if not is_typedsizediterable(t, _type):
+        msg = f"Expected a TypedSizedIterable[{_type}]"
+        raise TypeError(msg)
+    return t
 
 
 def is_json_data(t: Any) -> TypeGuard[JSONData]:

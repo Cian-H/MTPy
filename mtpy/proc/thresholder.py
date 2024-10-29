@@ -4,18 +4,35 @@ from __future__ import annotations
 
 from math import cos, pi, sin
 import operator as op
-from typing import Any, Callable, Dict, Iterable, Tuple, cast
+from typing import Any, Callable, Dict, Iterable, Protocol, Tuple, cast, runtime_checkable
 
 from dask import dataframe as dd
 import numpy as np
 import pandas as pd
 
 from mtpy.base.abstract import AbstractBase
-from mtpy.utils.type_coercions import ensure_sized_iterable
+from mtpy.utils.type_coercions import ensure_typedsizediterable
 
 from .abstract import AbstractProcessor
 
 degrees_per_rad = 180 / pi
+
+
+@runtime_checkable
+class ThresholdFunction(Protocol):
+    """A protocol defining valid thresholding functions."""
+
+    def __call__(self: "ThresholdFunction", x: float, y: float) -> bool:
+        """Checks if an (x, y) point should be kept or removed from the dataset.
+
+        Args:
+            x (float): the x value.
+            y (float): the y value.
+
+        Returns:
+            bool: True if point should be kept, False if not
+        """
+        ...
 
 
 class Thresholder(AbstractProcessor, AbstractBase):
@@ -148,18 +165,8 @@ class Thresholder(AbstractProcessor, AbstractBase):
                 match `thresh_func` kwargs.
         """
         )
-        from mtpy.utils.type_guards import is_callable, is_sized_iterable, is_str_key_dict
-
-        if not (is_sized_iterable(thresh_functions) or is_callable(thresh_functions)):
-            msg = "thresh_functions must be a sized iterable or a callable"
-            raise ValueError(msg)
-        thresh_functions = ensure_sized_iterable(thresh_functions)
-
-        if not (is_sized_iterable(threshfunc_kwargs) or is_str_key_dict(threshfunc_kwargs)):
-            msg = "threshfunc_kwargs must be a sized iterable or a Dict[str, Any]"
-            raise ValueError(msg)
-
-        threshfunc_kwargs = ensure_sized_iterable(threshfunc_kwargs)
+        thresh_functions = ensure_typedsizediterable(thresh_functions, ThresholdFunction)
+        threshfunc_kwargs = ensure_typedsizediterable(threshfunc_kwargs, Dict[str, Any])
 
         if len(thresh_functions) != len(threshfunc_kwargs):
             msg = "thresh_functions and threshfunc_kwargs must be the same length"
@@ -177,8 +184,8 @@ class Thresholder(AbstractProcessor, AbstractBase):
 
         # apply each requested thresholding function in sequence
         for thresh_function, kwargs in progbar_iterator:
-            # WARNING: This is a clear footgun but fixing it would hamstring the
-            #   usefulness of the thresholding function.
+            # WARNING: This is a clearm dynamic footgun but fixing it would hamstring the
+            #   usefulness of the thresholding function without serious type gymnastics.
             thresh_function(**kwargs)  # type: ignore
 
     # def detect_samples_kmeans(self, n_samples):
