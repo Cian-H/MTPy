@@ -9,6 +9,6 @@ reports_dir = root / "docs/type_reports/"
 reports_dir.mkdir(parents=True, exist_ok=True)
 
 subprocess.run(
-    ["mypy", "--html-report", reports_dir, ".", "--check-untyped-defs"],
+    ["mypy", "--check-untyped-defs", "--cache-fine-grained", "--html-report", reports_dir, "."],
     check=True,
 )

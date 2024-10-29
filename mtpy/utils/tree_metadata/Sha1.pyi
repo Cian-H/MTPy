@@ -3,20 +3,21 @@
 Contains the code for parsing Sha1 entries in the tree_metadata flatbuffer schema.
 """
 
-from typing import Optional
+from typing import Optional, Type
 
 import flatbuffers
 import numpy as np
+from numpy.typing import NDArray
 
 class Sha1(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def SizeOf(cls: type[Sha1]) -> int:
+    def SizeOf(cls: Type[Sha1]) -> int:
         """Gets the size of the the Sha1 buffer.
 
         Args:
-            cls (type[Sha1]): A reference to the Sha1 buffer class
+            cls (Type[Sha1]): A reference to the Sha1 buffer class
 
         Returns:
             int: The size of the buffer in bytes
@@ -45,14 +46,14 @@ class Sha1(object):
         """
         ...
 
-    def BytearrayAsNumpy(self: "Sha1") -> np.ndarray:
+    def BytearrayAsNumpy(self: "Sha1") -> NDArray[np.uint8]:
         """Gets the bytearray field from the current Sha1 buffer.
 
         Args:
             self (Sha1): The instance to get the tree for
 
         Returns:
-            np.ndarray, Optional: The file at index j in the Tree
+            NDArray[np.uint8], Optional: The file at index j in the Tree
         """
         ...
 

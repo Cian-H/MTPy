@@ -10,6 +10,7 @@ from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
+from mtpy.utils.type_guards import guarded_str_key_dict
 from mtpy.vis.abstract import AbstractPlotter
 
 from .dispatchers import plot_dispatch
@@ -18,7 +19,7 @@ hv.extension("plotly")
 
 config_path = "plotter.json"
 with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("r") as f:
-    config = json.load(f)
+    config = guarded_str_key_dict(json.load(f))
 
 
 class Plotter(AbstractPlotter):

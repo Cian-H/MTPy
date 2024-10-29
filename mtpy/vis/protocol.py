@@ -64,7 +64,7 @@ class PlotterProtocol(Protocol):
         self: "PlotterProtocol",
         kind: str,
         samples: Optional[int | Iterable[int]] = None,
-        kwargs: Optional[dict] = None,
+        kwargs: Optional[dict[str, object]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         yrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
         zrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,
@@ -76,7 +76,7 @@ class PlotterProtocol(Protocol):
             kind (str): the kind of plot to produce
             samples (Optional[int | Iterable[int]], optional): The samples in the view.
                 Defaults to None.
-            kwargs (Optional[dict], optional): The kwargs for hte plotting function.
+            kwargs (Optional[dict[str, object]], optional): The kwargs for hte plotting function.
                 Defaults to None.
             xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): The range
                 of x values to be plotted. Defaults to None.

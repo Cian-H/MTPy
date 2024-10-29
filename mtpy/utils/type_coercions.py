@@ -1,17 +1,17 @@
 """A module containing functions for safely coercing types."""
 
-from typing import Any, Type, TypeVar
+from typing import Type, TypeVar
 
 from .types import TypedSizedIterable
 
 T = TypeVar("T")
 
 
-def ensure_typedsizediterable(obj: Any, _type: Type[T]) -> TypedSizedIterable[T]:  # noqa: ANN401
+def ensure_typedsizediterable(obj: object, _type: Type[T]) -> TypedSizedIterable[T]:
     """Ensures that an object is an iterable.
 
     Args:
-        obj (Any): the object to ensure is an iterable
+        obj (object): the object to ensure is an iterable
         _type (Type[T]): the type of the elements inside the TypedSizedIterable
 
     Returns:

@@ -33,7 +33,7 @@ class DispatchParams(TypedDict):
 
 def plot_dispatch(
     kind: str, chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
-) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
+) -> Tuple[List[Callable[..., hv.element.Chart]], List[Dict[str, Any]], Dict[str, Any]]:
     """A dispatcher for 3d plotting functions.
 
     Args:
@@ -47,8 +47,8 @@ def plot_dispatch(
         ValueError: an unknown kind of 2d plot was given
 
     Returns:
-        Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]: a tuple of
-            (f_list, kwargs_list, opts) for generating a holoviz plot
+        Tuple[List[Callable[..., hv.element.Chart]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
+            of (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     # if no aggregator is given, default to aggregated mean of w
     if aggregator is None:
@@ -63,7 +63,7 @@ def plot_dispatch(
 
 def scatter(
     chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
-) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
+) -> Tuple[List[Callable[..., hv.element.Chart]], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a scatter plot.
 
     Args:
@@ -72,8 +72,8 @@ def scatter(
         **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the scatter plot
 
     Returns:
-        Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]: a tuple of
-            (f_list, kwargs_list, opts) for generating a holoviz plot
+        Tuple[List[Callable[..., hv.element.Chart]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
+            of (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     kdims = [kwargs.get("x", "x"), kwargs.get("y", "y")]
     w_col = kwargs.get("w", "t")
@@ -81,9 +81,9 @@ def scatter(
     from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
     f_list = [
-        guarded_callable(hv.Points),
-        guarded_callable(hd.rasterize),
-        guarded_callable(hd.dynspread),
+        guarded_callable(hv.Points, hv.Points),
+        guarded_callable(hd.rasterize, hd.rasterize),
+        guarded_callable(hd.dynspread, hd.dynspread),
     ]
     kwargs_list = [
         guarded_str_key_dict(
@@ -110,7 +110,7 @@ def scatter(
 
 def distribution(
     chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
-) -> Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]:
+) -> Tuple[List[Callable[..., hv.element.Chart]], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a distribution plot.
 
     Args:
@@ -119,12 +119,12 @@ def distribution(
         **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the distribution plot
 
     Returns:
-        Tuple[List[Callable], List[Dict[str, Any]], Dict[str, Any]]: a tuple of
-            (f_list, kwargs_list, opts) for generating a holoviz plot
+        Tuple[List[Callable[..., hv.element.Chart]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
+            of (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     from mtpy.utils.type_guards import guarded_callable, guarded_str_key_dict
 
-    f_list = [guarded_callable(hv.Distribution)]
+    f_list = [guarded_callable(hv.Distribution, hv.Distribution)]
     kwargs_list = [guarded_str_key_dict({})]
     opts = guarded_str_key_dict({})
 

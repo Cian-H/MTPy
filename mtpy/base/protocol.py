@@ -9,4 +9,4 @@ class BaseProtocol(Protocol):
     """A base class on which all other classes in this package are built."""
 
     logger: LoggerProtocol
-    progressbar: ProgressBarProtocol
+    progressbar: ProgressBarProtocol[object]

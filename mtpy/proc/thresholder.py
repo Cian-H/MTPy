@@ -166,7 +166,7 @@ class Thresholder(AbstractProcessor, AbstractBase):
         """
         )
         thresh_functions = ensure_typedsizediterable(thresh_functions, ThresholdFunction)
-        threshfunc_kwargs = ensure_typedsizediterable(threshfunc_kwargs, Dict[str, Any])
+        threshfunc_kwargs = ensure_typedsizediterable(threshfunc_kwargs, Dict[str, object])
 
         if len(thresh_functions) != len(threshfunc_kwargs):
             msg = "thresh_functions and threshfunc_kwargs must be the same length"
@@ -184,9 +184,9 @@ class Thresholder(AbstractProcessor, AbstractBase):
 
         # apply each requested thresholding function in sequence
         for thresh_function, kwargs in progbar_iterator:
-            # WARNING: This is a clearm dynamic footgun but fixing it would hamstring the
+            # WARNING: This is a clear, dynamic footgun but fixing it would hamstring the
             #   usefulness of the thresholding function without serious type gymnastics.
-            thresh_function(**kwargs)  # type: ignore
+            thresh_function(**kwargs)
 
     # def detect_samples_kmeans(self, n_samples):
     #     "Uses a clustering algorithm to detect samples automatically"
@@ -223,13 +223,8 @@ class Thresholder(AbstractProcessor, AbstractBase):
             sample_map (Dict[Any, Tuple[Tuple[int, int], Tuple[int, int]]]):
                 a dict of sample labels and tuples of ((x1, x2), (y1, y2))
         """
-        # def map_func(row):
-        #     for sample, ((x_min, x_max), (y_min, y_max)) in sample_map.items():
-        #         if (x_min < row["x"] < x_max) and (y_min < row["y"] < y_max):
-        #             return sample
 
-        # self.loader.data["sample"] = self.data.apply(map_func, axis=1, meta=(None, "int64"))
-        def map_func(df: pd.DataFrame) -> pd.Series:
+        def map_func(df: pd.DataFrame) -> pd.Series[float]:
             samples = np.full(len(df), -1, dtype=int)
             for k, ((x1, x2), (y1, y2)) in sample_map.items():
                 x_min, x_max = min(x1, x2), max(x1, x2)

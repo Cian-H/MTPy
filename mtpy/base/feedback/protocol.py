@@ -3,7 +3,6 @@
 from typing import (
     IO,
     Any,
-    Generic,
     Iterable,
     Iterator,
     Mapping,
@@ -74,7 +73,7 @@ class LoggerProtocol(Protocol):
 
 
 @runtime_checkable
-class ProgressBarProtocol(Protocol, Generic[T_co]):
+class ProgressBarProtocol[T_co](Protocol):
     """A protocol defining progress bar objects accepted by MTPy classes.
 
     This protocol allows any progress bar to be used as long as it

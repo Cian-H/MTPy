@@ -3,7 +3,7 @@
 Contains the code for parsing Metadata entries in the tree_metadata flatbuffer schema.
 """
 
-from typing import Optional
+from typing import Optional, Type
 
 import flatbuffers
 
@@ -13,7 +13,7 @@ class Metadata(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls: type[Metadata], buf: bytes, offset: int = 0) -> "Metadata":
+    def GetRootAs(cls: Type[Metadata], buf: bytes, offset: int = 0) -> "Metadata":
         """Gets the root of the flatbuffer as a Metadata class.
 
         Args:
@@ -27,7 +27,7 @@ class Metadata(object):
         ...
 
     @classmethod
-    def GetRootAsMetadata(cls: type[Metadata], buf: bytes, offset: int = 0) -> "Metadata":
+    def GetRootAsMetadata(cls: Type[Metadata], buf: bytes, offset: int = 0) -> "Metadata":
         """This method is deprecated. Please switch to GetRootAs.
 
         Args:

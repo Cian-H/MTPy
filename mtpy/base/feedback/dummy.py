@@ -1,6 +1,6 @@
 """Dummy feedback modules for testing and silencing feedback."""
 
-from typing import IO, Any, Generic, Iterable, Iterator, Mapping, TypeVar
+from typing import IO, Any, Iterable, Iterator, Mapping, TypeVar
 
 T_co = TypeVar("T_co", covariant=True)
 
@@ -59,7 +59,7 @@ class DummyLogger:
         pass
 
 
-class DummyProgressBar(Generic[T_co]):
+class DummyProgressBar[T_co]:
     """Initialiser for creating progress bars.
 
     I really like how tqdm handles progress bars, so as a start lets enforce

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Type
 
 import flatbuffers
 from tree_metadata.Sha1 import Sha1
@@ -7,7 +7,7 @@ class TreeFile(object):
     __slots__ = ["_tab"]
 
     @classmethod
-    def GetRootAs(cls: type[TreeFile], buf: bytes, offset: int = 0) -> "TreeFile":
+    def GetRootAs(cls: Type[TreeFile], buf: bytes, offset: int = 0) -> "TreeFile":
         """Gets the root of the flatbuffer as a TreeFile class.
 
         Args:
@@ -21,7 +21,7 @@ class TreeFile(object):
         ...
 
     @classmethod
-    def GetRootAsTreeFile(cls: type[TreeFile], buf: bytes, offset: int = 0) -> "TreeFile":
+    def GetRootAsTreeFile(cls: Type[TreeFile], buf: bytes, offset: int = 0) -> "TreeFile":
         """This method is deprecated. Please switch to GetRootAs.
 
         Args:
