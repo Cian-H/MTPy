@@ -25,8 +25,6 @@ from typing import (
 from dask import array as da
 from dask import dataframe as dd
 
-from mtpy.base.feedback.protocol import ProgressBarProtocol
-from mtpy.loaders.protocol import LoaderProtocol
 from mtpy.utils.types import (
     PathMetadata,
     PathMetadataTree,
@@ -37,7 +35,6 @@ from mtpy.utils.types import (
     TOMLValue,
     TypedSizedIterable,
 )
-from mtpy.vis.protocol import PlotterProtocol
 
 T = TypeVar("T")
 TWO = 2
@@ -54,15 +51,24 @@ def create_type_guard(
     Returns:
         Tuple[Callable[[object], TypeGuard[T]], Callable[[object], T]]: the type guards
     """
+    if not TYPE_CHECKING:
 
-    def is_type(t: object) -> TypeGuard[T]:
-        return isinstance(t, _type)
+        def is_type(t: object) -> TypeGuard[T]:
+            return True
 
-    def guarded_type(t: object) -> T:
-        if not is_type(t):
-            msg = f"Expected {_type}"
-            raise TypeError(msg)
-        return t
+        def guarded_type(t: object) -> T:
+            return t
+
+    else:
+
+        def is_type(t: object) -> TypeGuard[T]:
+            return isinstance(t, _type)
+
+        def guarded_type(t: object) -> T:
+            if not is_type(t):
+                msg = f"Expected {_type}"
+                raise TypeError(msg)
+            return t
 
     is_type.__name__ = f"is_{_type.__name__}"
     is_type.__doc__ = f"""Type guard for {_type}.
@@ -111,6 +117,8 @@ def is_str_key_dict(t: object) -> TypeGuard[Dict[str, Any]]:
         TypeGuard[Dict[str, Any]]: True if the object is a dictionary with string keys,
             False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return isinstance(t, dict) and all(isinstance(k, str) for k in t)
 
 
@@ -126,6 +134,8 @@ def guarded_str_key_dict(t: object) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: the object if it is a dictionary with string keys
     """
+    if not TYPE_CHECKING:
+        return t
     if not is_str_key_dict(t):
         msg = "Expected a dictionary with string keys"
         raise TypeError(msg)
@@ -141,11 +151,9 @@ def is_float_pair_tuple(t: object) -> TypeGuard[Tuple[float, float]]:
     Returns:
         TypeGuard[Tuple[float, float]]: True if the tuple has two floats, False otherwise
     """
-    if not isinstance(t, tuple):
-        return False
-    if len(t) != TWO:
-        return False
-    return all(isinstance(x, float) for x in t)
+    if not TYPE_CHECKING:
+        return True
+    return isinstance(t, tuple) and (len(t) == TWO) and all(isinstance(x, float) for x in t)
 
 
 def is_callable(t: object, _type: Type[T]) -> TypeGuard[Callable[..., T]]:
@@ -158,6 +166,8 @@ def is_callable(t: object, _type: Type[T]) -> TypeGuard[Callable[..., T]]:
     Returns:
         TypeGuard[Callable[..., T]]: True if the object is a callable, False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return callable(t)
 
 
@@ -174,6 +184,8 @@ def guarded_callable(t: object, _type: Type[T]) -> Callable[..., T]:
     Returns:
         Callable[..., T]: the object if it is callable
     """
+    if not TYPE_CHECKING:
+        return t
     if not is_callable(t, _type):
         msg = f"Expected a Callable[{_type}]"
         raise TypeError(msg)
@@ -189,6 +201,8 @@ def is_iterable(t: object) -> TypeGuard[Iterable[T]]:
     Returns:
         TypeGuard[Iterable[T]]: True if the object is an iterable, False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return isinstance(t, Iterable)
 
 
@@ -201,6 +215,8 @@ def is_sized(t: object) -> TypeGuard[Sized]:
     Returns:
         TypeGuard[Sized]: True if the object is sized, False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return isinstance(t, Sized)
 
 
@@ -213,6 +229,8 @@ def is_sizediterable(t: object) -> TypeGuard[SizedIterable[T]]:
     Returns:
         TypeGuard[SizedIterable[T]]: True if the object is a sized iterable, False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return is_iterable(t) and is_sized(t)
 
 
@@ -226,11 +244,9 @@ def is_typedsizediterable(t: object, _type: Type[T]) -> TypeGuard[TypedSizedIter
     Returns:
         TypeGuard[TypedSizedIterable[T]]: True if the object is a sized iterable, False otherwise
     """
-    if not is_sizediterable(t):
-        return False
-    if TYPE_CHECKING:
-        return all(map(isinstance, t, repeat(_type)))
-    return True
+    if not TYPE_CHECKING:
+        return True
+    return is_sizediterable(t) and all(map(isinstance, t, repeat(_type)))
 
 
 def guarded_typedsizediterable(t: object, _type: Type[T]) -> TypedSizedIterable[T]:
@@ -246,6 +262,8 @@ def guarded_typedsizediterable(t: object, _type: Type[T]) -> TypedSizedIterable[
     Returns:
         TypedSizedIterable[T]: the object if it is callable
     """
+    if not TYPE_CHECKING:
+        return t
     if not is_typedsizediterable(t, _type):
         msg = f"Expected a TypedSizedIterable[{_type}]"
         raise TypeError(msg)
@@ -261,6 +279,8 @@ def is_toml_data(t: object) -> TypeGuard[TOMLData]:
     Returns:
         TypeGuard[TOMLData]: True if the object is TOML data, False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return isinstance(t, (dict, list))
 
 
@@ -276,6 +296,8 @@ def guarded_toml_data(t: object) -> TOMLData:
     Returns:
         TOMLData: the object if it is TOML data
     """
+    if not TYPE_CHECKING:
+        return t
     if not is_toml_data(t):
         msg = "Expected TOML data"
         raise TypeError(msg)
@@ -291,6 +313,8 @@ def is_toml_value(t: object) -> TypeGuard[TOMLValue]:
     Returns:
         TypeGuard[TOMLValue]: True if the object is a TOML value, False otherwise
     """
+    if not TYPE_CHECKING:
+        return True
     return isinstance(t, (str, int, float, bool, dict, list))
 
 
@@ -306,98 +330,9 @@ def guarded_toml_value(t: object) -> TOMLValue:
     Returns:
         TOMLValue: the object if it is a JSON value
     """
+    if not TYPE_CHECKING:
+        return t
     if not is_toml_value(t):
         msg = "Expected a toml value"
-        raise TypeError(msg)
-    return t
-
-
-def is_plotter_protocol(t: object) -> TypeGuard[PlotterProtocol]:
-    """Type guard for plotter protocols.
-
-    Args:
-        t (object): the object to check
-
-    Returns:
-        TypeGuard[PlotterProtocol]: True if the object is a plotter protocol, False otherwise.
-    """
-    return isinstance(t, PlotterProtocol)
-
-
-def guarded_plotter_protocol(t: object) -> PlotterProtocol:
-    """A function for type guarding plotter protocols.
-
-    Args:
-        t (object): the object to check
-
-    Raises:
-        TypeError: if the type fails the guard check
-
-    Returns:
-        PlotterProtocol: the object if it is a plotter protocol
-    """
-    if not is_plotter_protocol(t):
-        msg = "Expected a PlotterProtocol"
-        raise TypeError(msg)
-    return t
-
-
-def is_loader_protocol(t: object) -> TypeGuard[LoaderProtocol]:
-    """Type guard for loader protocols.
-
-    Args:
-        t (object): the object to check
-
-    Returns:
-        TypeGuard[LoaderProtocol]: True if the object is a loader protocol, False otherwise.
-    """
-    return isinstance(t, LoaderProtocol)
-
-
-def guarded_loader_protocol(t: object) -> LoaderProtocol:
-    """A function for type guarding loader protocols.
-
-    Args:
-        t (object): the object to check
-
-    Raises:
-        TypeError: if the type fails the guard check
-
-    Returns:
-        LoaderProtocol: the object if it is a loader protocol
-    """
-    if not is_loader_protocol(t):
-        msg = "Expected a LoaderProtocol"
-        raise TypeError(msg)
-    return t
-
-
-def is_progressbar_protocol(t: object) -> TypeGuard[ProgressBarProtocol[T]]:
-    """Type guard for progressbar protocols.
-
-    Args:
-        t (object): the object to check
-
-    Returns:
-        TypeGuard[ProgressBarProtocol[T]]: True if the object is a progressbar protocol,
-        False otherwise.
-    """
-    return isinstance(t, ProgressBarProtocol)
-
-
-def guarded_progressbar_protocol(t: object) -> ProgressBarProtocol[T]:
-    """A function for type guarding progressbar protocols.
-
-    Args:
-        t (object): the object to check
-
-    Raises:
-        TypeError: if the type fails the guard check
-
-    Returns:
-        ProgressBarProtocol[T]: the object if it is a progressbar protocol
-    """
-    if not is_progressbar_protocol(t):
-        msg = "Expected a ProgressBarProtocol"
         raise TypeError(msg)
     return t

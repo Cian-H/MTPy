@@ -1,6 +1,15 @@
 """This module defines a protocol for a valid MTPy Plotter class."""
 
-from typing import Any, Iterable, Optional, Protocol, Tuple, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterable,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeGuard,
+    runtime_checkable,
+)
 
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
@@ -91,3 +100,37 @@ class PlotterProtocol(Protocol):
             str: The view ID.
         """
         ...
+
+
+def is_plotter_protocol(t: object) -> TypeGuard[PlotterProtocol]:
+    """Type guard for plotter protocols.
+
+    Args:
+        t (object): the object to check
+
+    Returns:
+        TypeGuard[PlotterProtocol]: True if the object is a plotter protocol, False otherwise.
+    """
+    if not TYPE_CHECKING:
+        return True
+    return isinstance(t, PlotterProtocol)
+
+
+def guarded_plotter_protocol(t: object) -> PlotterProtocol:
+    """A function for type guarding plotter protocols.
+
+    Args:
+        t (object): the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        PlotterProtocol: the object if it is a plotter protocol
+    """
+    if not TYPE_CHECKING:
+        return t
+    if not is_plotter_protocol(t):
+        msg = "Expected a PlotterProtocol"
+        raise TypeError(msg)
+    return t

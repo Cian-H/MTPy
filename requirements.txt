@@ -232,13 +232,10 @@ dash-table==5.0.0 ; python_version >= "3.11" and python_version < "3.13" \
 dash==2.18.1 ; python_version >= "3.11" and python_version < "3.13" \
     --hash=sha256:07c4513bb5f79a4b936847a0b49afc21dbd4b001ff77ea78d4d836043e211a07 \
     --hash=sha256:ffdf89690d734f6851ef1cb344222826ffb11ad2214ab9172668bf8aadd75d12
-dask-expr==1.1.16 ; python_version >= "3.11" and python_version < "3.13" \
-    --hash=sha256:9dd26886f270f373380b38dd2d41ce4321b2724e0814ea5043272cebf7f1b6bb \
-    --hash=sha256:dec098f940eca939700edf93fc0cdb0e820dcd6ba9780b0036fd965ebc7e813c
 dask==2024.10.0 ; python_version >= "3.11" and python_version < "3.13" \
     --hash=sha256:1ddc27c7967e134b4f8296a488521485a5ac4927cc63e2abfa0b24227b93217f \
     --hash=sha256:dfd3efec5d8d8340fb647d0347637133030cad261b714623cc27de286e9db037
-dask[dataframe,distributed,graphviz]==2024.10.0 ; python_version >= "3.11" and python_version < "3.13" \
+dask[complete]==2024.10.0 ; python_version >= "3.11" and python_version < "3.13" \
     --hash=sha256:1ddc27c7967e134b4f8296a488521485a5ac4927cc63e2abfa0b24227b93217f \
     --hash=sha256:dfd3efec5d8d8340fb647d0347637133030cad261b714623cc27de286e9db037
 datashader==0.16.3 ; python_version >= "3.11" and python_version < "3.13" \

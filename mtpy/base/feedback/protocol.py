@@ -2,15 +2,18 @@
 
 from typing import (
     IO,
+    TYPE_CHECKING,
     Any,
     Iterable,
     Iterator,
     Mapping,
     Protocol,
+    TypeGuard,
     TypeVar,
     runtime_checkable,
 )
 
+T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 
 
@@ -237,3 +240,38 @@ class ProgressBarProtocol[T_co](Protocol):
             bool | None: True if a `display()` was triggered.
         """
         ...
+
+
+def is_progressbar_protocol(t: object) -> TypeGuard[ProgressBarProtocol[T]]:
+    """Type guard for progressbar protocols.
+
+    Args:
+        t (object): the object to check
+
+    Returns:
+        TypeGuard[ProgressBarProtocol[T]]: True if the object is a progressbar protocol,
+        False otherwise.
+    """
+    if not TYPE_CHECKING:
+        return True
+    return isinstance(t, ProgressBarProtocol)
+
+
+def guarded_progressbar_protocol(t: object) -> ProgressBarProtocol[T]:
+    """A function for type guarding progressbar protocols.
+
+    Args:
+        t (object): the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        ProgressBarProtocol[T]: the object if it is a progressbar protocol
+    """
+    if not TYPE_CHECKING:
+        return t
+    if not is_progressbar_protocol(t):
+        msg = "Expected a ProgressBarProtocol"
+        raise TypeError(msg)
+    return t

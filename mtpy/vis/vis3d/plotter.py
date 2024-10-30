@@ -7,15 +7,12 @@ import tomllib
 from typing import Any, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
-import holoviews as hv
 from holoviews.element.chart import Chart
 
 from mtpy.utils.types import TOMLDict
 from mtpy.vis.abstract import AbstractPlotter
 
 from .dispatchers import DispatchParams, guarded_dispatchparams, plot_dispatch
-
-hv.extension("plotly")
 
 
 class _PlotParams(DispatchParams):
@@ -86,6 +83,8 @@ class Plotter(AbstractPlotter):
         Returns:
             Chart: a holoviz plot
         """
+        import holoviews as hv
+
         from mtpy.utils.type_guards import guarded_str_key_dict, guarded_tomldict
 
         config_path = "plotter.toml"

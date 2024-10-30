@@ -3,7 +3,6 @@
 from typing import Any, Dict, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
-import holoviews as hv
 from holoviews.element.chart import Chart
 
 from mtpy.loaders.dummy import DummyLoader
@@ -12,8 +11,6 @@ from mtpy.vis.abstract import AbstractPlotter
 from mtpy.vis.protocol import PlotterProtocol
 from mtpy.vis.vis2d.plotter import Plotter as Plotter2D
 from mtpy.vis.vis3d.plotter import Plotter as Plotter3D
-
-hv.extension("plotly")
 
 
 class CombinedPlotter(AbstractPlotter):
@@ -144,7 +141,7 @@ class Plotter(CombinedPlotter):
     """
 
     def __init__(self: "Plotter", loader: LoaderProtocol) -> None:
-        from mtpy.utils.type_guards import guarded_plotter_protocol
+        from mtpy.vis.protocol import guarded_plotter_protocol
 
         plotters: Dict[str, PlotterProtocol] = {
             "2d": guarded_plotter_protocol(Plotter2D(loader)),

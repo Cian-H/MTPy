@@ -8,7 +8,6 @@ from typing import Any, Iterable, Optional, Tuple
 
 # TEMPORARY FIX FOR WARNINGS
 from datashader.reductions import Reduction
-import holoviews as hv
 from holoviews.element.chart import Chart
 
 from mtpy.utils.types import TOMLDict
@@ -33,8 +32,6 @@ from .dispatchers import DispatchParams, guarded_dispatchparams, plot_dispatch
 # Currently implemented plot kinds:
 #   - scatter
 #   - distribution
-
-hv.extension("plotly")
 
 
 class _PlotParams(DispatchParams):
@@ -189,6 +186,10 @@ class Plotter(AbstractPlotter):
         plot = plot.opts(**opts)
 
         self.views[view_id] = plot
+
+        import holoviews as hv
+
+        hv.extension("plotly")
 
         # If filename is given, save to that file
         if filename is not None:

@@ -3,7 +3,7 @@
 import logging
 import sys
 
-import dask
+from dask import distributed as ddist
 from loguru import logger
 
 
@@ -48,13 +48,13 @@ def redirect_logging_to_loguru() -> None:
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
 
-class LoguruPlugin(dask.distributed.WorkerPlugin):
+class LoguruPlugin(ddist.WorkerPlugin):
     """A dask worker plugin that redirects worker logs to loguru."""
 
-    def setup(self: "LoguruPlugin", worker: dask.distributed.Worker) -> None:
+    def setup(self: "LoguruPlugin", worker: ddist.Worker) -> None:
         """Sets up the appropriate interceptor for redirecting logging to loguru.
 
         Args:
-            worker (dask.distributed.Worker): The dask worker to apply the plugin to
+            worker (ddist.Worker): The dask worker to apply the plugin to
         """
         redirect_logging_to_loguru()

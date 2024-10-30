@@ -8,7 +8,7 @@ MTPy framework
 """
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol, TypeGuard, runtime_checkable
 
 import dask.dataframe as dd
 from dask.distributed import Client
@@ -108,3 +108,37 @@ class LoaderProtocol(Protocol):
             filepath (Path | str): The filepath to load to
         """
         ...
+
+
+def is_loader_protocol(t: object) -> TypeGuard[LoaderProtocol]:
+    """Type guard for loader protocols.
+
+    Args:
+        t (object): the object to check
+
+    Returns:
+        TypeGuard[LoaderProtocol]: True if the object is a loader protocol, False otherwise.
+    """
+    if not TYPE_CHECKING:
+        return True
+    return isinstance(t, LoaderProtocol)
+
+
+def guarded_loader_protocol(t: object) -> LoaderProtocol:
+    """A function for type guarding loader protocols.
+
+    Args:
+        t (object): the object to check
+
+    Raises:
+        TypeError: if the type fails the guard check
+
+    Returns:
+        LoaderProtocol: the object if it is a loader protocol
+    """
+    if not TYPE_CHECKING:
+        return t
+    if not is_loader_protocol(t):
+        msg = "Expected a LoaderProtocol"
+        raise TypeError(msg)
+    return t

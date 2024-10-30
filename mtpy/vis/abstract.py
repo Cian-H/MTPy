@@ -4,7 +4,6 @@ from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
-import holoviews as hv
 from holoviews.element.chart import Chart
 
 from mtpy.base.abstract import AbstractBase
@@ -13,8 +12,6 @@ from mtpy.loaders.protocol import LoaderProtocol
 # import dash
 # from dash import html
 # from holoviews.plotting.plotly.dash import to_dash
-
-hv.extension("plotly")
 
 
 class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
