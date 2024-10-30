@@ -22,13 +22,43 @@ class DispatchParams(TypedDict):
 
     Attributes:
         x (str): The key of the x axis values
-        y (str): The key of the x axis values
-        w (str): The key of the x axis values
+        y (str): The key of the y axis values
+        z (str): The key of the z axis values
+        w (str): The key of the w axis values
     """
 
     x: str
     y: str
+    z: str
     w: str
+
+
+def guarded_dispatchparams(t: object) -> DispatchParams:
+    """A type guard for DispatchParams TypeDDicts.
+
+    Args:
+        t (object): the object to be type guarded
+
+    Returns:
+        DispatchParams: the guarded type
+
+    Raises:
+        TypeError: the object being passed is not of type TypeGuard[DispatchParams]
+    """
+    if (
+        isinstance(t, dict)
+        and hasattr(t, "x")
+        and isinstance(str, t["x"])
+        and hasattr(t, "y")
+        and isinstance(str, t["y"])
+        and hasattr(t, "z")
+        and isinstance(str, t["z"])
+        and hasattr(t, "w")
+        and isinstance(str, t["w"])
+    ):
+        return DispatchParams(x=t["x"], y=t["y"], z=t["z"], w=t["w"])
+    msg = "Expected DispatchParams"
+    raise TypeError(msg)
 
 
 def plot_dispatch(

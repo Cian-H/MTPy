@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
+import tomllib
 from typing import Any, Iterable, Optional, Tuple
 
 # TEMPORARY FIX FOR WARNINGS
@@ -11,10 +11,10 @@ from datashader.reductions import Reduction
 import holoviews as hv
 from holoviews.element.chart import Chart
 
-from mtpy.utils.type_guards import guarded_str_key_dict
+from mtpy.utils.types import TOMLDict
 from mtpy.vis.abstract import AbstractPlotter
 
-from .dispatchers import plot_dispatch
+from .dispatchers import DispatchParams, guarded_dispatchparams, plot_dispatch
 
 # NOTES: Matplotlib and plotly clearly arent up to the job alone here.
 #   Implement holoviews + datashading
@@ -36,9 +36,26 @@ from .dispatchers import plot_dispatch
 
 hv.extension("plotly")
 
-config_path = "plotter.json"
-with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("r") as f:
-    config = guarded_str_key_dict(json.load(f))
+
+class _PlotParams(DispatchParams):
+    kind: str
+
+
+def _guarded_plotparams(t: object) -> _PlotParams:
+    if (
+        isinstance(t, dict)
+        and hasattr(t, "x")
+        and isinstance(str, t["x"])
+        and hasattr(t, "y")
+        and isinstance(str, t["y"])
+        and hasattr(t, "w")
+        and isinstance(str, t["w"])
+        and hasattr(t, "kind")
+        and isinstance(str, t["kind"])
+    ):
+        return _PlotParams(x=t["x"], y=t["y"], w=t["w"], kind=t["kind"])
+    msg = "Expected _PlotParams"
+    raise TypeError(msg)
 
 
 class Plotter(AbstractPlotter):
@@ -94,7 +111,7 @@ class Plotter(AbstractPlotter):
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
-            samples (Optional[int | Iterable[int]] , optional): the samples to include on the plot.
+            samples (Optional[int | Iterable[int]], optional): the samples to include on the plot.
                 Defaults to None.
             xrange (Tuple[Optional[float], Optional[float]] | Optional[float], optional): the range
                 of x values to plot. Defaults to None.
@@ -106,7 +123,8 @@ class Plotter(AbstractPlotter):
                 before plotting. Defaults to None.
             aggregator (Optional[Reduction], optional): the aggregator to apply to the plot.
                 Defaults to None.
-            **kwargs (Any): additional keyword arguments to be passed to the plotting function
+            **kwargs (Any): additional keyword arguments to be passed to the plotting
+                function
 
         Returns:
             Chart: a holoviz plot
@@ -114,6 +132,14 @@ class Plotter(AbstractPlotter):
         Raises:
             ValueError: If given `axis_range` is invalid for `axis`
         """
+        from mtpy.utils.type_guards import guarded_str_key_dict, guarded_tomldict
+
+        config_path = "plotter.toml"
+        with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("rb") as f:
+            self.config = guarded_tomldict(tomllib.load(f))
+
+        _kwargs = guarded_dispatchparams(kwargs)
+
         chunk = self.loader.data
 
         # Filter to relevant samples
@@ -125,7 +151,7 @@ class Plotter(AbstractPlotter):
 
         # filter dataframe based on ranges given
         for axis, axis_range in zip(
-            (kwargs.get("x", "x"), kwargs.get("y", "y"), kwargs.get("z", "z")),
+            (_kwargs.get("x", "x"), _kwargs.get("y", "y"), _kwargs.get("z", "z")),
             (xrange, yrange, zrange),
             strict=False,
         ):
@@ -151,13 +177,15 @@ class Plotter(AbstractPlotter):
         chunk = chunk.groupby(groupby) if groupby is not None else chunk
 
         # generate a view id string for caching views
-        view_id = self.generate_view_id(kind, samples, kwargs, xrange, yrange, zrange, groupby)
+        view_id = self.generate_view_id(
+            kind, samples, guarded_str_key_dict(_kwargs), xrange, yrange, zrange, groupby
+        )
 
-        f_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **kwargs)
+        func_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **_kwargs)
 
         plot = chunk
-        for f, plot_kwargs in zip(f_list, kwargs_list, strict=False):
-            plot = f(plot, **plot_kwargs)
+        for func, plot_kwargs in zip(func_list, kwargs_list, strict=False):
+            plot = func(plot, **plot_kwargs)
         plot = plot.opts(**opts)
 
         self.views[view_id] = plot
@@ -175,33 +203,37 @@ class Plotter(AbstractPlotter):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter2d(self: "Plotter", *args: Any, **kwargs: Any) -> Chart:
+    def scatter2d(self: "Plotter", *args: Any, **kwargs: TOMLDict) -> Chart:
         """Creates a 2d scatter plot.
 
         Args:
             *args (Any): The arguments to be passed to the plotting library's 2d scatter function.
-            **kwargs (Any): The keyword arguments to be passed to the plotting library's 2d scatter
-                function.
+            **kwargs (TOMLDict): The keyword arguments to be passed to the plotting library's
+                2d scatter function.
 
         Returns:
             Chart: a holoviz plot
         """
-        plot_kwargs = config["scatter2d"].copy()
-        plot_kwargs.update(kwargs)
-        return self.plot(*args, **plot_kwargs)
+        from mtpy.utils.type_guards import guarded_tomldict
 
-    def distribution2d(self: "Plotter", *args: Any, **kwargs: Any) -> Chart:
+        plot_kwargs = guarded_tomldict(self.config["scatter2d"]).copy()
+        plot_kwargs.update(kwargs)
+        return self.plot(*args, **_guarded_plotparams(plot_kwargs))
+
+    def distribution2d(self: "Plotter", *args: Any, **kwargs: TOMLDict) -> Chart:
         """Creates a 2d distribution plot.
 
         Args:
             *args (Any): The arguments to be passed to the plotting library's 2d distribution
                 function.
-            **kwargs (Any): The keyword arguments to be passed to the plotting library's 2d
-                distribution function.
+            **kwargs (TOMLDict): The keyword arguments to be passed to the plotting library's
+                2d distribution function.
 
         Returns:
             Chart: a holoviz plot
         """
-        plot_kwargs = config["distribution2d"].copy()
+        from mtpy.utils.type_guards import guarded_tomldict
+
+        plot_kwargs = guarded_tomldict(self.config["distribution2d"]).copy()
         plot_kwargs.update(kwargs)
-        return self.plot(*args, **plot_kwargs)
+        return self.plot(*args, **_guarded_plotparams(plot_kwargs))

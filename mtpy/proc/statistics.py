@@ -10,7 +10,7 @@ import dask.dataframe as dd
 from fsspec.spec import AbstractBufferedFile
 import pandas as pd
 
-from mtpy.utils.types import JSONDict, StatsDict
+from mtpy.utils.types import StatsDict, TOMLDict
 
 from .abstract import AbstractProcessor
 
@@ -164,7 +164,7 @@ class Statistics(AbstractProcessor):
         self: "Statistics", filepath: str
     ) -> pd.ExcelWriter | TextIOWrapper | AbstractBufferedFile:
         file_extension = filepath.split(".")[-1]
-        storage_options: JSONDict | None = getattr(self.loader.fs, "storage_options", None)
+        storage_options: TOMLDict | None = getattr(self.loader.fs, "storage_options", None)
         if file_extension in {"xls", "xlsx", "xlsm", "xlsb"}:
             return pd.ExcelWriter(filepath, engine="openpyxl", storage_options=storage_options)
         if filepath.split(".")[-1] in {"odf", "ods", "odt"}:

@@ -17,10 +17,10 @@ from dask import dataframe as dd
 T_co = TypeVar("T_co", covariant=True)
 
 
-JSONValue = Union[None, str, int, float, bool, "JSONDict", "JSONList"]
-JSONDict = Dict[str, JSONValue]
-JSONList = List[JSONValue]
-JSONData = Union[JSONDict, JSONList]
+TOMLValue = Union[None, str, int, float, bool, "TOMLDict", "TOMLList"]
+TOMLDict = Dict[str, TOMLValue]
+TOMLList = List[TOMLValue]
+TOMLData = TOMLDict | TOMLList
 
 
 class StatsDict(TypedDict):

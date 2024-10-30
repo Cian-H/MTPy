@@ -23,7 +23,6 @@ from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
 from mtpy.utils.metadata_tagging import read_tree_metadata
 from mtpy.utils.tree_metadata import Metadata, Sha1, TreeFile
-from mtpy.utils.type_guards import guarded_bytearray
 from mtpy.utils.types import CalibrationFunction, PathMetadata, PathMetadataTree
 
 # Conditional imports depending on whether a GPU is present
@@ -417,9 +416,9 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             self.logger.info("Savefile matches current cache. Skipping load...")
             return
 
-        from mtpy.utils.type_guards import guarded_json_dict, guarded_pathmetadatatree
+        from mtpy.utils.type_guards import guarded_pathmetadatatree, guarded_tomldict
 
-        metadata = guarded_json_dict(metadata_tag)
+        metadata = guarded_tomldict(metadata_tag)
         tree_metadata: PathMetadataTree = guarded_pathmetadatatree(metadata["tree"])
         for k, v in tree_metadata.items():
             if v["is_dir"]:
@@ -502,7 +501,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             bytearray: A flatbuffer bytearray containing the metadata given.
         """
         builder = flatbuffers.Builder()
-        from mtpy.utils.type_guards import guarded_int, guarded_pathmetadata
+        from mtpy.utils.type_guards import guarded_bytearray, guarded_int, guarded_pathmetadata
 
         tree = [
             self.create_tree_file(builder, k, guarded_pathmetadata(v))

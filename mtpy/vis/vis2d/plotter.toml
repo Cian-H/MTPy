@@ -1,0 +1,9 @@
+[scatter2d]
+kind = "scatter"
+x = "x"
+y = "y"
+w = "t"
+
+[distribution2d]
+kind = "distribution"
+x = "t"

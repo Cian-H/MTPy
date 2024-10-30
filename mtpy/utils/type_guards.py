@@ -28,13 +28,13 @@ from dask import dataframe as dd
 from mtpy.base.feedback.protocol import ProgressBarProtocol
 from mtpy.loaders.protocol import LoaderProtocol
 from mtpy.utils.types import (
-    JSONData,
-    JSONDict,
-    JSONList,
-    JSONValue,
     PathMetadata,
     PathMetadataTree,
     SizedIterable,
+    TOMLData,
+    TOMLDict,
+    TOMLList,
+    TOMLValue,
     TypedSizedIterable,
 )
 from mtpy.vis.protocol import PlotterProtocol
@@ -94,8 +94,8 @@ is_dask_series, guarded_dask_series = create_type_guard(dd.Series)
 is_dask_number, guarded_dask_number = create_type_guard(dd.dd.Number)
 is_bytes, guarded_bytes = create_type_guard(bytes)
 is_bytearray, guarded_bytearray = create_type_guard(bytearray)
-is_json_dict, guarded_json_dict = create_type_guard(JSONDict)
-is_json_list, guarded_json_list = create_type_guard(JSONList)
+is_tomldict, guarded_tomldict = create_type_guard(TOMLDict)
+is_tomllist, guarded_tomllist = create_type_guard(TOMLList)
 is_pathmetadata, guarded_pathmetadata = create_type_guard(PathMetadata)
 is_pathmetadatatree, guarded_pathmetadatatree = create_type_guard(PathMetadataTree)
 
@@ -252,20 +252,20 @@ def guarded_typedsizediterable(t: object, _type: Type[T]) -> TypedSizedIterable[
     return t
 
 
-def is_json_data(t: object) -> TypeGuard[JSONData]:
-    """Type guard for JSON data.
+def is_toml_data(t: object) -> TypeGuard[TOMLData]:
+    """Type guard for TOML data.
 
     Args:
         t (object): the object to check
 
     Returns:
-        TypeGuard[JSONData]: True if the object is JSON data, False otherwise
+        TypeGuard[TOMLData]: True if the object is TOML data, False otherwise
     """
     return isinstance(t, (dict, list))
 
 
-def guarded_json_data(t: object) -> JSONData:
-    """A function for type guarding JSON data.
+def guarded_toml_data(t: object) -> TOMLData:
+    """A function for type guarding TOML data.
 
     Args:
         t (object): the object to check
@@ -274,28 +274,28 @@ def guarded_json_data(t: object) -> JSONData:
         TypeError: if the type fails the guard check
 
     Returns:
-        JSONData: the object if it is JSON data
+        TOMLData: the object if it is TOML data
     """
-    if not is_json_data(t):
-        msg = "Expected JSON data"
+    if not is_toml_data(t):
+        msg = "Expected TOML data"
         raise TypeError(msg)
     return t
 
 
-def is_json_value(t: object) -> TypeGuard[JSONValue]:
-    """Type guard for JSON values.
+def is_toml_value(t: object) -> TypeGuard[TOMLValue]:
+    """Type guard for TOML values.
 
     Args:
         t (object): the object to check
 
     Returns:
-        TypeGuard[JSONValue]: True if the object is a JSON value, False otherwise
+        TypeGuard[TOMLValue]: True if the object is a TOML value, False otherwise
     """
     return isinstance(t, (str, int, float, bool, dict, list))
 
 
-def guarded_json_value(t: object) -> JSONValue:
-    """A function for type guarding JSON values.
+def guarded_toml_value(t: object) -> TOMLValue:
+    """A function for type guarding TOML values.
 
     Args:
         t (object): the object to check
@@ -304,10 +304,10 @@ def guarded_json_value(t: object) -> JSONValue:
         TypeError: if the type fails the guard check
 
     Returns:
-        JSONValue: the object if it is a JSON value
+        TOMLValue: the object if it is a JSON value
     """
-    if not is_json_value(t):
-        msg = "Expected a JSON value"
+    if not is_toml_value(t):
+        msg = "Expected a toml value"
         raise TypeError(msg)
     return t
 
