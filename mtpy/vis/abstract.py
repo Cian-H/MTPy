@@ -29,6 +29,11 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
         #  dash_kwargs: dict = {},
     ) -> None:
         super().__init__()
+
+        import holoviews as hv
+
+        hv.extension("plotly")
+
         self.views: Dict[str, Chart] = {}
         self.view_tag = self.__class__.__name__
         self.loader = loader

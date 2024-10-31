@@ -4,34 +4,39 @@ from __future__ import annotations
 
 from pathlib import Path
 import tomllib
-from typing import Any, Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple, TypedDict
 
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
 
+from mtpy.loaders.protocol import LoaderProtocol
 from mtpy.utils.types import TOMLDict
 from mtpy.vis.abstract import AbstractPlotter
 
-from .dispatchers import DispatchParams, guarded_dispatchparams, plot_dispatch
+from .dispatchers import guarded_dispatchparams, plot_dispatch
 
 
-class _PlotParams(DispatchParams):
+class _PlotParams(TypedDict):
+    x: str | None
+    y: str | None
+    z: str | None
+    w: str | None
     kind: str
 
 
 def _guarded_plotparams(t: object) -> _PlotParams:
     if (
         isinstance(t, dict)
-        and hasattr(t, "x")
-        and isinstance(str, t["x"])
-        and hasattr(t, "y")
-        and isinstance(str, t["y"])
-        and hasattr(t, "z")
-        and isinstance(str, t["z"])
-        and hasattr(t, "w")
-        and isinstance(str, t["w"])
-        and hasattr(t, "kind")
-        and isinstance(str, t["kind"])
+        and "x" in t
+        and isinstance(t["x"], str)
+        and "y" in t
+        and isinstance(t["y"], str)
+        and "z" in t
+        and isinstance(t["z"], str)
+        and "w" in t
+        and isinstance(t["w"], str)
+        and "kind" in t
+        and isinstance(t["kind"], str)
     ):
         return _PlotParams(x=t["x"], y=t["y"], z=t["z"], w=t["w"], kind=t["kind"])
     msg = "Expected _PlotParams"
@@ -39,12 +44,25 @@ def _guarded_plotparams(t: object) -> _PlotParams:
 
 
 class Plotter(AbstractPlotter):
-    """a 3d plotter class."""
+    """The 3d plotter class.
+
+    Args:
+        loader (LoaderProtocol): The data loader associated with this plotter.
+    """
+
+    def __init__(self: "Plotter", loader: LoaderProtocol) -> None:
+        super().__init__(loader)
+
+        from mtpy.utils.type_guards import guarded_tomldict
+
+        config_path = "plotter.toml"
+        with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("rb") as f:
+            self.config = guarded_tomldict(tomllib.load(f))
 
     def plot(
         self: "Plotter",
-        filename: Optional[str] = None,
         *args: Any,
+        filename: Optional[str] = None,
         kind: str,
         add_to_dashboard: bool = False,
         samples: Optional[int | Iterable[int]] = None,
@@ -58,10 +76,10 @@ class Plotter(AbstractPlotter):
         """Creates a 3d plot.
 
         Args:
-            filename (Optional[str], optional): file path to save plot to, if desired.
-                Defaults to None.
             *args (Any): additional arguments to be passed to the plotting function for the given
                 kind
+            filename (Optional[str], optional): file path to save plot to, if desired.
+                Defaults to None.
             kind (str): the kind of plot to produce
             add_to_dashboard (bool, optional): the dashboard to add the plot to, if
                 desired Defaults to False.
@@ -83,13 +101,7 @@ class Plotter(AbstractPlotter):
         Returns:
             Chart: a holoviz plot
         """
-        import holoviews as hv
-
-        from mtpy.utils.type_guards import guarded_str_key_dict, guarded_tomldict
-
-        config_path = "plotter.toml"
-        with Path(f"{Path(__file__).parents[0].resolve()}/{config_path}").open("rb") as f:
-            self.config = guarded_tomldict(tomllib.load(f))
+        from mtpy.utils.type_guards import guarded_str_key_dict
 
         _kwargs = guarded_dispatchparams(kwargs)
 
@@ -131,6 +143,8 @@ class Plotter(AbstractPlotter):
 
         # If filename is given, save to that file
         if filename is not None:
+            import holoviews as hv
+
             self.logger.info(f"Saving to {filename}...")
             hv.save(plot, filename)
             self.logger.info(f"{filename} saved!")
@@ -143,11 +157,15 @@ class Plotter(AbstractPlotter):
         # Finally, return the plot for viewing, e.g. in jupyter notebook
         return plot
 
-    def scatter3d(self: "Plotter", *args: Any, **kwargs: TOMLDict) -> Chart:
+    def scatter3d(
+        self: "Plotter", *args: Any, filename: Optional[str] = None, **kwargs: TOMLDict
+    ) -> Chart:
         """Creates a 3d scatter plot.
 
         Args:
             *args (Any): The arguments to be passed to the plotting library's 3d scatter function.
+            filename (Optional[str], optional): file path to save plot to, if desired.
+                Defaults to None.
             **kwargs (TOMLDict): The keyword arguments to be passed to the plotting library's 3d
                 scatter function.
 
@@ -158,4 +176,4 @@ class Plotter(AbstractPlotter):
 
         plot_kwargs = guarded_tomldict(self.config["scatter3d"]).copy()
         plot_kwargs.update(kwargs)
-        return self.plot(*args, **_guarded_plotparams(plot_kwargs))
+        return self.plot(*args, filename=filename, **_guarded_plotparams(plot_kwargs))
