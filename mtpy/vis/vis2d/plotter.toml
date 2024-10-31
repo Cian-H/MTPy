@@ -7,3 +7,5 @@ w = "t"
 [distribution2d]
 kind = "distribution"
 x = "t"
+y = "n/a" # These keys aren't needed, are only here to satisfy type checking
+w = "n/a"

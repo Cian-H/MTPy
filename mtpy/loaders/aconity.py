@@ -39,7 +39,7 @@ class AconityLoader(AbstractLoader):
         batches: List[List[str]] = [[]]
         acc = 0
         data_fs = DirFileSystem(path=data_path, fs=self.fs)
-        # Prepare batches of files wtih total size less than memory_limit to read at once
+        # Prepare batches of files with total size less than memory_limit to read at once
         pcd_files = data_fs.glob("*.pcd", detail=False)
         for p in sorted(pcd_files, key=lambda x: float(x.split("/")[-1].split(".")[0])):
             file_size = data_fs.size(p.strip("/"))
@@ -85,7 +85,7 @@ class AconityLoader(AbstractLoader):
             data_fs.get(
                 file_list, local_file_list
             )  # maybe making this async would speed up process?
-            layer_data = read_selected_layers([Path(f) for f in local_file_list])
+            layer_data = read_selected_layers([str(Path(f)) for f in local_file_list])
             darr = da.from_array(
                 layer_data,
                 chunks=cast(  # Necessary because the type annotation on this arg is incorrect
