@@ -53,6 +53,7 @@ types-tqdm = "^4.66.0"
 types-psutil = "^6.1.0"
 ruff = "^0.7.0"
 hypothesis = { extras = ["numpy"], version = "^6.100.1" }
+pydoclint = "^0.5.9"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"
@@ -68,7 +69,6 @@ griffe = "<1.0.0"
 mkdocs-autorefs = "^1.2.0"
 mkdocs-mermaid2-plugin = "^1.1.1"
 mkdocs-panzoom-plugin = "^0.1.1"
-pydoclint = "^0.5.9"
 
 [[tool.poetry.source]]
 name = "PyPI"
