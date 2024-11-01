@@ -36,11 +36,13 @@ theme:
 
 nav:
   - Home: index.md
+  - Quickstart: quickstart.md
   - Documentation:
-    - Reference: reference/
+    - CLI: documentation/cli.md
+    - Reference: documentation/reference/
   - Status:
     - UML: uml.md
-    - Type Reports: type_reports/
+    - Type Reports: status/type_reports.md
   # - FAQ: faq.md
   # - Troubleshooting: troubleshooting.md
   # - Changelog: changelog.md
@@ -64,7 +66,8 @@ markdown_extensions:
           format: !!python/name:mermaid2.fence_mermaid_custom
   - pymdownx.tabbed:
       alternate_style: true
-#   - mkdocs-typer
+  - callouts
+  - mkdocs-typer
 
 plugins:
   - search
@@ -86,6 +89,7 @@ plugins:
       mermaid: true
       full_screen: true
       always_show_hint: true
+  - termynal
   - mkdocstrings:
       handlers:
         python:

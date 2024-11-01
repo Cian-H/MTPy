@@ -175,7 +175,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
 
     def commit(self: "AbstractLoader") -> None:
         """Commits working dataframe to cache."""
-        # If data in working doesnt match current dataframe, create new file to replace working
+        # If data in working doesn't match current dataframe, create new file to replace working
         # if not (self.data == dd.read_parquet("cache/working",)).all().all().compute():
         commit_path = f"{self._data_cache}commit"
         working_path = f"{self._data_cache}working"
@@ -207,7 +207,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     def apply_calibration_curve(
         self: "AbstractLoader",
         calibration_curve: Optional[CalibrationFunction] = None,
-        temp_column: Optional[str] = "t",
+        column: Optional[str] = "t",
         units: Optional[str] = None,
     ) -> None:
         """Applies a calibration curve to the current dataframe.
@@ -215,7 +215,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         Args:
             calibration_curve (Optional[CalibrationFunction], optional):
                 A calibration function to apply to a column. Defaults to None.
-            temp_column (Optional[str], optional): The target column for the calibration_curve to be
+            column (Optional[str], optional): The target column for the calibration_curve to be
                 applied to. Defaults to "t".
             units (Optional[str], optional): The units of the resulting column. Will stay the same
                 if given None. Defaults to None.
@@ -224,11 +224,11 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         if calibration_curve is not None:
             # Set temp_column to calibrated values
             self.logger.info("Applying calibration curve")
-            self.data[temp_column] = calibration_curve(
+            self.data[column] = calibration_curve(
                 self.data["x"],
                 self.data["y"],
                 self.data["z"],
-                self.data[temp_column],
+                self.data[column],
             )
             self.commit()
             if units is not None:

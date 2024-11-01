@@ -167,7 +167,7 @@ Cargo.lock
 
 # Local temporary documentation files
 docs/uml*
-docs/type_reports/
+docs/status/type_reports*
 
 # Ignore nix devenv related files
 .direnv

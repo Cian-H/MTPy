@@ -69,6 +69,9 @@ griffe = "<1.0.0"
 mkdocs-autorefs = "^1.2.0"
 mkdocs-mermaid2-plugin = "^1.1.1"
 mkdocs-panzoom-plugin = "^0.1.1"
+mkdocs-typer = "^0.0.3"
+markdown-callouts = "^0.4.0"
+termynal = "^0.12.1"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -266,6 +269,10 @@ allow-star-arg-any = true
 "mtpy/utils/tree_metadata/Metadata.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
 "mtpy/utils/tree_metadata/Sha1.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
 "mtpy/utils/tree_metadata/TreeFile.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
+
+[tool.codespell]
+exclude-file = "docs/assets/example_plot.html"
+ignore-words-list = ["astroid"]
 
 [tool.mypy]
 check_untyped_defs = true
