@@ -43,7 +43,7 @@ def guarded_dispatchparams(t: object) -> DispatchParams:
         TypeError: the object being passed is not of type TypeGuard[DispatchParams]
     """
     if not TYPE_CHECKING:
-        return True
+        return t
     if (
         isinstance(t, dict)
         and hasattr(t, "x")

@@ -1,5 +1,5 @@
 """The executable entrypoint for MTPy."""
 
-from . import cli
+from mtpy import cli
 
 cli.run()

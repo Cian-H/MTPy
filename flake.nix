@@ -32,21 +32,34 @@
         devShell =
           pkgs.mkShell
           {
-            NIX_LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-              pkgs.arrow-cpp # For pyarrow
-              pkgs.stdenv.cc.cc # For cmake
-              pkgs.llvm_14 # For llvmlite
-              pkgs.python312 # For poetry
-              pkgs.zlib # For numpy
-            ];
+            NIX_LD_LIBRARY_PATH = with pkgs;
+              lib.makeLibraryPath [
+                acl
+                arrow-cpp
+                attr
+                bzip2
+                curl
+                libsodium
+                libssh
+                libxml2
+                llvm_14
+                openssl
+                python312
+                stdenv.cc.cc
+                systemd
+                util-linux
+                xz
+                zlib
+                zstd
+              ];
             NIX_LD = pkgs.lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
 
             buildInputs =
               (with pkgs; [
                 arrow-cpp
-                python312
                 flatbuffers
                 llvm_14
+                python312
                 zlib
               ])
               ++ (with pkgs-unstable; [
