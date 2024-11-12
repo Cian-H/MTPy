@@ -24,6 +24,7 @@ from typing import (
 
 from dask import array as da
 from dask import dataframe as dd
+import dask_expr as dx
 
 from mtpy.utils.types import (
     PathMetadata,
@@ -97,7 +98,7 @@ is_int, guarded_int = create_type_guard(int)
 is_dask_dataframe, guarded_dask_dataframe = create_type_guard(dd.DataFrame)
 is_dask_array, guarded_dask_array = create_type_guard(da.Array)
 is_dask_series, guarded_dask_series = create_type_guard(dd.Series)
-is_dask_number, guarded_dask_number = create_type_guard(dd.dd.Number)
+is_dask_number, guarded_dask_number = create_type_guard(dx.Number)
 is_bytes, guarded_bytes = create_type_guard(bytes)
 is_bytearray, guarded_bytearray = create_type_guard(bytearray)
 is_tomldict, guarded_tomldict = create_type_guard(TOMLDict)
