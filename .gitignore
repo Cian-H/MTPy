@@ -171,3 +171,5 @@ docs/status/type_reports*
 
 # Ignore nix devenv related files
 .direnv
+.devenv*
+devenv.local.nix
