@@ -1,0 +1,40 @@
+name: Python package build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    name: Build for ${{ matrix.os }} with Python ${{ matrix.python-version }} via Poetry ${{ matrix.poetry-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+        os: [ubuntu-latest, windows-latest]
+        poetry-version: ["latest"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run poetry image
+      uses: abatilo/actions-poetry@v2
+      with:
+        poetry-version: ${{ matrix.poetry-version }}
+    - name: Install Act dependencies
+      if: ${{ env.ACT }}
+      run: |
+        apt-get update && apt-get install sudo -y cargo
+    - name: Install dependencies
+      run: |
+        poetry install
+    - name: Test with pytest
+      run: |
+        poetry run pytest

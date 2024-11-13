@@ -1,0 +1,45 @@
+name: Python package
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check:
+
+    name: Check for python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Run poetry image
+      uses: abatilo/actions-poetry@v2
+      with:
+        poetry-version: latest
+    - name: Install Act dependencies
+      if: ${{ env.ACT }}
+      run: |
+        apt-get update && apt-get install sudo -y cargo
+    - name: Install dependencies
+      run: |
+        poetry install
+    - name: Lint with ruff
+      run: |
+        poetry run ruff check
+        poetry run ruff format --check
+    - name: Check types with mypy
+      run: |
+        poetry run mypy --disallow-any-generics --check-untyped-defs .
+    - name: Check docstrings with pydoclint
+      run: |
+        poetry run pydoclint --style google ./mtpy
