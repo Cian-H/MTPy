@@ -84,12 +84,15 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             data_cache = Path().cwd()
         if client is None:
             if cluster is None:
+                from mtpy.utils.type_guards import guarded_int
+
+                cpu_count = guarded_int(psutil.cpu_count())
                 cluster = LocalCluster(
-                    n_workers=(psutil.cpu_count() - 1 * 2),
+                    n_workers=(cpu_count - 1 * 2),
                     threads_per_worker=1,
                     plugins=(loguru_plugin,),
                 )
-                cluster.adapt(minimum=1, maximum=(psutil.cpu_count() - 1 * 2))
+                cluster.adapt(minimum=1, maximum=(cpu_count - 1 * 2))
             self.cluster: Cluster = cluster
             self.client: Client = Client(self.cluster)
         else:
@@ -118,6 +121,8 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         Returns:
             int: The memory limit for the current cluster in bytes.
         """
+        from mtpy.utils.type_guards import guarded_int
+
         if "_adaptive" in self.client.cluster.__dict__:
             nworkers = getattr(
                 getattr(self.client.cluster, "_adaptive", None),
@@ -126,7 +131,11 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             )
         return psutil.virtual_memory().total // (
             2
-            * getattr(self.client.cluster, "_threads_per_worker", lambda: psutil.cpu_count() - 1)()
+            * getattr(
+                self.client.cluster,
+                "_threads_per_worker",
+                lambda: guarded_int(psutil.cpu_count()) - 1,
+            )()
             * nworkers
         )  # aim to use half ram per worker
 
