@@ -4,10 +4,9 @@
   config,
   inputs,
   ...
-}: let
-  pkgs-unstable = import inputs.nixpkgs-unstable {system = pkgs.stdenv.system;};
-in {
+}: {
   packages = with pkgs; [
+    act
     arrow-cpp
     flatbuffers
     git
@@ -27,7 +26,6 @@ in {
     libxml2
     llvm_14
     openssl
-    python312
     stdenv.cc.cc
     systemd
     util-linux
