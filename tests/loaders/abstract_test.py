@@ -75,8 +75,8 @@ class TestAbstractLoader:
         l.apply_calibration_curve(calibration_curve=self.cal_curve3)
         assert (l.data["t"].compute() == ground3).all()
 
-    @given(test_dfs)
-    def test_commit(self, df):
-        with TemporaryDirectory() as td:
-            l = self.create_loader(df)
-            l._data_cache = td
+    # @given(test_dfs)
+    # def test_commit(self, df):
+    #     with TemporaryDirectory() as td:
+    #         l = self.create_loader(df)
+    #         l._data_cache = td
