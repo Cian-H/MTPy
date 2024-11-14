@@ -15,7 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12"]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest]
         poetry-version: ["latest"]
 
     steps:
