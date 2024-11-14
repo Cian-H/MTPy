@@ -8,12 +8,6 @@ set -x
 
 echo "Starting build process..."
 
-echo "Updating package lists..."
-sudo apt-get update
-
-echo "Installing required packages..."
-sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev
-
 echo "Installing Rust and Cargo..."
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 source $HOME/.cargo/env
