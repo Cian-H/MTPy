@@ -1,14 +1,7 @@
 [build]
 base = "."
-publish = "site"
-command = """
-  curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-  source $HOME/.cargo/env && \
-  curl -sSL https://install.python-poetry.org | python3 - && \
-  export PATH="$HOME/.local/bin:$PATH" && \
-  poetry install && \
-  poetry run mkdocs build
-  """
+publish = "./site/"
+command = "./build_docs.sh"
 
 [build.environment]
 PYTHON_VERSION = "3.12"
