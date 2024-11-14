@@ -10,6 +10,7 @@ jobs:
   build:
 
     name: Build for ${{ matrix.os }} with Python ${{ matrix.python-version }} via Poetry ${{ matrix.poetry-version }}
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

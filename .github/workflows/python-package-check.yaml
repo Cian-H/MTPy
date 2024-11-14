@@ -10,6 +10,7 @@ jobs:
   check:
 
     name: Check for python ${{ matrix.python-version }}
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
