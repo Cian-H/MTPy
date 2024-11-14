@@ -1,7 +1,0 @@
-[build]
-base = "."
-publish = "./site/"
-command = "./build_docs.sh"
-
-[build.environment]
-PYTHON_VERSION = "3.12"
