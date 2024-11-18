@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Type
+from typing import Any, Dict, Optional, Tuple
 
 import dask
 from dask.distributed import Client, LocalCluster, as_completed
@@ -15,12 +15,9 @@ from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
 import h5py
-import loguru
 import psutil
-from tqdm.auto import tqdm
 
 from mtpy.base.abstract import AbstractBase
-from mtpy.base.feedback.protocol import LoggerProtocol, ProgressBarProtocol
 from mtpy.utils.hdf5_operations import read_bytes_from_hdf_dataset, write_bytes_to_hdf_dataset
 from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
@@ -51,10 +48,6 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             data will be stored. Defaults to "cache".
         cluster_config (Optional[Dict[str, Any]], optional): The configuration parameters for the
             dask cluster. Defaults to {}.
-        logger (LoggerProtocol, optional): The logger to use for logging.
-            Defaults to `loguru.logger`
-        progressbar (Type[ProgressBarProtocol[Any]], optional):
-            A passthrough iterative wrapper that updates a progress bar. Defaults to `tqdm`.
     """
 
     __slots__ = [
@@ -78,10 +71,8 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         fs: Optional[AbstractFileSystem] = None,
         data_cache: Optional[Path | str] = "cache",
         cluster_config: Optional[Dict[str, Any]] = None,
-        logger: LoggerProtocol = loguru.logger,
-        progressbar: Type[ProgressBarProtocol[Any]] = tqdm,
     ) -> None:
-        super().__init__(logger=logger, progressbar=progressbar)
+        super().__init__()
 
         loguru_plugin = LoguruPlugin()
 

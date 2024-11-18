@@ -5,13 +5,8 @@ in the MTPy module can be derived.
 """
 
 from abc import ABCMeta
-from typing import Any, Type
-
-import loguru
-from tqdm.auto import tqdm
 
 from mtpy.base.abstract import AbstractBase
-from mtpy.base.feedback.protocol import LoggerProtocol, ProgressBarProtocol
 
 from .protocol import LoaderProtocol
 
@@ -28,17 +23,8 @@ class AbstractProcessor(AbstractBase, metaclass=ABCMeta):
 
     Args:
         loader (LoaderProtocol): The Loader to be attached to the AbstractProcessor
-        logger (LoggerProtocol, optional): The logger to use for logging.
-            Defaults to `loguru.logger`
-        progressbar (Type[ProgressBarProtocol[Any]], optional):
-            A passthrough iterative wrapper that updates a progress bar. Defaults to `tqdm`.
     """
 
-    def __init__(
-        self: "AbstractProcessor",
-        loader: LoaderProtocol,
-        logger: LoggerProtocol = loguru.logger,
-        progressbar: Type[ProgressBarProtocol[Any]] = tqdm,
-    ) -> None:
-        super().__init__(logger=logger, progressbar=progressbar)
+    def __init__(self: "AbstractProcessor", loader: LoaderProtocol) -> None:
+        super().__init__()
         self.loader = loader

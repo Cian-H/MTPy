@@ -1,15 +1,12 @@
 """Data visualisation components of the MTPy module."""
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, Iterable, Optional, Tuple, Type
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
-import loguru
-from tqdm.auto import tqdm
 
 from mtpy.base.abstract import AbstractBase
-from mtpy.base.feedback.protocol import LoggerProtocol, ProgressBarProtocol
 from mtpy.loaders.protocol import LoaderProtocol
 
 # import dash
@@ -22,10 +19,6 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
 
     Args:
         loader (LoaderProtocol): The data loader associated with this plotter.
-        logger (LoggerProtocol, optional): The logger to use for logging.
-            Defaults to `loguru.logger`
-        progressbar (Type[ProgressBarProtocol[Any]], optional):
-            A passthrough iterative wrapper that updates a progress bar. Defaults to `tqdm`.
     """
 
     def __init__(
@@ -34,10 +27,8 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
         #  dashboard: bool | dash.dash.Dash = False,
         #  dash_args: list = [],
         #  dash_kwargs: dict = {},
-        logger: LoggerProtocol = loguru.logger,
-        progressbar: Type[ProgressBarProtocol[Any]] = tqdm,
     ) -> None:
-        super().__init__(logger=logger, progressbar=progressbar)
+        super().__init__()
 
         import holoviews as hv
 
