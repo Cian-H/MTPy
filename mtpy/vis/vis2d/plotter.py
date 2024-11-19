@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import tomllib
-from typing import Any, Iterable, Optional, Tuple, TypedDict
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, TypedDict
 
 # TEMPORARY FIX FOR WARNINGS
 from datashader.reductions import Reduction
@@ -43,6 +43,8 @@ class _PlotParams(TypedDict):
 
 
 def _guarded_plotparams(t: object) -> _PlotParams:
+    if not TYPE_CHECKING:
+        return t
     if (
         isinstance(t, dict)
         and "x" in t

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import tomllib
-from typing import Any, Iterable, Optional, Tuple, TypedDict
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Tuple, TypedDict
 
 from datashader.reductions import Reduction
 from holoviews.element.chart import Chart
@@ -25,6 +25,8 @@ class _PlotParams(TypedDict):
 
 
 def _guarded_plotparams(t: object) -> _PlotParams:
+    if not TYPE_CHECKING:
+        return t
     if (
         isinstance(t, dict)
         and "x" in t
