@@ -2,10 +2,13 @@
 
 from itertools import repeat
 from pathlib import Path
-from typing import List, cast
+from typing import Any, Dict, List, Optional, cast
 
 import dask
 from dask import array as da
+from dask.distributed import Client
+from dask.distributed.deploy import Cluster
+from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
 import psutil
@@ -23,7 +26,43 @@ else:
 
 
 class AconityLoader(AbstractLoader):
-    """A class for loading and preprocessing data."""
+    """A class for loading and preprocessing data.
+
+    Args:
+        client (Optional[Client], optional): A dask client to use for processing.
+            Defaults to None.
+        cluster (Optional[Cluster], optional): A dask cluster to use for processing.
+            Defaults to None.
+        fs (Optional[AbstractFileSystem], optional): The filesystem on which the data to be
+            loaded can be found. If None will default to LocalFileSystem().
+        data_cache (Optional[Path | str], optional): The directory in which working
+            data will be stored. Defaults to "cache".
+        cluster_config (Optional[Dict[str, Any]], optional): The configuration parameters for the
+            dask cluster. Defaults to {}.
+    """
+
+    def __init__(
+        self: "AconityLoader",
+        client: Optional[Client] = None,
+        cluster: Optional[Cluster] = None,
+        fs: Optional[AbstractFileSystem] = None,
+        data_cache: Optional[Path | str] = "cache",
+        cluster_config: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        super().__init__(
+            client=client,
+            cluster=cluster,
+            fs=fs,
+            data_cache=data_cache,
+            cluster_config=cluster_config,
+        )
+        if __name__ == "__main__":
+            scattered_logger = self.client.scatter(self.logger)
+
+            def set_logger(obj: "AconityLoader") -> None:
+                obj.logger = scattered_logger
+
+            self.client(set_logger, self)
 
     def construct_cached_ddf(
         self: "AconityLoader", data_path: str, chunk_size: int = 3276800
