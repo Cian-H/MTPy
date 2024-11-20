@@ -62,7 +62,7 @@ class AconityLoader(AbstractLoader):
             def set_logger(obj: "AconityLoader") -> None:
                 obj.logger = scattered_logger
 
-            self.client(set_logger, self)
+            self.client.submit(set_logger, self)
 
     def construct_cached_ddf(
         self: "AconityLoader", data_path: str, chunk_size: int = 3276800
