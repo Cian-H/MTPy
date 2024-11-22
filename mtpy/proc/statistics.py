@@ -36,7 +36,11 @@ class Statistics(AbstractProcessor):
         Returns:
             StatsDict: A dict containing the calculated statistics.
         """
-        group: dd.dd.dask_expr._groupby.GroupBy = self.loader.data.groupby(groupby)
+        ddf = self.loader.data
+        if groupby is None:
+            groupby = "overall"
+            ddf = ddf.assign(overall="overall")
+        group: dd.dd.dask_expr._groupby.GroupBy = ddf.groupby(groupby)
         ops: List[dd.dd.dask_expr._collection.Series] = [
             group.min(),
             group.max(),
