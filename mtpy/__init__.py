@@ -1,19 +1,17 @@
-#!/usr/bin/env python3
+"""A python based tool for Meltpool Tomography."""
 
-"""L-PBF meltpool tomography in python.
-
-MTPy is a module containing tools useful for the processing of metal additive
-manufacturing pyrometry data and the generation of graphs and tomographs from
-the resulting meltpool data.
-"""
-
-__version__ = "0.1.0"
+__version__ = "0.3.3"
+__description__ = "A python based tool for Meltpool Tomography."
+__urls__ = {"github": "https://github.com/Cian-H/I-Form_Server_Node_Deployer"}
+__authors__ = ["Cian Hughes <cian.hughes@dcu.ie>"]
 __license__ = "MIT"
-__status__ = "Prototype"
-__modpath__ = __file__[: __file__.rfind("/")]
 
-from . import base, loaders, meltpool_tomography, proc, utils, vis
+__all__ = [
+    "base",
+    "loaders",
+    "meltpool_tomography",
+    "proc",
+    "vis",
+]
 
-__all__ = ["base", "loaders", "proc", "utils", "vis", "meltpool_tomography"]
-
-from .meltpool_tomography import MeltpoolTomography  # noqa
+from . import base, loaders, meltpool_tomography, proc, vis

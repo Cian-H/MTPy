@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mtpy"
-version = "0.3.2"
+version = "0.3.3"
 description = "A python based tool for Meltpool Tomography."
 urls = { github = "https://github.com/Cian-H/I-Form_Server_Node_Deployer" }
 authors = ["Cian Hughes <cian.hughes@dcu.ie>"]
@@ -13,7 +13,7 @@ python = ">=3.11,<3.13"
 numpy = ">=1.22,<2.1"
 matplotlib = "^3.8.3"
 plotly = "^5.20.0"
-dask = {extras = ["complete"], version = "^2024.10.0"}
+dask = { extras = ["complete"], version = "^2024.10.0" }
 distributed = "^2024.10.0"
 tqdm = "^4.66.0"
 psutil = "^6.1.0"
@@ -34,6 +34,7 @@ flatbuffers = "^24.3.25"
 h5py = "^3.12.1"
 typer = "^0.12.5"
 dask-expr = "^1.1.18"
+semver = "^3.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -59,7 +60,7 @@ mkdocs-material = "^9.5.12"
 mkdocs-git-revision-date-localized-plugin = "^1.2.4"
 mkdocs-gen-files = "^0.5.0"
 mkdocstrings-python = "^1.12.2"
-pylint = "^3.1.0" # <- not being used for linting, installed mostly for pyreverse
+pylint = "^3.1.0"                                    # <- not being used for linting, installed mostly for pyreverse
 mkdocs-literate-nav = "^0.6.1"
 mkdocs-section-index = "^0.3.8"
 griffe = "<1.0.0"
@@ -263,9 +264,21 @@ mypy-init-return = true
 allow-star-arg-any = true
 
 [tool.ruff.lint.per-file-ignores]
-"mtpy/utils/tree_metadata/Metadata.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
+"mtpy/utils/tree_metadata/Metadata.pyi" = [
+    "C901",
+    "N802",
+    "N803",
+    "N999",
+    "FBT001",
+]
 "mtpy/utils/tree_metadata/Sha1.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
-"mtpy/utils/tree_metadata/TreeFile.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
+"mtpy/utils/tree_metadata/TreeFile.pyi" = [
+    "C901",
+    "N802",
+    "N803",
+    "N999",
+    "FBT001",
+]
 
 [tool.codespell]
 exclude-file = "docs/assets/example_plot.html"
@@ -282,3 +295,5 @@ pythonpath = [".venv/bin/python"]
 
 [tool.poetry.scripts]
 build-flatbuffer-schemas = "scripts.build_flatbuffer_schemas:main"
+semver = "scripts.semver:main"
+sync_init_vars = "scripts.sync_init_vars:main"

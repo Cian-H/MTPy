@@ -1,12 +1,13 @@
 """Generates mypy typing reports for the module."""
 
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 import subprocess
 
-root = Path(__file__).parent.parent
-reports_dir = root / "docs/status/type_reports/"
+utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
+REPORTS_DIR = utils.ROOT / "docs/status/type_reports/"
 
-reports_dir.mkdir(parents=True, exist_ok=True)
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 subprocess.run(
     [
@@ -15,14 +16,14 @@ subprocess.run(
         "--cache-fine-grained",
         "--sqlite-cache",
         "--html-report",
-        reports_dir,
+        REPORTS_DIR,
         ".",
     ],
     check=True,
 )
 # Copy index.html of the report to type_reports.md
-index = reports_dir / "index.html"
-markdown = reports_dir.parent / "type_reports.md"
+index = REPORTS_DIR / "index.html"
+markdown = REPORTS_DIR.parent / "type_reports.md"
 with index.open("rt") as index_file:
     lines = index_file.readlines()
 # Add style tag to fix table rendering mistake in dark mode
