@@ -11,6 +11,7 @@ from dask.distributed.deploy import Cluster
 from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
 from fsspec.implementations.local import LocalFileSystem
+import numpy as np
 import psutil
 from read_aconity_layers import read_selected_layers
 
@@ -124,7 +125,8 @@ class AconityLoader(AbstractLoader):
             data_fs.get(
                 file_list, local_file_list
             )  # maybe making this async would speed up process?
-            layer_data = read_selected_layers([str(Path(f)) for f in local_file_list])
+            files = [str(Path(f)) for f in local_file_list]
+            layer_data = read_selected_layers() if files else np.array()
             darr = da.from_array(
                 layer_data,
                 chunks=cast(  # Necessary because the type annotation on this arg is incorrect
