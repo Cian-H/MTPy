@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mtpy"
-version = "0.3.3"
+version = "0.3.4"
 description = "A python based tool for Meltpool Tomography."
 urls = { github = "https://github.com/Cian-H/I-Form_Server_Node_Deployer" }
 authors = ["Cian Hughes <cian.hughes@dcu.ie>"]
