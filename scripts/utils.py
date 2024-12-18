@@ -1,8 +1,8 @@
 """Shared utility objects for project scripts."""
 
 from pathlib import Path
-import tomlkit
 
+import tomlkit
 
 ROOT = Path(__file__).parent.parent
 SRC = ROOT / "mtpy"
