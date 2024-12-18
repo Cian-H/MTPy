@@ -295,5 +295,6 @@ pythonpath = [".venv/bin/python"]
 
 [tool.poetry.scripts]
 build-flatbuffer-schemas = "scripts.build_flatbuffer_schemas:main"
-semver = "scripts.semver:main"
+semver = "scripts.semver_pyproj:main"
 sync_init_vars = "scripts.sync_init_vars:main"
+bump = "scripts.bump:main"

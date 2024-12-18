@@ -3,11 +3,19 @@
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
+import inquirer
 from loguru import logger
 import semver
 import tomlkit
 
 utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
+
+
+change_dispatch = {
+    "Patch": semver.Version.bump_patch,
+    "Minor": semver.Version.bump_minor,
+    "Major": semver.Version.bump_major,
+}
 
 
 def main() -> None:
@@ -20,15 +28,19 @@ def main() -> None:
 
 def bump(version: semver.Version) -> semver.Version:
     """Interactively bump semver version."""
-    input_dispatch = {
-        "major": semver.Version.bump_major,
-        "minor": semver.Version.bump_minor,
-        "patch": semver.Version.bump_patch,
-    }
-    response = ""
-    while response not in input_dispatch:
-        response = input(f"What kind of update is this? ({"/".join(input_dispatch.keys())}) ")
-    return input_dispatch[response](version)  # type: ignore
+    response = inquirer.prompt(
+        [
+            inquirer.Checkbox(
+                "change_types",
+                message="What kind of change has been made?",
+                choices=list(change_dispatch.keys()),
+            )
+        ]
+    )
+    out = version
+    for change in response["change_types"]:
+        out = change_dispatch[change](out)  # type: ignore
+    return out
 
 
 def get_version(pyproj: tomlkit.TOMLDocument) -> semver.Version:
