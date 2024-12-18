@@ -126,7 +126,7 @@ class AconityLoader(AbstractLoader):
                 file_list, local_file_list
             )  # maybe making this async would speed up process?
             files = [str(Path(f)) for f in local_file_list]
-            layer_data = read_selected_layers() if files else np.array()
+            layer_data = read_selected_layers(files) if files else np.array()
             darr = da.from_array(
                 layer_data,
                 chunks=cast(  # Necessary because the type annotation on this arg is incorrect
