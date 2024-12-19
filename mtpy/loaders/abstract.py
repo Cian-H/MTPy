@@ -413,7 +413,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 file. Defaults to 512.
 
         Raises:
-            no_metadata: no metadata is found in the target file
+            Exception: no metadata is found in the target file
         """
         metadata_tag: Optional[PathMetadataTree] = None
         try:
