@@ -38,7 +38,7 @@
 
   languages = {
     python = {
-      version = "3.12";
+      version = "3.13";
       enable = true;
       poetry = {
         enable = true;

@@ -1,4 +1,4 @@
-"""An abstract base class defining core shared functionality fo MTPy classes."""
+"""An abstract base class defining core shared functionality for MTPy classes."""
 
 from abc import ABCMeta
 from typing import Any, Type

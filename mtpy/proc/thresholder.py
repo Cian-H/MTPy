@@ -44,16 +44,14 @@ class Thresholder(AbstractProcessor, AbstractBase):
         Args:
             angle (float): the angle by which to rotate the coordinates.
         """
-        # For this entire next section: dask's type hinting sucks.
-        # The best fix I could find involves this typeguarded mess.
-        from mtpy.utils.type_guards import guarded_dask_number, guarded_dask_series
+        from mtpy.utils.type_guards import guarded_dask_series
 
-        sin_theta = guarded_dask_number(sin(angle / degrees_per_rad))
-        cos_theta = guarded_dask_number(cos(angle / degrees_per_rad))
+        sin_theta = sin(angle / degrees_per_rad)
+        cos_theta = cos(angle / degrees_per_rad)
         x = guarded_dask_series(self.loader.data["x"])
         y = guarded_dask_series(self.loader.data["y"])
-        self.loader.data["x"] = (x * (cos_theta)) + (y * (sin_theta))
-        self.loader.data["y"] = (x * (-sin_theta)) + (y * (cos_theta))
+        self.loader.data["x"] = (x.mul(cos_theta)) + (y.mul(sin_theta))
+        self.loader.data["y"] = (x.mul(-sin_theta)) + (y.mul(cos_theta))
 
     def avgspeed_threshold(
         self: "Thresholder", threshold_percent: float = 1, avgof: int = 1

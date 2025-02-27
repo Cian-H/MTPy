@@ -44,7 +44,7 @@ class CombinedPlotter(AbstractPlotter):
 
         This method creates a plot using one of the subplotters. Will execute plot
             function for first subplotter for which the kind is valid. If this
-            behaviour is undesirable subplotters can be targetted using the `kind`
+            behaviour is undesirable subplotters can be targeted using the `kind`
             string via the syntax: "{subplotter_label}-{kind}".
 
         Args:

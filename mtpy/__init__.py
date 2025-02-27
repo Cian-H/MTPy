@@ -7,7 +7,7 @@ manufacturing pyrometry data and the generation of graphs and tomographs from
 the resulting meltpool data.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __description__ = "A python based tool for Meltpool Tomography."
 __urls__ = {"github": "https://github.com/Cian-H/I-Form_Server_Node_Deployer"}
 __authors__ = ["Cian Hughes <cian.hughes@dcu.ie>"]

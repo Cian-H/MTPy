@@ -40,7 +40,7 @@ class TreeFile(object):
         Args:
             self (Metadata): The instance to initialise
             buf (bytes): The buffer to read/write to/from with this class
-            pos (int): The position at which to begin reading/writin
+            pos (int): The position at which to begin reading/writing
         """
         ...
 

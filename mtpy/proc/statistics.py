@@ -40,8 +40,8 @@ class Statistics(AbstractProcessor):
         if groupby is None:
             groupby = "overall"
             ddf = ddf.assign(overall="overall")
-        group: dd.dd.dask_expr._groupby.GroupBy = ddf.groupby(groupby)
-        ops: List[dd.dd.dask_expr._collection.Series] = [
+        group: dd.dask_expr._groupby.GroupBy = ddf.groupby(groupby)
+        ops: List[dd.dask_expr._collection.Series] = [
             group.min(),
             group.max(),
             group.mean(),
@@ -90,7 +90,7 @@ class Statistics(AbstractProcessor):
                 statistical calculations. Defaults to 0.95.
         """
         # Fill a dask pipeline for efficient, optimised stat calculation
-        ops: List[dd.dd.dask_expr._collection.Series] = []
+        ops: List[dd.dask_expr._collection.Series] = []
         if overall:
             ops += [
                 self.loader.data.min(),
@@ -98,7 +98,7 @@ class Statistics(AbstractProcessor):
                 self.loader.data.mean(),
                 self.loader.data.std(),
             ]
-        group: dd.dd.dask_expr._groupby.GroupBy
+        group: dd.dask_expr._groupby.GroupBy
         if layers:
             group = self.loader.data.groupby("z")
             ops += [group.min(), group.max(), group.mean(), group.std()]
@@ -110,10 +110,11 @@ class Statistics(AbstractProcessor):
             ops += [group.min(), group.max(), group.mean(), group.std()]
 
         # Compute results
-        combined_stats: List[dd.dd.dask_expr._collection.Scalar] = dask.compute(*ops)
+        combined_stats: List[dd.DataFrame] = list(dask.compute(*ops))
 
         # Unpack results
-        stats: Dict[str, Dict[str, dd.dd.dask_expr._collection.DataFrame]] = {}
+        stats: Dict[str, Dict[str, dd.DataFrame]] = {}
+        d: Dict[str, dd.DataFrame] = {}
         if overall:
             d = {}
             d["min"], d["max"], d["mean"], d["std"], *combined_stats = combined_stats
@@ -134,10 +135,10 @@ class Statistics(AbstractProcessor):
         # Next, compute derived statistics
         sqrt_len: float = math.sqrt(len(d))
         for d in stats.values():
-            d["stderr"] = d["std"] / sqrt_len
-            d["ci_error"] = confidence_interval * d["stderr"]
-            d["ci_min"] = d["mean"] - d["ci_error"]
-            d["ci_max"] = d["mean"] + d["ci_error"]
+            d["stderr"] = d["std"] / sqrt_len  # type: ignore[assignment, operator]
+            d["ci_error"] = confidence_interval * d["stderr"]  # type: ignore[assignment, operator]
+            d["ci_min"] = d["mean"] - d["ci_error"]  # type: ignore[assignment, operator]
+            d["ci_max"] = d["mean"] + d["ci_error"]  # type: ignore[assignment, operator]
 
         # Finally, export the datasheets based on the file extension given
         self.write_to_file(stats, filepath)
@@ -145,13 +146,13 @@ class Statistics(AbstractProcessor):
 
     def write_to_file(
         self: "Statistics",
-        stats: Dict[str, Dict[str, dd.dd.dask_expr._collection.DataFrame]],
+        stats: Dict[str, Dict[str, dd.dask_expr._collection.DataFrame]],
         filepath: str,
     ) -> None:
         """Writes a dictionary of statistics to a file.
 
         Args:
-            stats (Dict[str, Dict[str, dd.dd.dask_expr._collection.DataFrame]]): the statistics to
+            stats (Dict[str, Dict[str, dd.dask_expr._collection.DataFrame]]): the statistics to
                 be written to file.
             filepath (str): the path to which a datasheet will be written.
         """

@@ -75,7 +75,7 @@ class CSVLoader(AbstractLoader):
         data_path = f"{data_path}/" if data_path[-1] != "/" else data_path
         data_path = f"{data_path}*.csv" if Path(data_path).is_dir() else data_path
         ddf = guarded_dask_dataframe(dd.read_csv(data_path))
-        ddf = ddf.repartition(partition_size=chunk_size)
+        ddf = ddf.repartition(partition_size=str(chunk_size))
 
         self.fs.mkdirs(f"{self._data_cache}/raw", exist_ok=True)
 
