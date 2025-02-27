@@ -64,7 +64,7 @@ class TestAbstractLoader:
                 columns=["x", "y", "z", "t"],
             )
         )
-        ground1, ground2, ground3 = pickle.load(lzma.open(Path(__file__).parent / "data.pickle.xz"))
+        ground1, ground2, ground3 = pickle.load(lzma.open(Path(__file__).parent / "abstract_test_data.pickle.xz"))
         d0 = l.data.copy()
         l.apply_calibration_curve(calibration_curve=self.cal_curve1)
         assert (l.data["t"].compute() == ground1).all()
