@@ -10,6 +10,7 @@ from dask.distributed.deploy import Cluster
 from fsspec import AbstractFileSystem
 
 from mtpy.loaders.aconity import AconityLoader
+from mtpy.loaders.csv import CSVLoader
 from mtpy.loaders.protocol import LoaderProtocol
 from mtpy.proc.processor import Processor
 from mtpy.vis.plotter import Plotter
@@ -37,6 +38,7 @@ class MeltpoolTomography:
 
     _loaders: ClassVar[Dict[str, Type[LoaderProtocol]]] = {
         "aconity": AconityLoader,
+        "csv": CSVLoader,
     }
 
     def __init__(
