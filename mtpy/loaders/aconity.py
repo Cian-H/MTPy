@@ -106,7 +106,7 @@ class AconityLoader(AbstractLoader):
         self.fs.mkdirs(f"{self._data_cache}arr", exist_ok=True)
 
         # Then read files (offloaded to local rust library "read_layers")
-        if self.fs.protocol == "file":
+        if self.fs.protocol == ("file", "local"):
             local_fs = self.fs
             read_arr_cache = f"{self._data_cache}tmp_arr"
         else:
