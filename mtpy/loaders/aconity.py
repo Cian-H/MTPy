@@ -103,12 +103,12 @@ class AconityLoader(AbstractLoader):
 
         # Clear the cache so we can create a new one with the layers to be read
         self.fs.rm(self._data_cache, recursive=True)
-        self.fs.mkdirs(f"{self._data_cache}arr", exist_ok=True)
+        self.fs.mkdirs(f"{self._data_cache}/arr", exist_ok=True)
 
         # Then read files (offloaded to local rust library "read_layers")
         if self.fs.protocol == ("file", "local"):
             local_fs = self.fs
-            read_arr_cache = f"{self._data_cache}tmp_arr"
+            read_arr_cache = f"{self._data_cache}/tmp_arr"
         else:
             local_fs = LocalFileSystem()
             read_arr_cache = "tmp_arr"
@@ -154,7 +154,7 @@ class AconityLoader(AbstractLoader):
         data = guarded_dask_array(da.concatenate(darrays))
         data = data.rechunk(balance=True)
 
-        self.fs.mkdirs(f"{self._data_cache}raw", exist_ok=True)
+        self.fs.mkdirs(f"{self._data_cache}/raw", exist_ok=True)
 
         ddf = dd.from_array(
             data,
@@ -163,7 +163,7 @@ class AconityLoader(AbstractLoader):
         storage_options = getattr(self.fs, "storage_options", {})
         target_options = storage_options.get("target_options", storage_options)
         ddf.to_parquet(
-            self.fs.unstrip_protocol(f"{self._data_cache}raw"),
+            self.fs.unstrip_protocol(f"{self._data_cache}/raw"),
             storage_options=target_options,
             compression="lz4",
             append=True,
@@ -173,16 +173,16 @@ class AconityLoader(AbstractLoader):
         )
 
         local_fs.rm(read_arr_cache, recursive=True)
-        self.fs.mkdirs(f"{self._data_cache}working", exist_ok=True)
+        self.fs.mkdirs(f"{self._data_cache}/working", exist_ok=True)
 
         # if keeping raw data, copy raw files before modifying
-        self.fs.cp(f"{self._data_cache}raw", f"{self._data_cache}working", recursive=True)
+        self.fs.cp(f"{self._data_cache}/raw", f"{self._data_cache}/working", recursive=True)
 
         from mtpy.utils.type_guards import guarded_dask_dataframe
 
         self.data = guarded_dask_dataframe(
             dd.read_parquet(
-                self.fs.unstrip_protocol(f"{self._data_cache}working"),
+                self.fs.unstrip_protocol(f"{self._data_cache}/working"),
                 storage_options=storage_options,
                 parquet_file_extension=".parquet",
             )
