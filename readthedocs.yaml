@@ -8,7 +8,6 @@ build:
     pre_create_environment:
       - asdf plugin add poetry
       - asdf install poetry latest
-      - asdf global poetry latest
     create_environment:
       - poetry install --with docs
     install:
