@@ -7,8 +7,8 @@ build:
   jobs:
     pre_create_environment:
       - asdf plugin add poetry
-      - asdf install poetry latest
-      - asdf global poetry $(asdf list poetry | tail -1 | xargs)
+      - asdf install poetry 1.8.4
+      - asdf global poetry 1.8.4
     create_environment:
       - poetry install --with docs
     install:
