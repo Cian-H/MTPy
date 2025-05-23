@@ -4,10 +4,12 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.13"
-
-mkdocs:
-   configuration: mkdocs.yml
-
-python:
-   install:
-   - requirements: docs/requirements.txt
+  jobs:
+    pre_create_environment:
+      - asdf plugin add poetry
+      - asdf install poetry latest
+      - asdf global poetry latest
+    create_environment:
+      - poetry install --with docs
+    install:
+      - poetry run mkdocs build --site-dir $READTHEDOCS_OUTPUT/html
