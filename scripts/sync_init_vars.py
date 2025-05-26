@@ -1,9 +1,6 @@
 """Syncs metadata variables from pyproject.toml to __init__.py."""
 
-from importlib.machinery import SourceFileLoader
-from pathlib import Path
-
-utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
+from scripts import utils
 
 METADATA_KEYS = ("description", "version", "authors", "license", "urls")
 
@@ -11,8 +8,9 @@ METADATA_KEYS = ("description", "version", "authors", "license", "urls")
 def main() -> None:
     """Syncs metadata variables from pyproject.toml to __init__.py."""
     pyproj = utils.read_pyproject()
+    assert isinstance(pyproj, dict)
     try:
-        poetry_entry = pyproj["tool"]["poetry"]
+        poetry_entry = pyproj.get("tool", {})["poetry"]
     except KeyError as e:
         raise e
     if not isinstance(poetry_entry, dict):

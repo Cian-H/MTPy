@@ -1,10 +1,9 @@
 """Generates mypy typing reports for the module."""
 
-from importlib.machinery import SourceFileLoader
-from pathlib import Path
 import subprocess
 
-utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
+from scripts import utils
+
 REPORTS_DIR = utils.ROOT / "docs/status/type_reports/"
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)

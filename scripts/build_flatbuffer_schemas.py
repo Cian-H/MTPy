@@ -1,10 +1,8 @@
 """Automatically generates submodule for parsing tree metadata flatbuffer."""
 
-from importlib.machinery import SourceFileLoader
-from pathlib import Path
 import subprocess
 
-utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
+from scripts import utils
 
 
 def main() -> None:

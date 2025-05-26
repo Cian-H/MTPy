@@ -1,11 +1,10 @@
 """Generate the code reference pages."""
 
-from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
 import mkdocs_gen_files
 
-utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
+from scripts import utils
 
 nav = mkdocs_gen_files.Nav()
 

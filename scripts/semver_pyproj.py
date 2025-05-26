@@ -1,15 +1,11 @@
 """Automatically and interactively bump semver for this module."""
 
-from importlib.machinery import SourceFileLoader
-from pathlib import Path
-
 import inquirer
 from loguru import logger
 import semver
 import tomlkit
 
-utils = SourceFileLoader("utils", str(Path(__file__).parent / "utils.py")).load_module()
-
+from scripts import utils
 
 change_dispatch = {
     "Patch": semver.Version.bump_patch,
