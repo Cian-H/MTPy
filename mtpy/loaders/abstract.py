@@ -413,14 +413,14 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 file. Defaults to 512.
 
         Raises:
-            no_metadata: no metadata is found in the target file
+            IOError: no metadata is found in the target file
         """
         metadata_tag: Optional[PathMetadataTree] = None
         try:
             # Check for hash metadata tagged onto file
             metadata_tag = read_tree_metadata(self.fs, filepath)
-        except Exception as no_metadata:
-            raise no_metadata
+        except Exception as e:
+            raise IOError from e
         if metadata_tag == self.cache_metadata:
             self.logger.info("Savefile matches current cache. Skipping load...")
             return
