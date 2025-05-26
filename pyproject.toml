@@ -10,31 +10,31 @@ packages = [{ include = "mtpy", from = "." }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
-numpy = ">=1.22,<2.1"
-matplotlib = "^3.8.3"
-plotly = "^5.20.0"
+numpy = "^2.2.6"
+matplotlib = "^3.10.3"
+plotly = "^6.1.1"
 dask = { extras = [
     "complete",
     "dataframe",
     "distributed",
-], version = "^2025.2.0" }
+], version = "^2025.5.1" }
 tqdm = "^4.67.1"
-psutil = "^6.1.0"
-pandas = "^2.2.1"
-tables = "^3.9.2"
-lz4 = "^4.3.3"
-bokeh = "^3.4.0"
-holoviews = "^1.18.3"
-datashader = "^0.17.0"
-dash = "^2.16.1"
-openpyxl = "^3.1.2"
+psutil = "^7.0.0"
+pandas = "^2.2.3"
+tables = "^3.10.2"
+lz4 = "^4.4.4"
+bokeh = "^3.7.3"
+holoviews = "^1.20.2"
+datashader = "^0.18.1"
+dash = "^3.0.4"
+openpyxl = "^3.1.5"
 odfpy = "^1.4.1"
-fsspec = "^2024.3.1"
-pyarrow = ">15.0.0"
-loguru = "^0.7.2"
+fsspec = "^2025.5.1"
+pyarrow = "^20.0.0"
+loguru = "^0.7.3"
 read-aconity-layers = { git = "https://github.com/Cian-H/read_aconity_layers" }
-flatbuffers = "^24.3.25"
-h5py = "^3.12.1"
+flatbuffers = "^25.2.10"
+h5py = "^3.13.0"
 typer = "^0.15.4"
 
 [tool.poetry.group.dev.dependencies]
@@ -110,7 +110,7 @@ exclude = ["docs/", "tests/"]
 # Configure ruff to be *heavily* opinionated. We want to enforce a consistent style across all code.
 # Enable checks for pydocstyle (`D`), pycodestyle (`E`, `W`), Pyflakes (`F`), McCabe Complexity (C90)
 # isort (`I`), pep8 naming (`N`), flake8 (`A`, `ANN`, `B`, `C4`, `EM`, `FBT`, `ICN`, `INT`, `ISC`, `PT`,
-# `PTH`, `RET`, `SIM`, `TCH`, and `TID`), perflint (`PERF`), numpy rules (`NPY`), pandas
+# `PTH`, `RET`, `SIM`, `TC`, and `TID`), perflint (`PERF`), numpy rules (`NPY`), pandas
 # rules (`PD`), pylint (`PL`), ruff rules (`RUF`).
 select = [
     "D",
@@ -133,7 +133,7 @@ select = [
     "PTH",
     "RET",
     "SIM",
-    "TCH",
+    "TC",
     "TID",
     "PERF",
     "NPY",
@@ -150,9 +150,9 @@ select = [
 #       is unenforceable in such a data-heavy library.
 # - PLR0914: same as above.
 # - PLR0917: same as above.
-# - TCH001: the `TYPE_CHECKING` blocks either don't work or i'm too stupid to get them to work.
-# - TCH002: same as above.
-# - TCH003: same as above.
+# - TC001: the `TYPE_CHECKING` blocks either don't work or i'm too stupid to get them to work.
+# - TC002: same as above.
+# - TC003: same as above.
 # - ISC001: Personally, i really like this rule but apparently it can cause issues with the ruff formatter.
 # - D107: Should already be covered by DOC301 in pydoclint
 ignore = [
@@ -162,9 +162,9 @@ ignore = [
     "PLR0913",
     # "PLR0914",
     # "PLR0917",
-    "TCH001",
-    "TCH002",
-    "TCH003",
+    "TC001",
+    "TC002",
+    "TC003",
     "ISC001",
     "D107",
 ]
@@ -209,7 +209,7 @@ fixable = [
     "RUF",
     "SIM",
     "SLF",
-    "TCH",
+    "TC",
     "TID",
     "TRY",
     "UP",
