@@ -15,10 +15,10 @@ __license__ = "MIT"
 __modpath__ = __file__[: __file__.rfind("/")]
 
 __all__ = [
+    "MeltpoolTomography",
     "base",
     "loaders",
     "meltpool_tomography",
-    "MeltpoolTomography",
     "proc",
     "vis",
 ]

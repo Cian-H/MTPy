@@ -106,7 +106,7 @@ class Thresholder(AbstractProcessor, AbstractBase):
                 which to threshold. Defaults to f(x, y): x > y.
         """
         threshold_percent /= 100.0  # convert threshold percent to decimal
-        threshold = threshold_percent * cast(dd.Series, self.loader.data[column]).mean()
+        threshold = threshold_percent * cast("dd.Series", self.loader.data[column]).mean()
         self.loader.data = self.loader.data[comparison_func(self.loader.data[column], threshold)]
         self.loader.data = self.loader.data.extract()
 

@@ -130,7 +130,7 @@ class AconityLoader(AbstractLoader):
             darr = da.from_array(
                 layer_data,
                 chunks=cast(  # Necessary because the type annotation on this arg is incorrect
-                    str,
+                    "str",
                     (
                         (
                             *tuple(repeat(chunk_size, layer_data.shape[0] // chunk_size)),
