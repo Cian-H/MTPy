@@ -13,8 +13,12 @@ python = ">=3.11,<3.14"
 numpy = ">=1.22,<2.1"
 matplotlib = "^3.8.3"
 plotly = "^5.20.0"
-dask = {extras = ["complete", "dataframe", "distributed"], version = "^2025.2.0"}
-tqdm = "^4.66.0"
+dask = { extras = [
+    "complete",
+    "dataframe",
+    "distributed",
+], version = "^2025.2.0" }
+tqdm = "^4.67.1"
 psutil = "^6.1.0"
 pandas = "^2.2.1"
 tables = "^3.9.2"
@@ -31,44 +35,43 @@ loguru = "^0.7.2"
 read-aconity-layers = { git = "https://github.com/Cian-H/read_aconity_layers" }
 flatbuffers = "^24.3.25"
 h5py = "^3.12.1"
-typer = "^0.12.5"
+typer = "^0.15.4"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.1.1"
+pytest = "^8.3.5"
 memory-profiler = "^0.61.0"
 maturin = "^1.5.1"
 graphviz = "^0.20.3"
 line-profiler = "^4.1.2"
 snakeviz = "^2.2.0"
-pre-commit = "^4.0.1"
-mypy = "^1.9.0"
-lxml = "^5.1.0"
-pandas-stubs = "^2.2.1"
-types-tqdm = "^4.66.0"
-types-psutil = "^6.1.0"
-ruff = "^0.7.0"
-hypothesis = { extras = ["numpy"], version = "^6.100.1" }
-pydoclint = "^0.5.9"
-semver = "^3.0.2"
+pre-commit = "^4.2.0"
+mypy = "^1.15.0"
+lxml = "^5.4.0"
+pandas-stubs = "^2.2.3"
+types-tqdm = "^4.67.0"
+types-psutil = "^7.0.0"
+ruff = "^0.11.11"
+hypothesis = { extras = ["numpy"], version = "^6.131.28" }
+pydoclint = "^0.6.6"
+semver = "^3.0.4"
 inquirer = "^3.4.0"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "^1.5.3"
-mkdocstrings = "^0.26.2"
-mkdocs-material = "^9.5.12"
-mkdocs-git-revision-date-localized-plugin = "^1.2.4"
+mkdocs = "^1.6.1"
+mkdocstrings = "^0.29.1"
+mkdocs-material = "^9.6.14"
+mkdocs-git-revision-date-localized-plugin = "^1.4.6"
 mkdocs-gen-files = "^0.5.0"
-mkdocstrings-python = "^1.12.2"
-pylint = "^3.1.0"                                    # <- not being used for linting, installed mostly for pyreverse
-mkdocs-literate-nav = "^0.6.1"
-mkdocs-section-index = "^0.3.8"
-griffe = "<1.0.0"
-mkdocs-autorefs = "^1.2.0"
-mkdocs-mermaid2-plugin = "^1.1.1"
-mkdocs-panzoom-plugin = "^0.1.1"
-mkdocs-typer = "^0.0.3"
+mkdocstrings-python = "^1.16.11"
+pylint = "^3.3.7"                                    # <- not being used for linting, installed mostly for pyreverse
+mkdocs-literate-nav = "^0.6.2"
+mkdocs-section-index = "^0.3.10"
+mkdocs-autorefs = "^1.4.2"
+mkdocs-mermaid2-plugin = "^1.2.1"
+mkdocs-panzoom-plugin = "^0.2.2"
 markdown-callouts = "^0.4.0"
-termynal = "^0.12.1"
+termynal = "^0.13.0"
+mkdocs-typer2 = "^0.1.4"
 
 [[tool.poetry.source]]
 name = "PyPI"

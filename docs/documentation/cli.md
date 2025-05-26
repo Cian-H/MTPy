@@ -1,6 +1,5 @@
 # CLI Reference
 
-::: mkdocs-typer
+::: mkdocs-typer2
     :module: mtpy.cli
-    :command: app
-    :prog_name: mtpy
+    :name: mtpy

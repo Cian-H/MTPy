@@ -67,7 +67,6 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - callouts
-  - mkdocs-typer
 
 plugins:
   - search
@@ -98,6 +97,8 @@ plugins:
             show_inheritance_diagram: true
   - git-revision-date-localized:
       enable_creation_date: true
+  - mkdocs-typer2:
+      pretty: true
 
 extra_javascript:
     - extra/refresh_on_toggle_dark_light.js
