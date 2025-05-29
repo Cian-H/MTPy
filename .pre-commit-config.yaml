@@ -21,7 +21,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.11
+    rev: v0.11.12
     hooks:
       - id: ruff
         types: [python]
@@ -37,17 +37,20 @@ repos:
         exclude: docs|scripts|tests
 
   - repo: https://github.com/python-poetry/poetry
-    rev: 1.8.4
+    rev: 2.1.3
     hooks:
     - id: poetry-check
-    - id: poetry-export
-      args: ["-f", "requirements.txt", "-o", "./requirements.txt"]
     - id: poetry-install
     - id: poetry-lock
 
+  - repo: https://github.com/python-poetry/poetry-plugin-export
+    rev: 1.9.0
+    hooks:
+    - id: poetry-export
+      args: ["-f", "requirements.txt", "-o", "./requirements.txt"]
 
   - repo: https://github.com/jsh9/pydoclint
-    rev: 0.6.6
+    rev: 0.6.7
     hooks:
     - id: pydoclint
       args: ["--style", "google", "./mtpy"]
