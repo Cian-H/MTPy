@@ -32,10 +32,10 @@ odfpy = "^1.4.1"
 fsspec = "^2025.5.1"
 pyarrow = "^20.0.0"
 loguru = "^0.7.3"
-read-aconity-layers = { git = "https://github.com/Cian-H/read_aconity_layers" }
 flatbuffers = "^25.2.10"
 h5py = "^3.13.0"
 typer = "^0.15.4"
+read-aconity-layers = "^0.4.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
