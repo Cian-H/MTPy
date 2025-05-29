@@ -4,7 +4,7 @@ import subprocess
 
 from scripts import utils
 
-REPORTS_DIR = utils.get_mkdocs_site_dir() / "status/type_reports/"
+REPORTS_DIR = utils.get_mkdocs_docs_dir() / "status/type_reports/"
 
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -27,3 +27,9 @@ def get_mkdocs_site_dir() -> Path:
     """Get the site-dir argument for mkdocs at built time."""
     config = get_mkdocs_config()
     return Path(config["site_dir"])
+
+
+def get_mkdocs_docs_dir() -> Path:
+    """Get the site-dir argument for mkdocs at built time."""
+    config = get_mkdocs_config()
+    return Path(config["docs_dir"])

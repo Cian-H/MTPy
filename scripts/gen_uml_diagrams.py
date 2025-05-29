@@ -4,7 +4,7 @@ import subprocess
 
 from scripts import utils
 
-UML_DIR = utils.get_mkdocs_site_dir() / "uml/"
+UML_DIR = utils.get_mkdocs_docs_dir() / "uml/"
 
 UML_DIR.mkdir(parents=True, exist_ok=True)
 
