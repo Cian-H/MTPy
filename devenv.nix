@@ -11,7 +11,6 @@
     flatbuffers
     git
     llvm_14
-    netlify-cli
     zlib
   ];
 

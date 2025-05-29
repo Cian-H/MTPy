@@ -1,12 +1,15 @@
 [tool.poetry]
 name = "mtpy"
-version = "0.4.2"
+version = "0.4.3"
 description = "A python based tool for Meltpool Tomography."
-urls = { github = "https://github.com/Cian-H/I-Form_Server_Node_Deployer" }
 authors = ["Cian Hughes <cian.hughes@dcu.ie>"]
 readme = "README.md"
 license = "MIT"
 packages = [{ include = "mtpy", from = "." }]
+
+[tool.poetry.urls]
+repository = "https://github.com/Cian-H/I-Form_Server_Node_Deployer"
+documentation = "https://mtpylib.readthedocs.io/"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
