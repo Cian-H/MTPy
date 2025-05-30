@@ -173,6 +173,3 @@ docs/status/type_reports*
 .direnv
 .devenv*
 devenv.local.nix
-
-# Local Netlify folder
-.netlify
