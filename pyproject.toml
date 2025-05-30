@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mtpy"
-version = "0.4.3"
+version = "0.4.4"
 description = "A python based tool for Meltpool Tomography."
 authors = ["Cian Hughes <cian.hughes@dcu.ie>"]
 readme = "README.md"
