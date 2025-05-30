@@ -42,7 +42,7 @@ nav:
     - Reference: documentation/reference/
   - Status:
     - UML: uml.md
-    - Type Reports: status/type_reports.md
+    - Type Reports: type_reports.md
   # - FAQ: faq.md
   # - Troubleshooting: troubleshooting.md
   # - Changelog: changelog.md
@@ -71,6 +71,7 @@ markdown_extensions:
 plugins:
   - search
   - autorefs
+  - macros
   - gen-files:
       scripts:
         - scripts/gen_ref_pages.py

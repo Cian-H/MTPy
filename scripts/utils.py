@@ -24,12 +24,17 @@ def get_mkdocs_config() -> Dict[str, Any]:
 
 
 def get_mkdocs_site_dir() -> Path:
-    """Get the site-dir argument for mkdocs at built time."""
+    """Get the site-dir argument for mkdocs at build time."""
     config = get_mkdocs_config()
     return Path(config["site_dir"])
 
 
 def get_mkdocs_docs_dir() -> Path:
-    """Get the site-dir argument for mkdocs at built time."""
+    """Get the site-dir argument for mkdocs at build time."""
     config = get_mkdocs_config()
     return Path(config["docs_dir"])
+
+
+def get_mkdocs_generated_assets_dir() -> Path:
+    """Get the directory for generated static assets at mkdocs build time."""
+    return get_mkdocs_docs_dir() / "assets/generated"
