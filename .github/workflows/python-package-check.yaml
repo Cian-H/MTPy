@@ -2,13 +2,12 @@ name: Python package check
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   check:
-
     name: Check for python ${{ matrix.python-version }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
@@ -18,29 +17,29 @@ jobs:
         python-version: ["3.14"]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Run uv image
-      uses: astral-sh/setup-uv@v5
-      with:
-        enable-cache: true
-    - name: Install Act dependencies
-      if: ${{ env.ACT }}
-      run: |
-        apt-get update && apt-get install sudo -y cargo
-    - name: Install dependencies
-      run: |
-        uv sync
-    - name: Lint with ruff
-      run: |
-        uv run ruff check
-        uv run ruff format --check
-    - name: Check types with ty
-      run: |
-        uv run ty check
-    - name: Check docstrings with pydoclint
-      run: |
-        uv run pydoclint --style google ./mtpy
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run uv image
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Act dependencies
+        if: ${{ env.ACT }}
+        run: |
+          apt-get update && apt-get install sudo -y cargo
+      - name: Install dependencies
+        run: |
+          uv sync --all-groups
+      - name: Lint with ruff
+        run: |
+          uv run ruff check
+          uv run ruff format --check
+      - name: Check types with ty
+        run: |
+          uv run ty check
+      - name: Check docstrings with pydoclint
+        run: |
+          uv run pydoclint --style google ./mtpy
