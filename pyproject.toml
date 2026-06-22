@@ -52,7 +52,7 @@ dev = [
     "types-tqdm>=4.67.0",
     "types-psutil>=7.0.0",
     "ruff>=0.11.11",
-    "hypothesis[numpy]>=6.131.28",
+    "hypothesis[numpy]>=6.155.7",
     "pydoclint>=0.6.6",
     "bumpver>=2023.1129",
     "ty",
