@@ -39,23 +39,19 @@ def guarded_dispatchparams(t: object) -> DispatchParams:
     """
     if not TYPE_CHECKING:
         return t
-    if (
-        isinstance(t, dict)
-        and hasattr(t, "x")
-        and isinstance(str, t["x"])
-        and hasattr(t, "y")
-        and isinstance(str, t["y"])
-        and hasattr(t, "w")
-        and isinstance(str, t["w"])
-    ):
-        return DispatchParams(x=t["x"], y=t["y"], w=t["w"])
+    if isinstance(t, dict):
+        x = t.get("x")
+        y = t.get("y")
+        w = t.get("w")
+        if isinstance(x, str) and isinstance(y, str) and isinstance(w, str):
+            return DispatchParams(x=x, y=y, w=w)
     msg = "Expected DispatchParams"
     raise TypeError(msg)
 
 
 def plot_dispatch(
     kind: str, chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
-) -> Tuple[List[Callable[..., Chart]], List[Dict[str, Any]], Dict[str, Any]]:
+) -> Tuple[List[Callable[..., Chart | Any]], List[Dict[str, Any]], Dict[str, Any]]:
     """A dispatcher for 2d plotting functions.
 
     Args:
@@ -69,7 +65,7 @@ def plot_dispatch(
         ValueError: an unknown kind of 2d plot was given
 
     Returns:
-        Tuple[List[Callable[..., Chart]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
+        Tuple[List[Callable[..., Chart | Any]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
             of (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     if kind == "scatter":
@@ -83,7 +79,7 @@ def plot_dispatch(
 
 def scatter(
     chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
-) -> Tuple[List[Callable[..., Chart]], List[Dict[str, Any]], Dict[str, Any]]:
+) -> Tuple[List[Callable[..., Chart | Any]], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a scatter plot.
 
     Args:
@@ -92,7 +88,7 @@ def scatter(
         **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the scatter plot
 
     Returns:
-        Tuple[List[Callable[..., Chart]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
+        Tuple[List[Callable[..., Chart | Any]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
             of (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     import datashader as ds
@@ -138,7 +134,7 @@ def scatter(
 
 def distribution(
     chunk: DataFrame, aggregator: Optional[Reduction], **kwargs: Unpack[DispatchParams]
-) -> Tuple[List[Callable[..., Chart]], List[Dict[str, Any]], Dict[str, Any]]:
+) -> Tuple[List[Callable[..., Chart | Any]], List[Dict[str, Any]], Dict[str, Any]]:
     """Dispatches a distribution plot.
 
     Args:
@@ -147,7 +143,7 @@ def distribution(
         **kwargs (Unpack[DispatchParams]): keyword arguments to be passed to the distribution plot
 
     Returns:
-        Tuple[List[Callable[..., Chart]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
+        Tuple[List[Callable[..., Chart | Any]], List[Dict[str, Any]], Dict[str, Any]]: a tuple
             of (f_list, kwargs_list, opts) for generating a holoviz plot
     """
     import holoviews as hv

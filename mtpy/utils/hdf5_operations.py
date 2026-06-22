@@ -1,6 +1,8 @@
 """A collection of functions for interacting with HDF5 files."""
 
 import h5py
+import h5py._hl.dataset
+import h5py._hl.group
 import numpy as np
 
 

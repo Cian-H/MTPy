@@ -32,7 +32,7 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
 
         import holoviews as hv
 
-        hv.extension("plotly")
+        hv.extension("plotly")  # type: ignore
 
         self.views: Dict[str, Chart] = {}
         self.view_tag = self.__class__.__name__

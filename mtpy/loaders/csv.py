@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional
 
 import dask
 from dask.distributed import Client
-from dask.distributed.deploy import Cluster
+from dask.distributed.deploy import Cluster  # type: ignore
 from fsspec import AbstractFileSystem
 
 from .abstract import AbstractLoader
@@ -14,7 +14,7 @@ from .abstract import AbstractLoader
 # Lots of type: ignore comments here because mypy is not happy with these conditional imports
 if "GPU" in dask.config.global_config["distributed"]["worker"]["resources"]:
     dask.config.set({"array.backend": "cupy"})
-    from dask_cudf import dataframe as dd
+    from dask_cudf import dataframe as dd  # type: ignore
 else:
     from dask import dataframe as dd
 

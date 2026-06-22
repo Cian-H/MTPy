@@ -9,16 +9,15 @@ on:
 jobs:
   build:
 
-    name: Build for ${{ matrix.os }} with Python ${{ matrix.python-version }} via Poetry ${{ matrix.poetry-version }}
+    name: Build for ${{ matrix.os }} with Python ${{ matrix.python-version }} via uv
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.14"]
         os: [ubuntu-latest]
         # os: [ubuntu-latest, windows-latest]
-        poetry-version: ["latest"]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,17 +25,17 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Run poetry image
-      uses: abatilo/actions-poetry@v2
+    - name: Run uv image
+      uses: astral-sh/setup-uv@v5
       with:
-        poetry-version: ${{ matrix.poetry-version }}
+        enable-cache: true
     - name: Install Act dependencies
       if: ${{ env.ACT }}
       run: |
         apt-get update && apt-get install sudo -y cargo
     - name: Install dependencies
       run: |
-        poetry install
+        uv sync
     - name: Test with pytest
       run: |
-        poetry run pytest
+        uv run pytest

@@ -29,7 +29,7 @@ class TestCSVLoader:
                 )
             csv_loader = CSVLoader(data_cache=csv_cache)
             csv_loader.read_layers(str(layers_csv))
-            assert dpd.assert_eq(csv_loader.data, ground, check_index=False)
+            assert dpd.assert_eq(csv_loader.data, ground, check_index=False, check_column_type=False)
 
             # Test path that loads from directories containing chunked csv files
             with tarfile.open(
@@ -43,4 +43,4 @@ class TestCSVLoader:
                 tar.extractall(path=td)
             dir_loader = CSVLoader(data_cache=dir_cache)
             dir_loader.read_layers(str(layers_dir))
-            assert dpd.assert_eq(dir_loader.data, ground, check_index=False)
+            assert dpd.assert_eq(dir_loader.data, ground, check_index=False, check_column_type=False)

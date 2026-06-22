@@ -1,4 +1,4 @@
-# ruff: noqa: ANN401 # Disable ANN401 since the module is a collection of type guards
+# Disable ANN401 since the module is a collection of type guards
 
 """A module containing type guards for enforcing type safety.
 

@@ -37,7 +37,7 @@ def read_tree_metadata(fs: AbstractFileSystem, filepath: str) -> PathMetadataTre
             tree_meta[path] = {
                 "is_dir": tree_entry.IsDir(),
                 "size": tree_entry.Size(),
-                "hash": int.from_bytes(entry_hash_bytes),
+                "hash": int.from_bytes(entry_hash_bytes or b""),
             }
 
     from mtpy.utils.type_guards import guarded_pathmetadatatree

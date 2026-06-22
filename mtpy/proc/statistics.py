@@ -135,7 +135,7 @@ class Statistics(AbstractProcessor):
         # Next, compute derived statistics
         sqrt_len: float = math.sqrt(len(d))
         for d in stats.values():
-            d["stderr"] = d["std"] / sqrt_len  # type: ignore[assignment, operator]
+            d["stderr"] = d["std"] / sqrt_len  # type: ignore
             d["ci_error"] = confidence_interval * d["stderr"]  # type: ignore[assignment, operator]
             d["ci_min"] = d["mean"] - d["ci_error"]  # type: ignore[assignment, operator]
             d["ci_max"] = d["mean"] + d["ci_error"]  # type: ignore[assignment, operator]
@@ -161,18 +161,18 @@ class Statistics(AbstractProcessor):
                 # combine dataframes into a single sheet
                 combined_df = pd.DataFrame()
                 for statistic, ddf in data.items():
-                    combined_df[[f"{x}_{statistic}".strip("0_") for x in ddf]] = ddf
+                    combined_df[[f"{x}_{statistic}".strip("0_") for x in ddf]] = ddf  # type: ignore
                 # Then, write a sheet to the file for each grouping present
                 self._write(w, combined_df, sheet_name=grouping)
 
     def _get_writer(
         self: "Statistics", filepath: str
-    ) -> pd.ExcelWriter | TextIOWrapper | AbstractBufferedFile:
-        file_extension = filepath.split(".")[-1]
+    ) -> pd.ExcelWriter[Any] | TextIOWrapper | AbstractBufferedFile:
+        file_extension = filepath.rsplit(".", maxsplit=1)[-1]
         storage_options: TOMLDict | None = getattr(self.loader.fs, "storage_options", None)
         if file_extension in {"xls", "xlsx", "xlsm", "xlsb"}:
             return pd.ExcelWriter(filepath, engine="openpyxl", storage_options=storage_options)
-        if filepath.split(".")[-1] in {"odf", "ods", "odt"}:
+        if filepath.rsplit(".", maxsplit=1)[-1] in {"odf", "ods", "odt"}:
             return pd.ExcelWriter(filepath, engine="odf", storage_options=storage_options)
         return self._csv_writer(filepath)
 

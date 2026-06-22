@@ -3,6 +3,9 @@
 # namespace: tree_metadata
 
 import flatbuffers
+import flatbuffers.encode
+import flatbuffers.packer
+import flatbuffers.number_types
 from flatbuffers.compat import import_numpy
 
 np = import_numpy()
@@ -41,7 +44,7 @@ class Metadata(object):
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
             x = self._tab.Indirect(x)
-            from tree_metadata.TreeFile import TreeFile
+            from .TreeFile import TreeFile
 
             obj = TreeFile()
             obj.Init(self._tab.Bytes, x)

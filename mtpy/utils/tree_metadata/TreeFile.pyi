@@ -1,7 +1,8 @@
 from typing import Optional, Type
 
 import flatbuffers
-from tree_metadata.Sha1 import Sha1
+
+from .Sha1 import Sha1
 
 class TreeFile(object):
     __slots__ = ["_tab"]

@@ -1,94 +1,93 @@
-[tool.poetry]
+[project]
 name = "mtpy"
-version = "0.4.4"
+dynamic = ["version"]
 description = "A python based tool for Meltpool Tomography."
-authors = ["Cian Hughes <cian.hughes@dcu.ie>"]
 readme = "README.md"
-license = "MIT"
-packages = [{ include = "mtpy", from = "." }]
+authors = [{ name = "Cian Hughes", email = "cian.hughes@dcu.ie" }]
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.2.6",
+    "matplotlib>=3.10.3",
+    "plotly>=6.1.1",
+    "dask[complete,dataframe,distributed]>=2025.5.1",
+    "tqdm>=4.67.1",
+    "psutil>=7.0.0",
+    "pandas>=2.2.3",
+    "tables>=3.10.2",
+    "lz4>=4.4.4",
+    "bokeh>=3.7.3",
+    "holoviews>=1.20.2",
+    "datashader>=0.18.1",
+    "dash>=3.0.4",
+    "openpyxl>=3.1.5",
+    "odfpy>=1.4.1",
+    "fsspec>=2025.5.1",
+    "pyarrow>=20.0.0",
+    "loguru>=0.7.3",
+    "flatbuffers>=25.2.10",
+    "h5py>=3.13.0",
+    "typer>=0.15.4",
+    "read-aconity-layers>=0.5.0",
+    "mkdocs-coverage>=2.0.0",
+]
 
-[tool.poetry.urls]
+[project.urls]
 repository = "https://github.com/Cian-H/I-Form_Server_Node_Deployer"
 documentation = "https://mtpylib.readthedocs.io/"
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-numpy = "^2.2.6"
-matplotlib = "^3.10.3"
-plotly = "^6.1.1"
-dask = { extras = [
-    "complete",
-    "dataframe",
-    "distributed",
-], version = "^2025.5.1" }
-tqdm = "^4.67.1"
-psutil = "^7.0.0"
-pandas = "^2.2.3"
-tables = "^3.10.2"
-lz4 = "^4.4.4"
-bokeh = "^3.7.3"
-holoviews = "^1.20.2"
-datashader = "^0.18.1"
-dash = "^3.0.4"
-openpyxl = "^3.1.5"
-odfpy = "^1.4.1"
-fsspec = "^2025.5.1"
-pyarrow = "^20.0.0"
-loguru = "^0.7.3"
-flatbuffers = "^25.2.10"
-h5py = "^3.13.0"
-typer = "^0.15.4"
-read-aconity-layers = "^0.4.3"
+[project.license]
+text = "MIT"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.5"
-memory-profiler = "^0.61.0"
-maturin = "^1.5.1"
-graphviz = "^0.20.3"
-line-profiler = "^4.1.2"
-snakeviz = "^2.2.0"
-pre-commit = "^4.2.0"
-mypy = "^1.15.0"
-lxml = "^5.4.0"
-pandas-stubs = "^2.2.3"
-types-tqdm = "^4.67.0"
-types-psutil = "^7.0.0"
-ruff = "^0.11.11"
-hypothesis = { extras = ["numpy"], version = "^6.131.28" }
-pydoclint = "^0.6.6"
-semver = "^3.0.4"
-inquirer = "^3.4.0"
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "memory-profiler>=0.61.0",
+    "maturin>=1.5.1",
+    "graphviz>=0.20.3",
+    "line-profiler>=4.1.2",
+    "snakeviz>=2.2.0",
+    "pre-commit>=4.2.0",
+    "lxml>=5.4.0",
+    "pandas-stubs>=2.2.3",
+    "types-tqdm>=4.67.0",
+    "types-psutil>=7.0.0",
+    "ruff>=0.11.11",
+    "hypothesis[numpy]>=6.131.28",
+    "pydoclint>=0.6.6",
+    "bumpver>=2023.1129",
+    "ty",
+    "pytest-cov>=7.1.0",
+]
+docs = [
+    "mkdocstrings>=0.29.1",
+    "mkdocs-material>=9.6.14",
+    "mkdocs-git-revision-date-localized-plugin>=1.4.6",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocstrings-python>=1.16.11",
+    "mkdocs-literate-nav>=0.6.2",
+    "mkdocs-section-index>=0.3.10",
+    "mkdocs-autorefs>=1.4.2",
+    "mkdocs-mermaid2-plugin>=1.2.1",
+    "mkdocs-panzoom-plugin>=0.2.2",
+    "markdown-callouts>=0.4.0",
+    "mkdocs-typer2>=0.1.4",
+    "mkdocs-macros-plugin>=1.3.7",
+    "mkdocs-coverage>=1.1.0",
+    "properdocs>=1.6.7",
+    "termynal>=0.13.0",
+    "pylint>=4.0.6",
+]
 
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.6.1"
-mkdocstrings = "^0.29.1"
-mkdocs-material = "^9.6.14"
-mkdocs-git-revision-date-localized-plugin = "^1.4.6"
-mkdocs-gen-files = "^0.5.0"
-mkdocstrings-python = "^1.16.11"
-pylint = "^3.3.7"                                    # <- not being used for linting, installed mostly for pyreverse
-mkdocs-literate-nav = "^0.6.2"
-mkdocs-section-index = "^0.3.10"
-mkdocs-autorefs = "^1.4.2"
-mkdocs-mermaid2-plugin = "^1.2.1"
-mkdocs-panzoom-plugin = "^0.2.2"
-markdown-callouts = "^0.4.0"
-termynal = "^0.13.0"
-mkdocs-typer2 = "^0.1.4"
-mkdocs-macros-plugin = "^1.3.7"
-beautifulsoup4 = "^4.13.4"
-
-[[tool.poetry.source]]
-name = "PyPI"
-priority = "primary"
+[tool.hatch.version]
+path = "mtpy/__init__.py"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.black]
 line-length = 100
-target-version = ["py39"]
+target-version = ["py313"]
 include = '\.pyi?$'
 exclude = '''
 \.venv/
@@ -105,10 +104,8 @@ exclude = '''
 '''
 
 [tool.ruff]
-# Same as Black.
 line-length = 100
-# Assume Python 3.11
-target-version = "py311"
+target-version = "py313"
 exclude = ["docs/", "tests/"]
 
 [tool.ruff.lint]
@@ -172,6 +169,7 @@ ignore = [
     "TC003",
     "ISC001",
     "D107",
+    "PLC0415",
 ]
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 fixable = [
@@ -291,17 +289,18 @@ allow-star-arg-any = true
 exclude-file = "docs/assets/example_plot.html"
 ignore-words-list = ["astroid"]
 
-[tool.mypy]
-check_untyped_defs = true
-ignore_missing_imports = true
-exclude = ["docs/", "tests/", "scripts/"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".venv/bin/python"]
+addopts = "--cov=mtpy --cov-report=html"
 
-[tool.poetry.scripts]
-build-flatbuffer-schemas = "scripts.build_flatbuffer_schemas:main"
-semver = "scripts.semver_pyproj:main"
-sync_init_vars = "scripts.sync_init_vars:main"
-bump = "scripts.bump:main"
+[tool.bumpver]
+current_version = "0.5.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = false
+tag = false
+push = false
+
+[tool.bumpver.file_patterns]
+"mtpy/__init__.py" = ['__version__ = "{version}"']

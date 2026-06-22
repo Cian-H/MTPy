@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import dask
 from dask.distributed import Client, LocalCluster, as_completed
-from dask.distributed.deploy import Cluster
+from dask.distributed.deploy import Cluster  # type: ignore
 import flatbuffers
 from fsspec import AbstractFileSystem
 from fsspec.implementations.dirfs import DirFileSystem
@@ -23,13 +23,13 @@ from mtpy.utils.large_hash import large_hash
 from mtpy.utils.log_intercept import LoguruPlugin
 from mtpy.utils.metadata_tagging import read_tree_metadata
 from mtpy.utils.tree_metadata import Metadata, Sha1, TreeFile
-from mtpy.utils.types import CalibrationFunction, PathMetadata, PathMetadataTree
+from mtpy.utils.types import CacheMetadata, CalibrationFunction, PathMetadata, PathMetadataTree
 
 # Conditional imports depending on whether a GPU is present
 # Lots of type: ignore comments here because mypy is not happy with these conditional imports
 if "GPU" in dask.config.global_config["distributed"]["worker"]["resources"]:
     dask.config.set({"array.backend": "cupy"})
-    from dask_cudf import dataframe as dd
+    from dask_cudf import dataframe as dd  # type: ignore
 else:
     from dask import dataframe as dd
 
@@ -273,17 +273,17 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     def tree_metadata(
         self: "AbstractLoader",
         path: Optional[str] = None,
-        meta_dict: Optional[PathMetadataTree] = None,
-    ) -> PathMetadataTree:
+        meta_dict: Optional[Dict[str, PathMetadata]] = None,
+    ) -> Dict[str, PathMetadata]:
         """Generates a tree of metadata for the specified path in the cache.
 
         Args:
             path (Optional[str], optional): The path to generate metadata for. Defaults to None.
-            meta_dict (Optional[PathMetadataTree], optional): An existing metadata dict to add the
-                data to. Defaults to None.
+            meta_dict (Optional[Dict[str, PathMetadata]], optional): An existing metadata dict to
+                add the data to. Defaults to None.
 
         Returns:
-            PathMetadataTree: An amended dict of metadata for the specified path.
+            Dict[str, PathMetadata]: An amended dict of metadata for the specified path.
 
         Raises:
             TypeError: If a path search results in an invalid file during iteration.
@@ -310,7 +310,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 meta_dict = self.tree_metadata(f"{f_as_str}/", meta_dict)
         return meta_dict
 
-    def generate_metadata(self: "AbstractLoader", path: Optional[str] = None) -> PathMetadataTree:
+    def generate_metadata(self: "AbstractLoader", path: Optional[str] = None) -> CacheMetadata:
         """Generates a metadata dictionary for the current cache.
 
         Args:
@@ -318,30 +318,31 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 If None, generates for entire cache. Defaults to None.
 
         Returns:
-            PathMetadataTree: A metadata dict for the specified cache path.
+            CacheMetadata: A metadata dict for the specified cache path.
         """
         if path is None:
             path = str(self._data_cache)
-        meta_dict = {}
-        meta_dict["size"] = sum(self.fs.sizes(self.fs.find(path)))
-        meta_dict["tree"] = self.tree_metadata(path)
+        meta_dict: CacheMetadata = {
+            "size": sum(self.fs.sizes(self.fs.find(path))),
+            "tree": self.tree_metadata(path),
+        }
         return meta_dict
 
     # return metadata for the cache.
     # Caches last metadata result based on checksum of entire cache folder
     @property
-    def cache_metadata(self: "AbstractLoader") -> PathMetadataTree:
+    def cache_metadata(self: "AbstractLoader") -> CacheMetadata:
         """A property containing the entire metadata dict for the current cache.
 
         Returns:
-            PathMetadataTree: A metadata dict for the entire cache
+            CacheMetadata: A metadata dict for the entire cache
         """
         # Check if cache has been modified since last metadata generation.
         # If so, regenerate metadata. Otherwise, return cached metadata.
         if hasattr(self, "_cache_metadata"):
             cur_hash = large_hash(self.fs, str(self._data_cache))
             if self._cache_metadata[0] != cur_hash:
-                self._cache_metadata: Tuple[int, PathMetadataTree] = (
+                self._cache_metadata: Tuple[int, CacheMetadata] = (
                     cur_hash,
                     self.generate_metadata(),
                 )
@@ -462,7 +463,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             for save_filepath, metadata in tree_metadata.items()
             if metadata["hash"] != self.cache_metadata["tree"]["hash"]
         ]
-        unpack_archive_entry = partial(self._unpack_file, self.fs, filepath, self._data_cache_fs)
+        unpack_archive_entry = partial(self._unpack_file, self.fs, filepath)
         futures = self.client.map(unpack_archive_entry, *zip(*queue, strict=False), retries=None)
         for _, readsize in as_completed(futures, with_results=True):
             pbar.update(readsize)
@@ -500,11 +501,11 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         TreeFile.AddSize(builder, file_meta["size"])
         return TreeFile.End(builder)
 
-    def create_metadata_buffer(self: "AbstractLoader", metadata: PathMetadataTree) -> bytearray:
+    def create_metadata_buffer(self: "AbstractLoader", metadata: CacheMetadata) -> bytearray:
         """Creates a bytearray flatbuffer from cache tree metadata.
 
         Args:
-            metadata (PathMetadataTree): The cache tree metadata.
+            metadata (CacheMetadata): The cache tree metadata.
 
         Returns:
             bytearray: A flatbuffer bytearray containing the metadata given.

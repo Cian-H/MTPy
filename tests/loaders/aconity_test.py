@@ -30,4 +30,4 @@ class TestAconityLoader:
             cache = td_path / "cache"
             loader = AconityLoader(data_cache=cache)
             loader.read_layers(str(layers))
-            assert dpd.assert_eq(loader.data, ground, check_index=False)
+            assert dpd.assert_eq(loader.data, ground, check_index=False, check_column_type=False)

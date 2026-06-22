@@ -3,6 +3,9 @@
 # namespace: tree_metadata
 
 import flatbuffers
+import flatbuffers.encode
+import flatbuffers.packer
+import flatbuffers.number_types
 from flatbuffers.compat import import_numpy
 
 np = import_numpy()
@@ -39,7 +42,7 @@ class TreeFile(object):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = o + self._tab.Pos
-            from tree_metadata.Sha1 import Sha1
+            from .Sha1 import Sha1
 
             obj = Sha1()
             obj.Init(self._tab.Bytes, x)

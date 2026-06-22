@@ -92,7 +92,7 @@ class CombinedPlotter(AbstractPlotter):
         for plotter in self.plotters.values():
             try:
                 return plotter.plot(
-                    plot_kind,
+                    kind,
                     filename,
                     add_to_dashboard,
                     *args,

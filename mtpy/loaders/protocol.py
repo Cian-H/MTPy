@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol, TypeGuard, runt
 
 import dask.dataframe as dd
 from dask.distributed import Client
-from dask.distributed.deploy import Cluster
+from dask.distributed.deploy import Cluster  # type: ignore
 from fsspec import AbstractFileSystem
 
 from mtpy.utils.types import CalibrationFunction

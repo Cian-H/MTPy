@@ -42,7 +42,7 @@ nav:
     - Reference: documentation/reference/
   - Status:
     - UML: uml.md
-    - Type Reports: type_reports.md
+    - Coverage: coverage.md
   # - FAQ: faq.md
   # - Troubleshooting: troubleshooting.md
   # - Changelog: changelog.md
@@ -76,7 +76,6 @@ plugins:
       scripts:
         - scripts/gen_ref_pages.py
         - scripts/gen_uml_diagrams.py
-        - scripts/gen_type_reports.py
   - literate-nav:
       nav_file: SUMMARY.md
   - section-index
@@ -100,6 +99,7 @@ plugins:
       enable_creation_date: true
   - mkdocs-typer2:
       pretty: true
+  - coverage
 
 extra_javascript:
     - extra/refresh_on_toggle_dark_light.js

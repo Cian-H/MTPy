@@ -45,18 +45,18 @@ class _PlotParams(TypedDict):
 def _guarded_plotparams(t: object) -> _PlotParams:
     if not TYPE_CHECKING:
         return t
-    if (
-        isinstance(t, dict)
-        and "x" in t
-        and isinstance(t["x"], str)
-        and "y" in t
-        and isinstance(t["y"], str)
-        and "w" in t
-        and isinstance(t["w"], str)
-        and "kind" in t
-        and isinstance(t["kind"], str)
-    ):
-        return _PlotParams(x=t["x"], y=t["y"], w=t["w"], kind=t["kind"])
+    if isinstance(t, dict):
+        x = t.get("x")
+        y = t.get("y")
+        w = t.get("w")
+        kind = t.get("kind")
+        if (
+            (x is None or isinstance(x, str))
+            and (y is None or isinstance(y, str))
+            and (w is None or isinstance(w, str))
+            and isinstance(kind, str)
+        ):
+            return _PlotParams(x=x, y=y, w=w, kind=kind)
     msg = "Expected _PlotParams"
     raise TypeError(msg)
 

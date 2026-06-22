@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, Optional, Type
 
 from dask.distributed import Client
-from dask.distributed.deploy import Cluster
+from dask.distributed.deploy import Cluster  # type: ignore
 from fsspec import AbstractFileSystem
 
 from mtpy.loaders.aconity import AconityLoader

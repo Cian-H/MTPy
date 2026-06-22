@@ -3,6 +3,7 @@
 # namespace: tree_metadata
 
 import flatbuffers
+import flatbuffers.number_types
 from flatbuffers.compat import import_numpy
 
 np = import_numpy()

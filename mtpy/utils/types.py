@@ -5,6 +5,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Mapping,
     Protocol,
     Sized,
     TypedDict,
@@ -44,7 +45,15 @@ class PathMetadata(TypedDict):
     size: int
 
 
-PathMetadataTree = Dict[str, PathMetadata]
+PathMetadataTree = Mapping[str, PathMetadata]
+
+
+class CacheMetadata(TypedDict):
+    """A TypedDict outlining a schema for cache metadata."""
+
+    size: int
+    tree: PathMetadataTree
+
 
 CalibrationFunction = Callable[[dd.Series, dd.Series, dd.Series, dd.Series], dd.Series]
 

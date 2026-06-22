@@ -10,7 +10,6 @@
     arrow-cpp
     flatbuffers
     git
-    llvm_14
     zlib
   ];
 
@@ -24,10 +23,11 @@
     libsodium
     libssh
     libxml2
-    llvm_14
     openssl
+    ruff
     stdenv.cc.cc
     systemd
+    ty
     util-linux
     xz
     zlib
@@ -37,9 +37,9 @@
 
   languages = {
     python = {
-      version = "3.13";
+      version = "3.14";
       enable = true;
-      poetry = {
+      uv = {
         enable = true;
       };
     };
