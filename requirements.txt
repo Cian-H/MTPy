@@ -113,7 +113,6 @@ click==8.4.1 \
     #   dask
     #   distributed
     #   flask
-    #   mkdocs
     #   pydoclint
 cloudpickle==3.1.2 \
     --hash=sha256:7fda9eb655c9c230dab534f1983763de5835249750e85fbcef43aaa30a9a2414 \
@@ -128,7 +127,6 @@ colorama==0.4.6 \
     #   bumpver
     #   click
     #   loguru
-    #   mkdocs
     #   pytest
     #   tqdm
     #   typer
@@ -321,10 +319,6 @@ fsspec==2026.6.0 \
     # via
     #   dask
     #   mtpy
-ghp-import==2.1.0 \
-    --hash=sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619 \
-    --hash=sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343
-    # via mkdocs
 graphviz==0.21 \
     --hash=sha256:20743e7183be82aaaa8ad6c93f8893c923bd6658a04c32ee115edb3c8a835f78 \
     --hash=sha256:54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42
@@ -394,7 +388,6 @@ jinja2==3.1.6 \
     #   dask
     #   distributed
     #   flask
-    #   mkdocs
 kiwisolver==1.5.0 \
     --hash=sha256:012b1eb16e28718fa782b5e61dc6f2da1f0792ca73bd05d54de6cb9561665fc9 \
     --hash=sha256:0255a027391d52944eae1dbb5d4cc5903f57092f3674e8e544cdd2622826b3f0 \
@@ -600,9 +593,7 @@ lz4==4.4.5 \
 markdown==3.10.2 \
     --hash=sha256:994d51325d25ad8aa7ce4ebaec003febcce822c3f8c911e3b17c52f7f589f950 \
     --hash=sha256:e91464b71ae3ee7afd3017d9f358ef0baf158fd9a298db92f1d4761133824c36
-    # via
-    #   mkdocs
-    #   panel
+    # via panel
 markdown-it-py==4.2.0 \
     --hash=sha256:04a21681d6fbb623de53f6f364d352309d4094dd4194040a10fd51833e418d49 \
     --hash=sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a
@@ -660,7 +651,6 @@ markupsafe==3.0.3 \
     # via
     #   flask
     #   jinja2
-    #   mkdocs
     #   werkzeug
 matplotlib==3.11.0 \
     --hash=sha256:03acfeddf87b0dddb11b081ef7740ad445a3ca8bcb6b8e3011b08f2cf802b75c \
@@ -721,24 +711,6 @@ mdurl==0.1.2 \
 memory-profiler==0.61.0 \
     --hash=sha256:400348e61031e3942ad4d4109d18753b2fb08c2f6fb8290671c5513a34182d84 \
     --hash=sha256:4e5b73d7864a1d1292fb76a03e82a3e78ef934d06828a698d9dada76da2067b0
-mergedeep==1.3.4 \
-    --hash=sha256:0096d52e9dad9939c3d975a774666af186eda617e6ca84df4c94dec30004f2a8 \
-    --hash=sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307
-    # via
-    #   mkdocs
-    #   mkdocs-get-deps
-mkdocs==1.6.1 \
-    --hash=sha256:7b432f01d928c084353ab39c57282f29f92136665bdd6abf7c1ec8d822ef86f2 \
-    --hash=sha256:db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e
-    # via mkdocs-coverage
-mkdocs-coverage==2.0.0 \
-    --hash=sha256:628568ae5364eec06581bd6d7d83a56f9682a57350e73f07c298d5e104c7f69a \
-    --hash=sha256:7df7449811ecea1802d42344d925a34eac9a084f22d3140bae234fad8cefa1ad
-    # via mtpy
-mkdocs-get-deps==0.2.2 \
-    --hash=sha256:8ee8d5f316cdbbb2834bc1df6e69c08fe769a83e040060de26d3c19fad3599a1 \
-    --hash=sha256:e7878cbeac04860b8b5e0ca31d3abad3df9411a75a32cde82f8e44b6c16ff650
-    # via mkdocs
 msgpack==1.2.1 \
     --hash=sha256:04c721c2c7448767e9e3f2520a475663d8ee0f09c31890f6d2bd70fd636a9647 \
     --hash=sha256:05f340e47e7e47d2da8db9b53e1bb1d294369e9ef45a747441309f6650b8351d \
@@ -995,7 +967,6 @@ packaging==26.2 \
     #   distributed
     #   holoviews
     #   matplotlib
-    #   mkdocs
     #   panel
     #   panel-material-ui
     #   plotly
@@ -1068,10 +1039,6 @@ partd==1.4.2 \
     --hash=sha256:978e4ac767ec4ba5b86c6eaa52e5a2a3bc748a2ca839e8cc798f1cc6ce6efb0f \
     --hash=sha256:d022c33afbdc8405c226621b015e8067888173d85f7f5ecebb3cafed9a20f02c
     # via dask
-pathspec==1.1.1 \
-    --hash=sha256:17db5ecd524104a120e173814c90367a96a98d07c45b2e10c2f3919fff91bf5a \
-    --hash=sha256:a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189
-    # via mkdocs
 pillow==12.2.0 \
     --hash=sha256:00a2865911330191c0b818c59103b58a5e697cae67042366970a6b6f1b20b7f9 \
     --hash=sha256:03f6fab9219220f041c74aeaa2939ff0062bd5c364ba9ce037197f4c6d498cd9 \
@@ -1131,7 +1098,6 @@ platformdirs==4.10.0 \
     --hash=sha256:31e761a6a0ca04faf7353ea759bdba55652be214725111e5aac52dfa29d4bef7 \
     --hash=sha256:fb516cdb12eb0d857d0cd85a7c57cea4d060bee4578d6cf5a14dfdf8cbf8784a
     # via
-    #   mkdocs-get-deps
     #   python-discovery
     #   textual
     #   virtualenv
@@ -1298,7 +1264,6 @@ python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
     # via
-    #   ghp-import
     #   holoviews
     #   matplotlib
     #   pandas
@@ -1346,14 +1311,7 @@ pyyaml==6.0.3 \
     #   bokeh
     #   dask
     #   distributed
-    #   mkdocs
-    #   mkdocs-get-deps
     #   pre-commit
-    #   pyyaml-env-tag
-pyyaml-env-tag==1.1 \
-    --hash=sha256:17109e1a528561e32f026364712fee1264bc2ea6715120891174ed1b980d2e04 \
-    --hash=sha256:2eb38b75a2d21ee0475d6d97ec19c63287a7e140231e4214969d0eac923cd7ff
-    # via mkdocs
 read-aconity-layers==0.5.0 \
     --hash=sha256:09d9ea9b03f39d745d2794e0694fdfe67018513f6f03b7be3173fa9116e27def \
     --hash=sha256:0be00d5191f0eb54ed03c4672e99f224c6b315b6b9a4710753b4f8f6e5c97026 \
@@ -1613,22 +1571,6 @@ virtualenv==21.5.1 \
     --hash=sha256:55aa670b67bbfb991b03fda39bd3276d92c419d702376e98c5df1c9989a26783 \
     --hash=sha256:dca3bf98275a59c652b69d68e73433e597d977c2da9198882479d1a7188009c8
     # via pre-commit
-watchdog==6.0.0 \
-    --hash=sha256:07df1fdd701c5d4c8e55ef6cf55b8f0120fe1aef7ef39a1c6fc6bc2e606d517a \
-    --hash=sha256:20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2 \
-    --hash=sha256:212ac9b8bf1161dc91bd09c048048a95ca3a4c4f5e5d4a7d1b1a7d5752a7f96f \
-    --hash=sha256:2cce7cfc2008eb51feb6aab51251fd79b85d9894e98ba847408f662b3395ca3c \
-    --hash=sha256:490ab2ef84f11129844c23fb14ecf30ef3d8a6abafd3754a6f75ca1e6654136c \
-    --hash=sha256:7607498efa04a3542ae3e05e64da8202e58159aa1fa4acddf7678d34a35d4f13 \
-    --hash=sha256:76aae96b00ae814b181bb25b1b98076d5fc84e8a53cd8885a318b42b6d3a5134 \
-    --hash=sha256:82dc3e3143c7e38ec49d61af98d6558288c415eac98486a5c581726e0737c00e \
-    --hash=sha256:9041567ee8953024c83343288ccc458fd0a2d811d6a0fd68c4c22609e3490379 \
-    --hash=sha256:9ddf7c82fda3ae8e24decda1338ede66e1c99883db93711d8fb941eaa2d8c282 \
-    --hash=sha256:a175f755fc2279e0b7312c0035d52e27211a5bc39719dd529625b1930917345b \
-    --hash=sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f \
-    --hash=sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680 \
-    --hash=sha256:e3df4cbb9a450c6d49318f6d14f4bbc80d763fa587ba46ec86f99f9e6876bb26
-    # via mkdocs
 werkzeug==3.1.8 \
     --hash=sha256:63a77fb8892bf28ebc3178683445222aa500e48ebad5ec77b0ad80f8726b1f50 \
     --hash=sha256:9bad61a4268dac112f1c5cd4630a56ede601b6ed420300677a869083d70a4c44
