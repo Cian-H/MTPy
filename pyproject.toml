@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/Cian-H/I-Form_Server_Node_Deployer"
+repository = "https://github.com/Cian-H/MTPy"
 documentation = "https://mtpylib.readthedocs.io/"
 
 [project.license]
