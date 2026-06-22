@@ -14,18 +14,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.14"]
+        python-version: ["3.13", "3.13t", "3.14", "3.14t"]
 
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Run uv image
+      - name: Install uv and Python
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+          python-version: ${{ matrix.python-version }}
       - name: Install Act dependencies
         if: ${{ env.ACT }}
         run: |
