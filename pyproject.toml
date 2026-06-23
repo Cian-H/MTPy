@@ -35,6 +35,16 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["mtpy"]
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "tests/",
+    "docs/",
+    "site/",
+    "cache/",
+    ".github/",
+    ".git/",
+]
+
 [tool.hatch.version]
 path = "mtpy/__init__.py"
 
