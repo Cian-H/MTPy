@@ -67,13 +67,13 @@ class TestAbstractLoader:
         ground1, ground2, ground3 = pickle.load(lzma.open(Path(__file__).parent / "abstract_test_data.pickle.xz"))
         d0 = l.data.copy()
         l.apply_calibration_curve(calibration_curve=self.cal_curve1)
-        assert (l.data["t"].compute() == ground1).all()
+        np.testing.assert_allclose(l.data["t"].compute(), ground1)
         l.data = d0.copy()
         l.apply_calibration_curve(calibration_curve=self.cal_curve2)
-        assert (l.data["t"].compute() == ground2).all()
+        np.testing.assert_allclose(l.data["t"].compute(), ground2)
         l.data = d0.copy()
         l.apply_calibration_curve(calibration_curve=self.cal_curve3)
-        assert (l.data["t"].compute() == ground3).all()
+        np.testing.assert_allclose(l.data["t"].compute(), ground3)
 
     # @given(test_dfs)
     # def test_commit(self, df):
