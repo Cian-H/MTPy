@@ -32,6 +32,9 @@ mtpy = "mtpy.__main__:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["mtpy"]
+
 [tool.hatch.version]
 path = "mtpy/__init__.py"
 
