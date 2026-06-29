@@ -17,6 +17,14 @@ updates:
       prefix: "deps"
       prefix-development: "deps-dev"
       include: "scope"
+    groups:
+      major-updates:
+        update-types:
+          - "version-update:semver-major"
+      minor-patch-updates:
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -27,3 +35,11 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "ci"
+    groups:
+      major-updates:
+        update-types:
+          - "version-update:semver-major"
+      minor-patch-updates:
+        update-types:
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
