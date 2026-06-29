@@ -1596,7 +1596,7 @@ wheels = [
 ]
 
 [[package]]
-name = "mtpy"
+name = "mtpylib"
 source = { editable = "." }
 dependencies = [
     { name = "bokeh" },
