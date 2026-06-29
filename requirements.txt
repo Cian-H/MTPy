@@ -349,9 +349,9 @@ h5py==3.16.0 \
     --hash=sha256:fa48993a0b799737ba7fd21e2350fa0a60701e58180fae9f2de834bc39a147ab \
     --hash=sha256:faca8fb4e4319c09d83337adc80b2ca7d5c5a343c2d6f1b6388f32cfecca13c1
     # via mtpy
-holoviews==1.22.1 \
-    --hash=sha256:6f4f0656336035cde1d8103ac6461d7c8ac9a60c4a6d883785cc81f2cc5b8702 \
-    --hash=sha256:7dde3a10bb77aff0982e21786b4f5249c6a9d70c463f5604a49fcf30c0247756
+holoviews==1.23.0 \
+    --hash=sha256:aba47038d488f510f6a99f0186649ffaab7f290a995cee8afcc768d84f729583 \
+    --hash=sha256:d56e63078bfb6936b41e3cbffc821fcb51af5b4f32dd144dcfaf7039e584bdff
     # via mtpy
 hypothesis==6.155.7 \
     --hash=sha256:9f634bdb1f9e9b8ab6ba09431cf2deedb750c96978125a6fb3c5a0f6c6db4131 \
