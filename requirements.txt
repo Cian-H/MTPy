@@ -357,9 +357,9 @@ distlib==0.4.3 \
     --hash=sha256:4b0ce306c966eb73bc3a7b6abad017c556dadd92c44701562cd528ac7fde4d5b \
     --hash=sha256:f152097224a0ae24be5a0f6bae1b9359af82133bce63f98a95f86cae1aede9ed
     # via virtualenv
-distributed==2026.6.0 \
-    --hash=sha256:88b836dc2d85340cad7e08f2611b9336a70ed018d88bc5a70c3721d4a7efcabd \
-    --hash=sha256:ca034e8b4d05b8a92f0655ebd0914e82308509a213889456d7ddd2bd0543439b
+distributed==2026.7.1 \
+    --hash=sha256:64eaf4406a04ad26acdc5b8e32fad6bac522d07539225a530bab49610b0114a9 \
+    --hash=sha256:f7c48ab6961734874521574d75898466703bce93f22f0cff5872c7e4ac6425d4
     # via dask
 docstring-parser-fork==0.0.14 \
     --hash=sha256:4c544f234ef2cc2749a3df32b70c437d77888b1099143a1ad5454452c574b9af \
