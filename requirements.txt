@@ -55,9 +55,9 @@ bokeh==3.9.1 \
 bumpver==2026.1132 \
     --hash=sha256:80b223c23fca9bc9dd569b7a44680949d34bee23a738860d9a9b36f1abe3b0e0 \
     --hash=sha256:b060170e7ff5d9ad7043a9d3d6288c7175f9c126744d08a2d6ef9b8377f6bd60
-certifi==2026.6.17 \
-    --hash=sha256:024c88eeec92ca068db80f02b8b07c9cef7b9fe261d1d535abfd5abd6f6af432 \
-    --hash=sha256:2227dcbaafe0d2f59279d1762ddddc37783ed4354594f194ffc31d20f41fc3db
+certifi==2026.7.22 \
+    --hash=sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775 \
+    --hash=sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55
     # via requests
 cfgv==3.5.0 \
     --hash=sha256:a8dc6b26ad22ff227d2634a65cb388215ce6cc96bbcc5cfde7641ae87e8dacc0 \
