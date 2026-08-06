@@ -44,6 +44,7 @@ class MeltpoolTomography:
     def __init__(
         self: "MeltpoolTomography",
         loader_type: str = "aconity",  # Currently the only one implemented
+        *,
         client: Optional[Client] = None,
         cluster: Optional[Cluster] = None,
         fs: Optional[AbstractFileSystem] = None,

@@ -51,7 +51,7 @@ def distribution2d(target_dir: str, out_path: str, x: str = "x") -> None:
 
 @app.command()
 def scatter3d(
-    target_dir: str, out_path: str, x: str = "x", y: str = "y", z: str = "z", w: str = "t"
+    target_dir: str, out_path: str, *, x: str = "x", y: str = "y", z: str = "z", w: str = "t"
 ) -> None:
     """Creates a 3d scatter plot.
 

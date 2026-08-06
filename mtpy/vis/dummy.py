@@ -59,6 +59,7 @@ class DummyPlotter:
     def generate_view_id(
         self: "DummyPlotter",
         kind: str,
+        *,
         samples: Optional[int | Iterable[int]] = None,
         kwargs: Optional[dict[str, object]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,

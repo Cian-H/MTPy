@@ -72,6 +72,7 @@ class PlotterProtocol(Protocol):
     def generate_view_id(
         self: "PlotterProtocol",
         kind: str,
+        *,
         samples: Optional[int | Iterable[int]] = None,
         kwargs: Optional[dict[str, object]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,

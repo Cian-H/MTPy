@@ -32,7 +32,7 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
 
         import holoviews as hv
 
-        hv.extension("plotly")  # type: ignore
+        hv.extension("plotly")
 
         self.views: Dict[str, Chart] = {}
         self.view_tag = self.__class__.__name__
@@ -94,6 +94,7 @@ class AbstractPlotter(AbstractBase, metaclass=ABCMeta):
     def generate_view_id(
         self: "AbstractPlotter",
         kind: str,
+        *,
         samples: Optional[int | Iterable[int]] = None,
         kwargs: Optional[dict[str, object]] = None,
         xrange: Tuple[Optional[float], Optional[float]] | Optional[float] = None,

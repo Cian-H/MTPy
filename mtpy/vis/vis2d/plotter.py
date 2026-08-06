@@ -190,7 +190,13 @@ class Plotter(AbstractPlotter):
 
         # generate a view id string for caching views
         view_id = self.generate_view_id(
-            kind, samples, guarded_str_key_dict(_kwargs), xrange, yrange, zrange, groupby
+            kind,
+            samples=samples,
+            kwargs=guarded_str_key_dict(_kwargs),
+            xrange=xrange,
+            yrange=yrange,
+            zrange=zrange,
+            groupby=groupby,
         )
 
         func_list, kwargs_list, opts = plot_dispatch(kind, chunk, aggregator, **_kwargs)
