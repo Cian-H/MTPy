@@ -19,9 +19,13 @@ updates:
       include: "scope"
     groups:
       major-updates:
+        patterns:
+          - "*"
         update-types:
           - "version-update:semver-major"
       minor-patch-updates:
+        patterns:
+          - "*"
         update-types:
           - "version-update:semver-minor"
           - "version-update:semver-patch"
@@ -37,9 +41,13 @@ updates:
       prefix: "ci"
     groups:
       major-updates:
+        patterns:
+          - "*"
         update-types:
           - "version-update:semver-major"
       minor-patch-updates:
+        patterns:
+          - "*"
         update-types:
           - "version-update:semver-minor"
           - "version-update:semver-patch"
