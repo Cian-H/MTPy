@@ -47,7 +47,6 @@ dev = [
     "graphviz>=0.20.3",
     "line-profiler>=4.1.2",
     "snakeviz>=2.2.0",
-    "pre-commit>=4.2.0",
     "lxml>=5.4.0",
     "pandas-stubs>=2.2.3",
     "types-tqdm>=4.67.0",
@@ -58,6 +57,7 @@ dev = [
     "bumpver>=2023.1129",
     "ty",
     "pytest-cov>=7.1.0",
+    "prek>=0.4.12",
 ]
 docs = [
     "mkdocstrings>=0.29.1",
@@ -90,14 +90,7 @@ build-backend = "hatchling.build"
 packages = ["mtpy"]
 
 [tool.hatch.build.targets.sdist]
-exclude = [
-    "tests/",
-    "docs/",
-    "site/",
-    "cache/",
-    ".github/",
-    ".git/",
-]
+exclude = ["tests/", "docs/", "site/", "cache/", ".github/", ".git/"]
 
 [tool.black]
 line-length = 100
@@ -124,17 +117,117 @@ exclude = ["docs/", "tests/"]
 
 [tool.ruff.lint]
 select = [
-    "D", "E", "W", "F", "C90", "I", "N", "A", "ANN", "B", "C4", "EM", "FBT", "ICN", "INT", "ISC", "PT", "PTH", "RET", "SIM", "TC", "TID", "PERF", "NPY", "PD", "PL", "RUF",
+    "D",
+    "E",
+    "W",
+    "F",
+    "C90",
+    "I",
+    "N",
+    "A",
+    "ANN",
+    "B",
+    "C4",
+    "EM",
+    "FBT",
+    "ICN",
+    "INT",
+    "ISC",
+    "PT",
+    "PTH",
+    "RET",
+    "SIM",
+    "TC",
+    "TID",
+    "PERF",
+    "NPY",
+    "PD",
+    "PL",
+    "RUF",
 ]
 ignore = [
-    "PD002", "ANN002", "ANN003", "PLR0913", "TC001", "TC002", "TC003", "ISC001", "D107", "PLC0415",
+    "PD002",
+    "ANN002",
+    "ANN003",
+    "PLR0913",
+    "TC001",
+    "TC002",
+    "TC003",
+    "ISC001",
+    "D107",
+    "PLC0415",
 ]
 fixable = [
-    "A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TC", "TID", "TRY", "UP", "YTT",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "I",
+    "N",
+    "Q",
+    "S",
+    "T",
+    "W",
+    "ANN",
+    "ARG",
+    "BLE",
+    "COM",
+    "DJ",
+    "DTZ",
+    "EM",
+    "ERA",
+    "EXE",
+    "FBT",
+    "ICN",
+    "INP",
+    "ISC",
+    "NPY",
+    "PD",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "PYI",
+    "RET",
+    "RSE",
+    "RUF",
+    "SIM",
+    "SLF",
+    "TC",
+    "TID",
+    "TRY",
+    "UP",
+    "YTT",
 ]
 unfixable = []
 exclude = [
-    ".bzr", ".direnv", ".eggs", ".git", ".hg", ".mypy_cache", ".nox", ".pants.d", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "build", "dist", "node_modules", "venv", ".vscode", "docs", "mtpy/utils/tree_metadata/*.py",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    ".vscode",
+    "docs",
+    "mtpy/utils/tree_metadata/*.py",
 ]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 extend-select = ["I"]
@@ -159,9 +252,21 @@ mypy-init-return = true
 allow-star-arg-any = true
 
 [tool.ruff.lint.per-file-ignores]
-"mtpy/utils/tree_metadata/Metadata.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
+"mtpy/utils/tree_metadata/Metadata.pyi" = [
+    "C901",
+    "N802",
+    "N803",
+    "N999",
+    "FBT001",
+]
 "mtpy/utils/tree_metadata/Sha1.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
-"mtpy/utils/tree_metadata/TreeFile.pyi" = ["C901", "N802", "N803", "N999", "FBT001"]
+"mtpy/utils/tree_metadata/TreeFile.pyi" = [
+    "C901",
+    "N802",
+    "N803",
+    "N999",
+    "FBT001",
+]
 
 [tool.codespell]
 exclude-file = "docs/assets/example_plot.html"

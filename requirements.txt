@@ -56,10 +56,6 @@ certifi==2026.7.22 \
     #   httpcore
     #   httpx
     #   requests
-cfgv==3.5.0 \
-    --hash=sha256:a8dc6b26ad22ff227d2634a65cb388215ce6cc96bbcc5cfde7641ae87e8dacc0 \
-    --hash=sha256:d5b1034354820651caa73ede66a6294d6e95c1b00acc5e9b098e917404669132
-    # via pre-commit
 charset-normalizer==3.4.9 \
     --hash=sha256:0327fcd59a935777d83410750c50600ee9571af2846f71ce40f25b13da1ef380 \
     --hash=sha256:0d861473f743244d349b50f850d10eb87aeb22bbdcc8e64f79273c94af5a8226 \
@@ -288,10 +284,6 @@ defusedxml==0.7.1 \
     --hash=sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69 \
     --hash=sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61
     # via odfpy
-distlib==0.4.3 \
-    --hash=sha256:4b0ce306c966eb73bc3a7b6abad017c556dadd92c44701562cd528ac7fde4d5b \
-    --hash=sha256:f152097224a0ae24be5a0f6bae1b9359af82133bce63f98a95f86cae1aede9ed
-    # via virtualenv
 distributed==2026.7.1 \
     --hash=sha256:64eaf4406a04ad26acdc5b8e32fad6bac522d07539225a530bab49610b0114a9 \
     --hash=sha256:f7c48ab6961734874521574d75898466703bce93f22f0cff5872c7e4ac6425d4
@@ -304,12 +296,6 @@ et-xmlfile==2.0.0 \
     --hash=sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa \
     --hash=sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54
     # via openpyxl
-filelock==3.32.2 \
-    --hash=sha256:87dd94cf281e586d135fa51132b8e3d9a598b316e90377a288663c9321036c82 \
-    --hash=sha256:c33351e1f49cae33414acbc6d56784e6ecee82514ec90795da1161fc4836b5b8
-    # via
-    #   python-discovery
-    #   virtualenv
 flask==3.1.3 \
     --hash=sha256:0ef0e52b8a9cd932855379197dd8f94047b359ca0a78695144304cb45f87c9eb \
     --hash=sha256:f4bcbefc124291925f1a26446da31a5178f9483862233b23c0c96a20701f670c
@@ -446,10 +432,6 @@ hypothesis==6.165.2 \
     --hash=sha256:eea4ab5cfdd6c6a23a60777559ea06c34868234fff6542ff6125c0250429348e \
     --hash=sha256:f689976e0eb578afbe8ce37669cb637f00f7c545ad303412947ee4abe2f29ce6 \
     --hash=sha256:f7c68a5684b2e2ad3c33500198a6073b3d04493fd7b1ef34937645ad092b797d
-identify==2.6.19 \
-    --hash=sha256:20e6a87f786f768c092a721ad107fc9df0eb89347be9396cadf3f4abbd1fb78a \
-    --hash=sha256:6be5020c38fcb07da56c53733538a3081ea5aa70d36a156f83044bfbf9173842
-    # via pre-commit
 idna==3.18 \
     --hash=sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2 \
     --hash=sha256:ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848
@@ -917,10 +899,6 @@ nh3==0.3.6 \
     --hash=sha256:f3736c9dd3d1856f80cd031715b84ca75cda2bbb1ac802c3da26bfce590838d7 \
     --hash=sha256:f5ed5fe84aee7f39db95c214a7421bf0499fbf500fec6d86a4e29bfc37971438
     # via panel
-nodeenv==1.10.0 \
-    --hash=sha256:5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827 \
-    --hash=sha256:996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb
-    # via pre-commit
 numba==0.66.0 \
     --hash=sha256:380b2556a2019ccd1e956ae77dd257eaa39403f7520768b626d44b755112785e \
     --hash=sha256:46ae5f2b19e2af3c33c2df100306a90ea2f981c8158b0390f8bf6c20eee7357e \
@@ -1174,10 +1152,6 @@ pillow==12.3.0 \
     # via
     #   bokeh
     #   matplotlib
-platformdirs==4.11.0 \
-    --hash=sha256:0555d18370482847566ffabcaa53ad7c6c1c29f195989ae1ed634a05f76ea1e0 \
-    --hash=sha256:360ccded2b7fce0af0ff80cc8f5942a1c5d99b0e856033acb030bfc634709e74
-    # via virtualenv
 plotly==6.9.0 \
     --hash=sha256:36bebe2f1bb13884774fe61689c329071446f6ce4a8927fb1f0d6fb24f581236 \
     --hash=sha256:967ad33e8c704fed051800d11d985eb206a9c795c14206b30a6f463ed9c67d0d
@@ -1190,9 +1164,24 @@ pluggy==1.6.0 \
     # via
     #   pytest
     #   pytest-cov
-pre-commit==4.6.1 \
-    --hash=sha256:03e809865c7d178b9979d06c761fcbfe6808fdaded8581a745bb110e52050421 \
-    --hash=sha256:0e3b2942510d1fb34eec167a3ec57331bf8442122f1153a9fb8b58f5c49b2717
+prek==0.4.12 \
+    --hash=sha256:04beeba7f40437cd2f36804b84101bd7f3c9fb40b52da46a25604642ab2bfb09 \
+    --hash=sha256:0d188e572c306cc44b96e1bae5647e25b7bd311113f3f3f4a67320c257ee64a3 \
+    --hash=sha256:13e34d9e09bafcbf1f25a01cf86985e2c5e486591d3f45b2786ba3de82e5153a \
+    --hash=sha256:3d0208370da73e8b5bc97f2492dc3975f8dd2c22f4bf6e1f2cf3342503764b52 \
+    --hash=sha256:43b0a5a9d3f2f77871fdcb7893bfc5c8fe7e44f4e603ce6e4712bfec96b2d6f2 \
+    --hash=sha256:45e34a24fba4a4e4568682477158591698efc2375b8d1d418ae424691c4bd01b \
+    --hash=sha256:57dad513831f060cf73808df8edec29d46ec311435aa69f21c80edebf23dc5e1 \
+    --hash=sha256:5904fe6c6ab26e7d8792a3c7f1e3fc8d94fcfb63ad33b247c35f004b62cb6275 \
+    --hash=sha256:87f170cf1ffd6e3a196f947b83dff1f6c2cd68635f8d49740278bebe7b682262 \
+    --hash=sha256:986f52d104b7066190f0f32aebe3467710356de265e9bfd892101ba99371db4d \
+    --hash=sha256:afee229488dcceaea282288e4d7096a93da5a8b85649d9ef506dbdbcd78f38a7 \
+    --hash=sha256:b1005f42920111bec1403c25e8f2f12ec7af0be06686cc3b8dcf85429af908a8 \
+    --hash=sha256:b204844abc7ded983471f576ae8dc13b99e9b8d022e4d4b46176c6654769c9d8 \
+    --hash=sha256:c7733b44ca772ea32ec6a8bee669d0358bdf45873e79767afed196065084f31c \
+    --hash=sha256:cd92000b051e433f26340821cf1cc8e6e3960f1275f3d516ca01f05905abba64 \
+    --hash=sha256:df3eff1db9c24dc293010a07bc7a0ae0c541d55af828f5586405dedc28c4920d \
+    --hash=sha256:fdd27bad8adafea8fe77606950ca09200d59296a47ab131cfb88718d460949d7
 psutil==7.2.2 \
     --hash=sha256:0746f5f8d406af344fd547f1c8daa5f5c33dbc293bb8d6a16d80b4bb88f59372 \
     --hash=sha256:076a2d2f923fd4821644f5ba89f059523da90dc9014e85f8e45a5774ca5bc6f9 \
@@ -1334,10 +1323,6 @@ python-dateutil==2.9.0.post0 \
     #   holoviews
     #   matplotlib
     #   pandas
-python-discovery==1.5.1 \
-    --hash=sha256:ac07f44cade589d954e9d6a1e1468539fdddd2cf676beb51da73e0f156b7c932 \
-    --hash=sha256:e2ea8b884cd1701f386eda8cf327b87743f1dc21b7f784470799537d95635384
-    # via virtualenv
 pyviz-comms==3.0.6 \
     --hash=sha256:4eba6238cd4a7f4add2d11879ce55411785b7d38a7c5dba42c7a0826ca53e6c2 \
     --hash=sha256:73d66b620390d97959b2c4d8a2c0778d41fe20581be4717f01e46b8fae8c5695
@@ -1378,7 +1363,6 @@ pyyaml==6.0.3 \
     #   bokeh
     #   dask
     #   distributed
-    #   pre-commit
 read-aconity-layers==0.5.0 \
     --hash=sha256:09d9ea9b03f39d745d2794e0694fdfe67018513f6f03b7be3173fa9116e27def \
     --hash=sha256:0be00d5191f0eb54ed03c4672e99f224c6b315b6b9a4710753b4f8f6e5c97026 \
@@ -1638,10 +1622,6 @@ urllib3==2.7.0 \
     --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
     --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
     # via requests
-virtualenv==21.7.1 \
-    --hash=sha256:6394973f990536e34c05157179146c020284c42fe01da1dfeb0ba16c345280d9 \
-    --hash=sha256:d0dbfaa5483487baea28d7210ef8d24c9d1bd0f10f449eeb215568825a9b334e
-    # via pre-commit
 werkzeug==3.1.8 \
     --hash=sha256:63a77fb8892bf28ebc3178683445222aa500e48ebad5ec77b0ad80f8726b1f50 \
     --hash=sha256:9bad61a4268dac112f1c5cd4630a56ede601b6ed420300677a869083d70a4c44
