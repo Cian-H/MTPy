@@ -21,8 +21,8 @@ class AbstractBase(metaclass=ABCMeta):  # noqa B024
 
     def __init__(
         self: "AbstractBase",
-        logger: LoggerProtocol = loguru.logger,
-        progressbar: Type[ProgressBarProtocol[Any]] = tqdm,
+        logger: LoggerProtocol = loguru.logger,  # type: ignore
+        progressbar: Type[ProgressBarProtocol[Any]] = tqdm,  # type: ignore
     ) -> None:
         self.logger = logger
         self.progressbar = progressbar

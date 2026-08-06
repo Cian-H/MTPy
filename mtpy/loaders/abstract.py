@@ -65,7 +65,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     ]
 
     def __init__(
-        self: "AbstractLoader",
+        self,
         client: Optional[Client] = None,
         cluster: Optional[Cluster] = None,
         fs: Optional[AbstractFileSystem] = None,
@@ -115,7 +115,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         # Misc configuration attributes
         self._file_suffix = "hdf5"
 
-    def get_memory_limit(self: "AbstractLoader") -> int:
+    def get_memory_limit(self) -> int:
         """Get the memory limit for the current cluster.
 
         Returns:
@@ -140,9 +140,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         )  # aim to use half ram per worker
 
     @abstractmethod
-    def construct_cached_ddf(
-        self: "AbstractLoader", data_path: str, chunk_size: int = 3276800
-    ) -> None:
+    def construct_cached_ddf(self, data_path: str, chunk_size: int = 3276800) -> None:
         """Constructs a cached dask dataframe from the data at the specified path.
 
         Args:
@@ -156,7 +154,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         ...
 
     def read_layers(
-        self: "AbstractLoader",
+        self,
         data_path: str,
         calibration_curve: Optional[CalibrationFunction] = None,
         temp_units: str = "mV",
@@ -182,7 +180,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             self.apply_calibration_curve(calibration_curve=calibration_curve)
         self.temp_units = temp_units
 
-    def commit(self: "AbstractLoader") -> None:
+    def commit(self) -> None:
         """Commits working dataframe to cache."""
         # If data in working doesn't match current dataframe, create new file to replace working
         # if not (self.data == dd.read_parquet("cache/working",)).all().all().compute():
@@ -214,7 +212,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         )
 
     def apply_calibration_curve(
-        self: "AbstractLoader",
+        self,
         calibration_curve: Optional[CalibrationFunction] = None,
         column: Optional[str] = "t",
         units: Optional[str] = None,
@@ -247,7 +245,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         else:
             self.logger.info("No calibration curve given!")
 
-    def reload_raw(self: "AbstractLoader") -> None:
+    def reload_raw(self) -> None:
         """Reloads the raw data from the cache, replacing the current dataframe."""
         working_path = f"{self._data_cache}working"
         raw_path = f"{self._data_cache}raw"
@@ -271,7 +269,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             self.logger.info("working == raw, no changes have been applied")
 
     def tree_metadata(
-        self: "AbstractLoader",
+        self,
         path: Optional[str] = None,
         meta_dict: Optional[Dict[str, PathMetadata]] = None,
     ) -> Dict[str, PathMetadata]:
@@ -310,7 +308,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 meta_dict = self.tree_metadata(f"{f_as_str}/", meta_dict)
         return meta_dict
 
-    def generate_metadata(self: "AbstractLoader", path: Optional[str] = None) -> CacheMetadata:
+    def generate_metadata(self, path: Optional[str] = None) -> CacheMetadata:
         """Generates a metadata dictionary for the current cache.
 
         Args:
@@ -331,7 +329,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
     # return metadata for the cache.
     # Caches last metadata result based on checksum of entire cache folder
     @property
-    def cache_metadata(self: "AbstractLoader") -> CacheMetadata:
+    def cache_metadata(self) -> CacheMetadata:
         """A property containing the entire metadata dict for the current cache.
 
         Returns:
@@ -353,7 +351,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
             )
         return self._cache_metadata[1]
 
-    def save(self: "AbstractLoader", filepath: Path | str = Path("data")) -> None:
+    def save(self, filepath: Path | str = Path("data")) -> None:
         """Save current MTPy session to a file.
 
         Args:
@@ -402,7 +400,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         ).to_hdf(self.fs.open(filepath), "cache/data/raw")
         self.logger.info("Data saved!")
 
-    def _unpack_savefile(self: "AbstractLoader", filepath: str, blocksize: int = 512) -> None:
+    def _unpack_savefile(self, filepath: str, blocksize: int = 512) -> None:
         """Unpacks the specified savefile into the current cache.
 
         Unpacks the specified savefile into the current cache directory. Unmodified files are
@@ -445,7 +443,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         return size
 
     def _extract_cache(
-        self: "AbstractLoader",
+        self,
         filepath: str,
         blocksize: int,
         tree_metadata: PathMetadataTree,
@@ -468,7 +466,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         for _, readsize in as_completed(futures, with_results=True):
             pbar.update(readsize)
 
-    def filepath_relative_to_cache(self: "AbstractLoader", filepath: str) -> str:
+    def filepath_relative_to_cache(self, filepath: str) -> str:
         """Converts a filepath to be relative to the current cache.
 
         Args:
@@ -501,7 +499,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         TreeFile.AddSize(builder, file_meta["size"])
         return TreeFile.End(builder)
 
-    def create_metadata_buffer(self: "AbstractLoader", metadata: CacheMetadata) -> bytearray:
+    def create_metadata_buffer(self, metadata: CacheMetadata) -> bytearray:
         """Creates a bytearray flatbuffer from cache tree metadata.
 
         Args:
@@ -529,7 +527,7 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
         builder.Finish(m)
         return guarded_bytearray(builder.Output())
 
-    def load(self: "AbstractLoader", filepath: Path | str = Path("data")) -> None:
+    def load(self, filepath: Path | str = Path("data")) -> None:
         """Loads the saved MTPy session from the specified file.
 
         Args:

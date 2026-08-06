@@ -27,7 +27,7 @@ class DummyLoader:
     temp_units: str
 
     def read_layers(
-        self: "DummyLoader",
+        self,
         data_path: str = "",
         calibration_curve: Optional[CalibrationFunction] = None,
         temp_units: str = "",
@@ -49,7 +49,7 @@ class DummyLoader:
         self.temp_label = ""
         self.temp_units = ""
 
-    def commit(self: "DummyLoader") -> None:
+    def commit(self) -> None:
         """A placeholder for the `LoaderProtocol.commit` method.
 
         Does nothing in the context of this dummy object.
@@ -57,10 +57,10 @@ class DummyLoader:
         pass
 
     def apply_calibration_curve(
-        self: "DummyLoader",
-        calibration_curve: Optional[CalibrationFunction],
-        temp_column: str,
-        units: Optional[str],
+        self,
+        calibration_curve: Optional[CalibrationFunction] = None,
+        column: Optional[str] = "t",
+        units: Optional[str] = None,
     ) -> None:
         """A placeholder for the `LoaderProtocol.apply_calibration_curve` method.
 
@@ -69,12 +69,14 @@ class DummyLoader:
         Args:
             calibration_curve (Optional[CalibrationFunction], optional): A function for calibration
                 of the data axes. Defaults to None.
-            temp_column (str): The column to designate as the temperature column
-            units (Optional[str], optional): The units for the designated temperature column
+            column (Optional[str], optional): The column to designate as the temperature column.
+                Defaults to "t".
+            units (Optional[str], optional): The units for the designated temperature column.
+                Defaults to None.
         """
         pass
 
-    def save(self: "DummyLoader", filepath: Path | str) -> None:
+    def save(self, filepath: Path | str) -> None:
         """A placeholder for the `LoaderProtocol.save` method.
 
         Does nothing in the context of this dummy object.
@@ -84,7 +86,7 @@ class DummyLoader:
         """
         pass
 
-    def load(self: "DummyLoader", filepath: Path | str) -> None:
+    def load(self, filepath: Path | str) -> None:
         """A placeholder for the `LoaderProtocol.load` method.
 
         Does nothing in this dummy object.

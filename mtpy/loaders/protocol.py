@@ -47,7 +47,7 @@ class LoaderProtocol(Protocol):
     temp_units: str
 
     def __init__(
-        self: "LoaderProtocol",
+        self,
         client: Optional[Client],
         cluster: Optional[Cluster],
         fs: Optional[AbstractFileSystem],
@@ -56,7 +56,7 @@ class LoaderProtocol(Protocol):
     ) -> None: ...
 
     def read_layers(
-        self: "LoaderProtocol",
+        self,
         data_path: str,
         calibration_curve: Optional[CalibrationFunction],
         temp_units: str,
@@ -73,27 +73,29 @@ class LoaderProtocol(Protocol):
         """
         ...
 
-    def commit(self: "LoaderProtocol") -> None:
+    def commit(self) -> None:
         """Commits changes to the self.data DataFrame file cache."""
         ...
 
     def apply_calibration_curve(
-        self: "LoaderProtocol",
-        calibration_curve: Optional[CalibrationFunction],
-        temp_column: str,
-        units: Optional[str],
+        self,
+        calibration_curve: Optional[CalibrationFunction] = None,
+        column: Optional[str] = "t",
+        units: Optional[str] = None,
     ) -> None:
         """Applies a calibration function to the self.data DataFrame columns.
 
         Args:
-            calibration_curve (Optional[CalibrationFunction]): The calibration curve to apply to
-                that data
-            temp_column (str): The self.data DataFrame column that contains the temperature data
-            units (Optional[str]): The units to be applied to the temperature column
+            calibration_curve (Optional[CalibrationFunction], optional): The calibration curve
+                to apply to that data. Defaults to None.
+            column (Optional[str], optional): The self.data DataFrame column that contains
+                the temperature data. Defaults to "t".
+            units (Optional[str], optional): The units to be applied to the temperature column.
+                Defaults to None.
         """
         ...
 
-    def save(self: "LoaderProtocol", filepath: Path | str) -> None:
+    def save(self, filepath: Path | str) -> None:
         """Save the current analysis session to a save file.
 
         Args:
@@ -101,7 +103,7 @@ class LoaderProtocol(Protocol):
         """
         ...
 
-    def load(self: "LoaderProtocol", filepath: Path | str) -> None:
+    def load(self, filepath: Path | str) -> None:
         """Load an analysis session from a save file.
 
         Args:
