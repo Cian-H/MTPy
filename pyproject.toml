@@ -29,6 +29,7 @@ dependencies = [
     "h5py>=3.13.0",
     "typer>=0.15.4",
     "read-aconity-layers>=0.5.0",
+    "scanline-annotator>=0.1.0",
 ]
 
 [project.urls]

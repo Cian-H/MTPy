@@ -4,10 +4,12 @@
 
 ### Basic Usage
 
-To use the most basic functions of MTPy the user can simply import the [`MeltpoolTomography`][mtpy.MeltpoolTomography]
-class and initialise it. Once initialised, this object can read the layer data from a given
-directory and create an interactive html scatterplot using the `read_layers` and `scatter2d`
-methods respectively.
+To use the most basic functions of MTPy the user can simply import the
+[`MeltpoolTomography`][mtpy.MeltpoolTomography] class and initialise it. Once
+initialised, this object can read the layer data from a given directory, apply
+processing like scanline annotation, and create an interactive html scatterplot
+using the `read_layers`, `annotate_scanlines`, and `scatter2d` methods
+respectively.
 
 ```python
 from mtpy import MeltpoolTomography
@@ -16,23 +18,30 @@ from mtpy import MeltpoolTomography
 if __name__ == "__main__":
     mt = MeltpoolTomography()
     mt.read_layers("layers")
+
+    # Process the data to automatically identify and annotate raster scanlines
+    mt.annotate_scanlines()
+
     mt.scatter2d(filename="layers.html")
 ```
 
-NOTE: It is important to note here that for reliable usage the `mt` object must be initialised inside
-an `if __name__ == "__main__":` block. This is because the underlying computational engine
-([`dask`](https://www.dask.org)) will import the running script in multiple subinterpreters
-meaning that omission of this block will result in errors.
+NOTE: It is important to note here that for reliable usage the `mt` object must
+be initialised inside an `if __name__ == "__main__":` block. This is because the
+underlying computational engine ([`dask`](https://www.dask.org)) will import the
+running script in multiple subinterpreters meaning that omission of this block
+will result in errors.
 
 ### Advanced Usage
 
-For users with more complex, advanced needs MTPy provides a modular, composable, and extensively
-documented collection of objects for quickly performing custom data analyses on meltpool data.
+For users with more complex, advanced needs MTPy provides a modular, composable,
+and extensively documented collection of objects for quickly performing custom
+data analyses on meltpool data.
 
-In cases where a full-featured [`MeltpoolTomography`][mtpy.MeltpoolTomography] class is not needed subcomponents may be used
-individually to avoid unnecessary complexity. For example, if we only need to read data produced
-by an Aconity PBF machine and save/load checkpoint files we can simply use the [`AconityLoader`][mtpy.loaders.aconity.AconityLoader]
-subcomponent.
+In cases where a full-featured [`MeltpoolTomography`][mtpy.MeltpoolTomography]
+class is not needed subcomponents may be used individually to avoid unnecessary
+complexity. For example, if we only need to read data produced by an Aconity PBF
+machine and save/load checkpoint files we can simply use the
+[`AconityLoader`][mtpy.loaders.aconity.AconityLoader] subcomponent.
 
 ```python
 from mtpy.loaders.aconity import AconityLoader
@@ -63,42 +72,54 @@ if __name__ == "__main__":
     loader.load("before_analysis.h5")
 ```
 
-Currently, we provide only sucomponents and a top-level composite object encompassing all the
-available functioonality. However, custom composites can also be easily created by overloading
-the `__init__` of the [`MeltpoolTomography`][mtpy.MeltpoolTomography] object.
+Currently, we provide only sucomponents and a top-level composite object
+encompassing all the available functioonality. However, custom composites can
+also be easily created by overloading the `__init__` of the
+[`MeltpoolTomography`][mtpy.MeltpoolTomography] object.
 
 ```python
 from mtpy import MeltpoolTomography
-from mtpy.loaders.aconity import Aconity
+from mtpy.loaders.aconity import AconityLoader
+from mtpy.proc.processor import Processor
 from mtpy.vis.vis2d.plotter import Plotter
 
 
-# Here, we define a custom composite that can only load aconity data
-# and create 2d plots.
+# Here, we define a custom composite that can only load aconity data,
+# process it, and create 2d plots.
 class MyComposite(MeltpoolTomography):
     def __init__( self):
-        self.loader = Aconity()
-        self.plotter = Plotter()
+        self.loader = AconityLoader()
+        self.processor = Processor(self.loader)
+        self.plotter = Plotter(self.loader)
 
 # Then, we can use our custom composite to do some analysis
 if __name__ == "__main__":
     mt = MyComposite()
     mt.read_layers("layers")
+    mt.annotate_scanlines()
     mt.scatter2d(filename="layers.html")
 ```
 
 ### Developer Usage
 
-To develop new components to use with MTPy, the library contains many types compatible with
-mypy type checking to aid with correct implementation. Currently, wach subcomponent type provides
-an abstract class defining some helpful, shared functionality. However, type checking is
-implemented via `typing.Protocol` definitions, meaning that the usage of these abstract classes is
-optional. As long as the components developed match the protocol, they will be recognised as a valid
-and correct implementation by mypy. For example, to implement a custom plotter that can be seamlessly
-integrated with the rest of the MTPy library we simply need to create a class that conforms to the
-[`PlotterProtocol`][mtpy.vis.protocol.PlotterProtocol], which requires the object to have a [`loader`][mtpy.loaders.protocol.LoaderProtocol] and two methods:
-- [`plot`][mtpy.vis.protocol.PlotterProtocol.plot]: to generate plots from the data in `loader`
-- [`generate_view_id`][mtpy.vis.protocol.PlotterProtocol.plot]: to generate unique view ids, to avoid unnecessary reduplication of plots
+To develop new components to use with MTPy, the library contains many types
+compatible with mypy type checking to aid with correct implementation.
+Currently, wach subcomponent type provides an abstract class defining some
+helpful, shared functionality. However, type checking is implemented via
+`typing.Protocol` definitions, meaning that the usage of these abstract classes
+is optional. As long as the components developed match the protocol, they will
+be recognised as a valid and correct implementation by mypy. For example, to
+implement a custom plotter that can be seamlessly integrated with the rest of
+the MTPy library we simply need to create a class that conforms to the
+[`PlotterProtocol`][mtpy.vis.protocol.PlotterProtocol], which requires the
+object to have a [`loader`][mtpy.loaders.protocol.LoaderProtocol] and two
+methods:
+
+- [`plot`][mtpy.vis.protocol.PlotterProtocol.plot]: to generate plots from the
+  data in `loader`
+- [`generate_view_id`][mtpy.vis.protocol.PlotterProtocol.plot]: to generate
+  unique view ids, to avoid unnecessary reduplication of plots
+
 ```python
 # custom_plotter.py
 
@@ -148,26 +169,30 @@ class MyPlotter:
         return hash(params)
 ```
 
-As long as this conforms to the correct protocols, it should be able to be used as a drop-in
-component with the rest of the MTPy library, as described in previous sections.
+As long as this conforms to the correct protocols, it should be able to be used
+as a drop-in component with the rest of the MTPy library, as described in
+previous sections.
 
 ```python
 from mtpy import MeltpoolTomography
-from mtpy.loaders.aconity import Aconity
+from mtpy.loaders.aconity import AconityLoader
+from mtpy.proc.processor import Processor
 
 from custom_plotter import MyPlotter
 
 
-# Here, we define a custom composite that can only load aconity data
-# and create 2d plots.
+# Here, we define a custom composite that can only load aconity data,
+# process it, and create 2d plots using our custom plotter.
 class MyComposite(MeltpoolTomography):
     def __init__( self):
-        self.loader = Aconity()
-        self.plotter = MyPlotter()
+        self.loader = AconityLoader()
+        self.processor = Processor(self.loader)
+        self.plotter = MyPlotter(self.loader)
 
 # Then, we can use our custom composite to do some analysis
 if __name__ == "__main__":
     mt = MyComposite()
     mt.read_layers("layers")
+    mt.annotate_scanlines()
     mt.plot(kind="my_custom_plot")
 ```

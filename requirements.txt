@@ -947,6 +947,7 @@ numpy==2.4.6 \
     #   pandas
     #   pandas-stubs
     #   read-aconity-layers
+    #   scanline-annotator
     #   scipy
     #   tables
     #   xarray
@@ -1377,6 +1378,9 @@ ruff==0.15.18 \
     --hash=sha256:a81beadbbff2c9c245561ae3f77b16709d87f35eec650d0501679239d3449b22 \
     --hash=sha256:b2c9257fcbd4a3e5b977a1904e6facca016bafe2edc17df24db67cfaee03b4e4 \
     --hash=sha256:dac80dc8d26b2257dbefabed62f5d255c3937b4ccb122da1fc634794fa3578b3
+scanline-annotator==0.1.0 \
+    --hash=sha256:98b3f32e6b493be9d6cc68d1037ad0bb2cace68acd48db8f6e24d0614aa7a3f0
+    # via mtpylib
 scipy==1.17.1 \
     --hash=sha256:010f4333c96c9bb1a4516269e33cb5917b08ef2166d5556ca2fd9f082a9e6ea0 \
     --hash=sha256:08b900519463543aa604a06bec02461558a6e1cef8fdbb8098f77a48a83c8118 \
