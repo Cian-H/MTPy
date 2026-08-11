@@ -1,0 +1,33 @@
+name: Dependabot uv update
+
+on:
+  pull_request:
+    paths:
+      - pyproject.toml
+
+permissions:
+  contents: write
+
+jobs:
+  update-lock:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Update uv.lock and requirements.txt
+        run: |
+          uv lock
+          uv export --output-file=requirements.txt
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "dependabot[bot]"
+          git config --global user.email "dependabot[bot]@users.noreply.github.com"
+          git add uv.lock requirements.txt
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update uv.lock and requirements.txt" && git push)
