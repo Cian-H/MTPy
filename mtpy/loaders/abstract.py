@@ -87,12 +87,13 @@ class AbstractLoader(AbstractBase, metaclass=ABCMeta):
                 from mtpy.utils.type_guards import guarded_int
 
                 cpu_count = guarded_int(psutil.cpu_count())
+                n_workers = max(1, cpu_count - 2)
                 cluster = LocalCluster(
-                    n_workers=(cpu_count - 1 * 2),
+                    n_workers=n_workers,
                     threads_per_worker=1,
                     plugins=(loguru_plugin,),
                 )
-                cluster.adapt(minimum=1, maximum=(cpu_count - 1 * 2))
+                cluster.adapt(minimum=1, maximum=n_workers)
             self.cluster: Cluster = cluster
             self.client: Client = Client(self.cluster)
         else:

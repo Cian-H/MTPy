@@ -92,7 +92,7 @@ class AconityLoader(AbstractLoader):
                     )()
                     // 4
                 )
-            except AttributeError:
+            except (AttributeError, ValueError):
                 mem_limit = self.get_memory_limit()
             assert file_size < (mem_limit), "File size too large for available RAM!"
             acc += file_size
