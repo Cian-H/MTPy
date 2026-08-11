@@ -10,5 +10,4 @@ build:
     create_environment:
       - uv sync --all-groups
     install:
-      - uv run pytest
       - uv run properdocs build --site-dir $READTHEDOCS_OUTPUT/html

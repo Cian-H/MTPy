@@ -40,3 +40,6 @@ jobs:
       - name: Check docstrings with pydoclint
         run: |
           uv run pydoclint --style google ./mtpy
+      - name: Run tests with pytest
+        run: |
+          uv run pytest
