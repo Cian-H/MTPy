@@ -114,11 +114,12 @@ class AconityLoader(AbstractLoader):
             read_arr_cache = "tmp_arr"
         local_fs.mkdirs(read_arr_cache, exist_ok=True)
         arr_cache_fs = DirFileSystem(path=read_arr_cache, fs=local_fs)
-        for i, file_list in enumerate(self.progressbar(batches, position=2)):
-            # Read each batch in rust to dask dataframe, then add df to compressed parquet table
-            npy_stack_subdir = str(i)
-            arr_cache_fs.mkdirs(npy_stack_subdir, exist_ok=True)
+        self.fs.mkdirs(f"{self._data_cache}/raw", exist_ok=True)
+        storage_options = getattr(self.fs, "storage_options", {})
+        target_options = storage_options.get("target_options", storage_options)
 
+        for file_list in self.progressbar(batches, position=2):
+            # Read each batch in rust to dask dataframe, then add df to compressed parquet table
             local_file_list = [
                 f"{read_arr_cache}{x}" for x in (x if x[1] == "/" else f"/{x}" for x in file_list)
             ]
@@ -140,37 +141,26 @@ class AconityLoader(AbstractLoader):
                     ),
                 ),
             )
-            da.to_npy_stack(
-                f"{read_arr_cache}/{npy_stack_subdir}",
-                darr,
-                # storage_options=self.fs.storage_options
+            from mtpy.utils.type_guards import guarded_dask_array
+
+            data = guarded_dask_array(darr)
+            data = data.rechunk(balance=True)
+
+            ddf = dd.from_array(
+                data,
+                columns=["x", "y", "z", "t", "rgb"],
+            ).drop("rgb", axis=1)  # The 'RGB' column is superfluous, as far as i can tell.
+
+            ddf.to_parquet(
+                self.fs.unstrip_protocol(f"{self._data_cache}/raw"),
+                storage_options=target_options,
+                compression="lz4",
+                append=True,
+                compute=True,
+                write_metadata_file=True,
+                ignore_divisions=True,
             )
             arr_cache_fs.rm(arr_cache_fs.glob("*.pcd"))
-
-        darrays = [da.from_npy_stack(npy_stack) for npy_stack in local_fs.ls(read_arr_cache)]
-
-        from mtpy.utils.type_guards import guarded_dask_array
-
-        data = guarded_dask_array(da.concatenate(darrays))
-        data = data.rechunk(balance=True)
-
-        self.fs.mkdirs(f"{self._data_cache}/raw", exist_ok=True)
-
-        ddf = dd.from_array(
-            data,
-            columns=["x", "y", "z", "t", "rgb"],
-        ).drop("rgb", axis=1)  # The 'RGB' column is superfluous, as far as i can tell.
-        storage_options = getattr(self.fs, "storage_options", {})
-        target_options = storage_options.get("target_options", storage_options)
-        ddf.to_parquet(
-            self.fs.unstrip_protocol(f"{self._data_cache}/raw"),
-            storage_options=target_options,
-            compression="lz4",
-            append=True,
-            compute=True,
-            write_metadata_file=True,
-            ignore_divisions=True,
-        )
 
         local_fs.rm(read_arr_cache, recursive=True)
         self.fs.mkdirs(f"{self._data_cache}/working", exist_ok=True)
