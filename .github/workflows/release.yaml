@@ -5,6 +5,7 @@ on:
     tags:
       - "v*"
       - "*.*.*"
+  workflow_dispatch:
 
 jobs:
   pypi-publish:
