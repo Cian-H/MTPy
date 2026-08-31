@@ -401,9 +401,9 @@ dash==4.4.1 \
     --hash=sha256:72120a91b10ee4d73f9446efd5d6a4ec218086feed7b1b479d2259844d1f658f \
     --hash=sha256:9356ca7856bc496c12c5b6de5978aaf783e090d07450ee395ade1c0c2cbdf816
     # via mtpylib
-dask==2026.7.1 \
-    --hash=sha256:5727484427665f051e86bf87d021a64d6411141cdc8a20bfe3c1ad2968cc06b7 \
-    --hash=sha256:985ffd6c5e9d7979ede515e84ae8d39b647d6aa64f77600f15714ff65f578fe6
+dask==2026.8.0 \
+    --hash=sha256:8a94c37b5de6d869343340dc26c3c3acca7ec48a3abdabe00ea3abb1125884d5 \
+    --hash=sha256:ccc0c83a189b0398602435189771d28dad7b5773b6089bb8dce14ae732dd782c
     # via
     #   distributed
     #   mtpylib
