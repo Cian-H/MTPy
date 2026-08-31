@@ -506,9 +506,9 @@ h5py==3.16.0 \
     --hash=sha256:fa48993a0b799737ba7fd21e2350fa0a60701e58180fae9f2de834bc39a147ab \
     --hash=sha256:faca8fb4e4319c09d83337adc80b2ca7d5c5a343c2d6f1b6388f32cfecca13c1
     # via mtpylib
-holoviews==1.23.1 \
-    --hash=sha256:43960a6e945aff019816b109873e3088c45c7413f1b679c4dfd1821e2af1a64c \
-    --hash=sha256:97877ee2fcf7bf38ce63f49b731dba75d9b2fcfaf093ca51bd229770a4273cc0
+holoviews==1.23.2 \
+    --hash=sha256:0742d9d1dbc645611f04f8b948558febf556f712872a1e5bc96c37790722e6ca \
+    --hash=sha256:e0c511e6d4db4f370f2550d363c23b70d7ee4f2310f1c7995b0f89cacf1eb107
     # via mtpylib
 hpack==4.2.0 \
     --hash=sha256:0895cfa3b5531fc65fe439c05eb65144f123bf7a394fcaa56aa423548d8e45c0 \
