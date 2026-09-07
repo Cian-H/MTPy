@@ -1410,9 +1410,9 @@ panel-material-ui==0.14.2 \
     --hash=sha256:4b4e9d6f771294d778b6c13ea77348a633d55e48264dfa803f4d8bbd9d5ebf6a \
     --hash=sha256:726b9aecc675c03e2c0f823c03f9a20910052a9a0d2e10b0c4430bcacf824911
     # via panel
-param==2.4.1 \
-    --hash=sha256:364a33bd8a968b053d8a49d319af78dc31b3ccb9661ecb95c29a3ea509d7e443 \
-    --hash=sha256:6cdc0869b3ade232fc6d01691223cf86c2bdb53a6d5ba67a33dba838d8b8cf4c
+param==2.4.2 \
+    --hash=sha256:40ca94b72c97bf1998325738e002d589ce31a7cfb4cc56549f05daa6ccf98043 \
+    --hash=sha256:56f56e991d11cdf9fa8248ca3b1c7d5badfd6b4da3b3886b764b95823d270b07
     # via
     #   datashader
     #   holoviews
