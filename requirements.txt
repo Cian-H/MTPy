@@ -1227,9 +1227,9 @@ multipledispatch==1.0.0 \
     --hash=sha256:0c53cd8b077546da4e48869f49b13164bebafd0c2a5afceb6bb6a316e7fb46e4 \
     --hash=sha256:5c839915465c68206c3e9c473357908216c28383b425361e5d144594bf85a7e0
     # via datashader
-narwhals==2.25.0 \
-    --hash=sha256:1f0f403e8c7e4463cde9bfe78b12fdd809e3ae3dda6d9b2f802934fb9c7a6a8f \
-    --hash=sha256:62c036c810662bf7820b7737077176313bc59350eeeefb808510f388c743e4b2
+narwhals==2.26.0 \
+    --hash=sha256:29326d74f107c347fd1009bd58e38d9f7c7c5b51e6de97bc93dbc325d9038b54 \
+    --hash=sha256:6b9cadca82f375c7e4cf584fdc86ca25da54827307a9c58f94547ee6104b82dd
     # via
     #   bokeh
     #   holoviews
