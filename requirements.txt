@@ -890,9 +890,9 @@ line-profiler==5.0.2 \
     --hash=sha256:d6ce98faff60d9552a30e233648a848682b5d664a7e09e9669163a8f01e28147 \
     --hash=sha256:f6b9d08e85fd48d254ae253e76dc72598e94200ef7002eb1ae0bab4cc9c5e41a \
     --hash=sha256:f90923e1cc4ff8eda1d18e525089fca7bfd6dfe8817ec530a913a2c7444ba0fd
-linkify-it-py==2.1.1 \
-    --hash=sha256:8539a6b470efce90ba9b69e39b848e5b15b7ad89f7f98ca17d3532c243f987dc \
-    --hash=sha256:a78f40fee177eb912e9d2375074108378523c38d3fde5d3ee804f465b6cfbfee
+linkify-it-py==2.2.0 \
+    --hash=sha256:3adc40eb5af300b2605fcfdb968c24e1d780a90f1f2221af7c15e5111e94d443 \
+    --hash=sha256:907acd2d17ac1fbb9ddb62c8957ccbd6158cac602231a15c3b0cd1e215f03cee
     # via panel
 llvmlite==0.49.0 \
     --hash=sha256:00f16db782f4a13c78c5804aedc434e46794a77e89999a168f9401106270e50a \
