@@ -1750,9 +1750,9 @@ pillow==12.3.0 \
     # via
     #   bokeh
     #   matplotlib
-plotly==7.0.0 \
-    --hash=sha256:08b21f1244a97e7a1a699833c4bb2678475aa108b3f1989886ed0b038ebfd849 \
-    --hash=sha256:78cbf7bd06d1b05bb3b8ec1b709864695229b55151b6f7530fbf55517ead6fdd
+plotly==7.1.0 \
+    --hash=sha256:dbb7fa18afce40d0a8e80d1bf162eceb3faa0ce5a77fe741ad09a74cf78f53f3 \
+    --hash=sha256:f860166a4a3d78c69cb1f4a15f28a5c8283eade98a282a698f3bb853a449ace5
     # via
     #   dash
     #   mtpylib
