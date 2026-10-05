@@ -1669,9 +1669,9 @@ panel==1.9.4 \
     # via
     #   holoviews
     #   panel-material-ui
-panel-material-ui==0.14.2 \
-    --hash=sha256:4b4e9d6f771294d778b6c13ea77348a633d55e48264dfa803f4d8bbd9d5ebf6a \
-    --hash=sha256:726b9aecc675c03e2c0f823c03f9a20910052a9a0d2e10b0c4430bcacf824911
+panel-material-ui==0.16.0 \
+    --hash=sha256:5740782f142ecba5bf28ef655506f21db1814a97e85c2a24ea19f8a0ded9e7bd \
+    --hash=sha256:7dedb37dfa11db1cf8dcc4644368f15ab6063c6e9a978daeee1de6692005297b
     # via panel
 param==2.4.2 \
     --hash=sha256:40ca94b72c97bf1998325738e002d589ce31a7cfb4cc56549f05daa6ccf98043 \
