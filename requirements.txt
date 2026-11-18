@@ -40,9 +40,9 @@ blosc2==4.14.1 \
     --hash=sha256:d5e65efe80740651c3b39a9fd98478f073c57bed51f7eebe1fdfe248dc259e37 \
     --hash=sha256:fb2960ff411e2c1cffa6209932b5ee344fb46208906c3de79e8f23531df82e8a
     # via tables
-bokeh==3.10.0 \
-    --hash=sha256:6bb8dbd4a555f71a921be5bd45c3bfaa15b390257fbadae76901927bd58629b7 \
-    --hash=sha256:73f0b0c06d7925ca2b6d52b2dc51c2533a11f667cc6944f1f06c039ccc57c5ce
+bokeh==3.10.1 \
+    --hash=sha256:d73412b6317f70df0ffe6796956af609617523dfdfbc624d4f7f496cd09e8101 \
+    --hash=sha256:e1dc21c4fa02f793b7c6acb2b439311924f46912b1d1ae1c7b058f8245b54fe8
     # via
     #   dask
     #   holoviews
